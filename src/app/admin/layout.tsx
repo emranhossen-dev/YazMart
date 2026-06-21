@@ -1,124 +1,271 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link"; // ফিক্সড: 'next/link' থেকে ইমপোর্ট করা হলো
-import { usePathname, useRouter } from "next/navigation"; // ফিক্সড: useRouter ও এখানে নিয়ে আসা হলো
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { 
-  LayoutDashboard, 
-  Package, 
-  Layers, 
-  Users, 
-  Menu, 
-  X, 
-  LogOut 
+  LayoutDashboard, Package, ShoppingCart, Warehouse, 
+  Factory, Users, CircleDollarSign, Megaphone, FileText, 
+  BarChart3, ShieldAlert, Settings, ChevronDown, ChevronRight, 
+  Menu, X, LogOut, Bell, Search, Globe
 } from "lucide-react";
-import { ThemeToggle } from "../../components/ui/theme-toggle";
-import { signOutAction } from "@/action/auth"; // ফিক্সড রিলেটিভ পাথ
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { signOutAction } from "@/actions/auth";
+
+interface SubMenuItem {
+  name: string;
+  href: string;
+}
+
+interface MenuItem {
+  name: string;
+  href?: string;
+  icon: React.ComponentType<any>;
+  subItems?: SubMenuItem[];
+}
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({
+    Catalog: true, // ডিফল্ট ওপেন
+    Orders: false,
+    Inventory: false,
+  });
+  
   const pathname = usePathname();
   const router = useRouter();
 
-  const menuItems = [
+  const toggleMenu = (menuName: string) => {
+    setOpenMenus(prev => ({ ...prev, [menuName]: !prev[menuName] }));
+  };
+
+  const menuItems: MenuItem[] = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-    { name: "Products", href: "/admin/products", icon: Package },
-    { name: "Categories", href: "/admin/categories", icon: Layers },
-    { name: "Customers", href: "/admin/customers", icon: Users },
+    {
+      name: "Catalog",
+      icon: Package,
+      subItems: [
+        { name: "Products", href: "/admin/products" },
+        { name: "Categories", href: "/admin/categories" },
+        { name: "Brands", href: "/admin/brands" },
+        { name: "Attributes", href: "/admin/attributes" },
+        { name: "Tags", href: "/admin/tags" },
+        { name: "Reviews", href: "/admin/reviews" },
+      ]
+    },
+    {
+      name: "Orders",
+      icon: ShoppingCart,
+      subItems: [
+        { name: "Orders List", href: "/admin/orders" },
+        { name: "Returns", href: "/admin/orders/returns" },
+        { name: "Refunds", href: "/admin/orders/refunds" },
+      ]
+    },
+    {
+      name: "Inventory",
+      icon: Warehouse,
+      subItems: [
+        { name: "Stock Matrix", href: "/admin/inventory" },
+        { name: "Warehouses", href: "/admin/inventory/warehouses" },
+        { name: "Stock Transfer", href: "/admin/inventory/transfer" },
+        { name: "Stock History", href: "/admin/inventory/history" },
+      ]
+    },
+    {
+      name: "Purchase",
+      icon: Factory,
+      subItems: [
+        { name: "Suppliers", href: "/admin/purchase/suppliers" },
+        { name: "Purchase Orders", href: "/admin/purchase/orders" },
+        { name: "Purchase Returns", href: "/admin/purchase/returns" },
+      ]
+    },
+    {
+      name: "Customers",
+      icon: Users,
+      subItems: [
+        { name: "Customers Directory", href: "/admin/customers" },
+        { name: "Customer Groups", href: "/admin/customers/groups" },
+        { name: "Support Tickets", href: "/admin/customers/tickets" },
+      ]
+    },
+    {
+      name: "Finance",
+      icon: CircleDollarSign,
+      subItems: [
+        { name: "Sales Matrix", href: "/admin/finance/sales" },
+        { name: "Expenses Tracker", href: "/admin/finance/expenses" },
+        { name: "Profit & Loss", href: "/admin/finance/profit-loss" },
+        { name: "Accounting Ledger", href: "/admin/finance/accounting" },
+        { name: "Transactions", href: "/admin/finance/transactions" },
+      ]
+    },
+    {
+      name: "Marketing",
+      icon: Megaphone,
+      subItems: [
+        { name: "Coupons", href: "/admin/marketing/coupons" },
+        { name: "Banners Slider", href: "/admin/marketing/banners" },
+        { name: "Campaigns", href: "/admin/marketing/campaigns" },
+        { name: "Newsletter", href: "/admin/marketing/newsletter" },
+        { name: "Notifications", href: "/admin/marketing/notifications" },
+      ]
+    },
+    {
+      name: "Content",
+      icon: FileText,
+      subItems: [
+        { name: "Blogs Management", href: "/admin/content/blogs" },
+        { name: "FAQ Matrix", href: "/admin/content/faq" },
+        { name: "Media Library", href: "/admin/content/media" },
+      ]
+    },
+    {
+      name: "Reports",
+      icon: BarChart3,
+      subItems: [
+        { name: "Sales Report", href: "/admin/reports/sales" },
+        { name: "Inventory Report", href: "/admin/reports/inventory" },
+        { name: "Finance Report", href: "/admin/reports/finance" },
+        { name: "Customer Report", href: "/admin/reports/customers" },
+      ]
+    },
+    {
+      name: "Staff Control",
+      icon: ShieldAlert,
+      subItems: [
+        { name: "Users Directory", href: "/admin/staff" },
+        { name: "Roles & RBAC", href: "/admin/staff/roles" },
+        { name: "Activity Logs", href: "/admin/staff/logs" },
+      ]
+    },
+    {
+      name: "Settings",
+      icon: Settings,
+      subItems: [
+        { name: "General Settings", href: "/admin/settings" },
+        { name: "Payment Gateway", href: "/admin/settings/payment" },
+        { name: "Shipping Matrix", href: "/admin/settings/shipping" },
+        { name: "SEO Optimizer", href: "/admin/settings/seo" },
+      ]
+    }
   ];
 
   const handleLogout = async () => {
     const res = await signOutAction();
-    if (!res.error) {
-      router.push("/auth");
-    }
+    if (!res.error) router.push("/auth");
   };
 
   return (
-    <div className="min-h-screen flex bg-[var(--background)] text-[var(--foreground)]">
-      {/* Mobile Sidebar Overlay */}
+    <div className="min-h-screen flex bg-[var(--background)] text-[var(--foreground)] font-sans antialiased selection:bg-blue-500/30">
+      {/* Mobile Overlay */}
       {sidebarOpen && (
-        <div 
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden" 
-          onClick={() => setSidebarOpen(false)}
-        />
+        <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Sidebar Component */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-[var(--card)] border-r border-[var(--border)] transform transition-transform duration-300 lg:translate-x-0 lg:static lg:flex lg:flex-col ${
+      {/* Dynamic Advanced Sidebar */}
+      <aside className={`fixed inset-y-0 left-0 z-50 w-68 bg-[var(--card)] border-r border-[var(--border)] flex flex-col transform transition-transform duration-300 lg:translate-x-0 lg:static ${
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       }`}>
-        {/* Sidebar Header */}
-        <div className="h-16 flex items-center justify-between px-6 border-b border-[var(--border)]">
-          <Link href="/admin" className="text-lg font-bold tracking-tight">
-            Enterprise <span className="text-blue-500">ERP</span>
+        <div className="h-16 flex items-center justify-between px-5 border-b border-[var(--border)] bg-[var(--background)]/40 backdrop-blur-md">
+          <Link href="/admin" className="text-md font-extrabold tracking-wider uppercase bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">
+            Enterprise OS v1.0
           </Link>
-          <button type="button" className="lg:hidden p-1" onClick={() => setSidebarOpen(false)}>
-            <X className="h-5 w-5" />
+          <button type="button" className="lg:hidden p-1.5 rounded hover:bg-[var(--accent)]" onClick={() => setSidebarOpen(false)}>
+            <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Sidebar Nav Links */}
-        <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+        {/* Sidebar Nav Links Container */}
+        <nav className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto custom-scrollbar select-none">
           {menuItems.map((item) => {
-            const isActive = pathname === item.href;
             const Icon = item.icon;
+            if (item.href) {
+              const isActive = pathname === item.href;
+              return (
+                <Link key={item.name} href={item.href} className={`flex items-center gap-3 px-3 py-2 rounded-md text-xs font-semibold transition-all ${
+                  isActive ? "bg-blue-600 text-white shadow-sm" : "text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
+                }`}>
+                  <Icon className="h-4 w-4 shrink-0" />
+                  <span>{item.name}</span>
+                </Link>
+              );
+            }
+
+            const isMenuOpen = openMenus[item.name];
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium transition-colors ${
-                  isActive 
-                    ? "bg-[var(--primary)] text-[var(--primary-foreground)]" 
-                    : "text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                {item.name}
-              </Link>
+              <div key={item.name} className="space-y-1">
+                <button type="button" onClick={() => toggleMenu(item.name)} className="w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-semibold text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)] transition-all cursor-pointer">
+                  <div className="flex items-center gap-3">
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span>{item.name}</span>
+                  </div>
+                  {isMenuOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                </button>
+                {isMenuOpen && item.subItems && (
+                  <div className="pl-9 space-y-1 border-l border-[var(--border)] ml-5 mt-1">
+                    {item.subItems.map((sub) => {
+                      const isSubActive = pathname === sub.href;
+                      return (
+                        <Link key={sub.name} href={sub.href} className={`block px-3 py-1.5 rounded text-[11px] font-medium transition-colors ${
+                          isSubActive ? "text-blue-500 font-bold bg-blue-500/5" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                        }`}>
+                          {sub.name}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>
 
-        {/* Sidebar Footer (Logout) */}
-        <div className="p-4 border-t border-[var(--border)]">
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-medium text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
-          >
+        {/* Sidebar Footer Logout */}
+        <div className="p-3 border-t border-[var(--border)] bg-[var(--background)]/30">
+          <button type="button" onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-xs font-semibold text-rose-500 hover:bg-rose-500/10 transition-all cursor-pointer">
             <LogOut className="h-4 w-4" />
-            Logout
+            <span>Terminate Session</span>
           </button>
         </div>
       </aside>
 
-      {/* Main Content Shell */}
+      {/* Main Content Operating Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Topbar Component */}
-        <header className="h-16 bg-[var(--card)] border-b border-[var(--border)] flex items-center justify-between px-6">
-          <button 
-            type="button"
-            className="p-2 -ml-2 rounded-md lg:hidden hover:bg-[var(--accent)]"
-            onClick={() => setSidebarOpen(true)}
-          >
+        {/* Topbar Command Center */}
+        <header className="h-16 bg-[var(--card)] border-b border-[var(--border)] flex items-center justify-between px-6 sticky top-0 z-30 shadow-xs">
+          <button type="button" className="p-2 -ml-2 rounded-md lg:hidden hover:bg-[var(--accent)]" onClick={() => setSidebarOpen(true)}>
             <Menu className="h-5 w-5" />
           </button>
 
+          {/* Global Search Bar */}
+          <div className="hidden md:flex items-center gap-2 max-w-sm w-full bg-[var(--background)] border border-[var(--border)] px-3 py-1.5 rounded-md focus-within:border-blue-500 transition-colors">
+            <Search className="h-4 w-4 text-[var(--muted-foreground)]" />
+            <input type="text" placeholder="Global Search (Ctrl + K)..." className="bg-transparent border-none text-xs focus:outline-none w-full" />
+          </div>
+
           <div className="flex items-center gap-4 ml-auto">
+            <button type="button" className="p-2 rounded-md hover:bg-[var(--accent)] text-[var(--muted-foreground)] relative">
+              <Bell className="h-4 w-4" />
+              <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-blue-500 rounded-full" />
+            </button>
             <ThemeToggle />
-            <div className="h-8 w-px bg-[var(--border)]" />
+            <div className="h-6 w-px bg-[var(--border)]" />
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center font-bold text-sm text-blue-500">
-                A
+              <div className="w-8 h-8 rounded-md bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-bold text-xs text-white shadow-sm">
+                E
               </div>
-              <span className="text-sm font-medium hidden sm:inline-block">Admin Panel</span>
+              <div className="hidden sm:block text-left">
+                <p className="text-xs font-bold leading-none">Emran Hossen</p>
+                <p className="text-[10px] text-[var(--muted-foreground)] mt-0.5">Super Admin</p>
+              </div>
             </div>
           </div>
         </header>
 
-        {/* Dynamic Page Content */}
-        <main className="flex-1 overflow-y-auto p-6 md:p-8">
+        {/* Dynamic Canvas Workspace */}
+        <main className="flex-1 overflow-y-auto p-5 md:p-8 bg-[var(--background)] text-[var(--foreground)]">
           {children}
         </main>
       </div>
