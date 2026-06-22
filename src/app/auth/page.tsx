@@ -3,126 +3,179 @@
 import React, { useState } from "react";
 import { signInAction, signUpAction } from "@/actions/auth";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { ShoppingBag, Lock, Mail, User, ArrowLeft } from "lucide-react";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export default function AuthPage() {
-    const [isLogin, setIsLogin] = useState(true);
-    const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-    const router = useRouter();
+  const [isLogin, setIsLogin] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const router = useRouter();
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        setLoading(true);
-        setMessage(null);
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage(null);
 
-        const formData = new FormData(e.currentTarget);
+    const formData = new FormData(e.currentTarget);
 
-        try {
-            if (isLogin) {
-                const res = await signInAction(formData);
-                if (res.error) {
-                    setMessage({ type: "error", text: res.error });
-                } else {
-                    setMessage({ type: "success", text: "Login successful! Redirecting..." });
-                    setTimeout(() => router.push("/"), 1500);
-                }
-            } else {
-                const res = await signUpAction(formData);
-                if (res.error) {
-                    setMessage({ type: "error", text: res.error });
-                } else {
-                    setMessage({ type: "success", text: res.success || "" });
-                }
-            }
-        } catch (err) {
-            setMessage({ type: "error", text: "Something went wrong. Please try again." });
-        } finally { // বানান ফিক্স করা হলো (finally)
-            setLoading(false);
+    try {
+      if (isLogin) {
+        const res = await signInAction(formData);
+        if (res.error) {
+          setMessage({ type: "error", text: res.error });
+        } else {
+          setMessage({ type: "success", text: "Login successful! Redirecting..." });
+          setTimeout(() => {
+            router.push("/");
+            // Force a reload to sync navbar auth state
+            window.location.reload();
+          }, 1000);
         }
-    };
+      } else {
+        const res = await signUpAction(formData);
+        if (res.error) {
+          setMessage({ type: "error", text: res.error });
+        } else {
+          setMessage({ type: "success", text: res.success || "Registration successful! You can now Sign In." });
+          setIsLogin(true);
+        }
+      }
+    } catch (err) {
+      setMessage({ type: "error", text: "Something went wrong. Please try again." });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-[var(--background)] px-4">
-            <div className="w-full max-w-md p-8 rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-xl">
-                <div className="flex justify-center mb-6 border-b border-[var(--border)]">
-                    <button
-                        type="button"
-                        onClick={() => { setIsLogin(true); setMessage(null); }}
-                        className={`pb-2 px-4 font-medium transition-colors cursor-pointer ${isLogin ? "border-b-2 border-[var(--primary)] text-[var(--foreground)]" : "text-[var(--muted-foreground)]"
-                            }`}
-                    >
-                        Sign In
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => { setIsLogin(false); setMessage(null); }}
-                        className={`pb-2 px-4 font-medium transition-colors cursor-pointer ${!isLogin ? "border-b-2 border-[var(--primary)] text-[var(--foreground)]" : "text-[var(--muted-foreground)]"
-                            }`}
-                    >
-                        Register
-                    </button>
-                </div>
+  return (
+    <div className="min-h-screen flex flex-col bg-[var(--background)] text-[var(--foreground)] font-sans antialiased">
+      {/* Header */}
+      <header className="h-16 border-b border-[var(--border)] bg-[var(--card)] px-6 flex items-center justify-between sticky top-0 z-50 shadow-sm">
+        <Link href="/" className="text-xl font-black tracking-tight flex items-center gap-2">
+          <div className="p-1.5 bg-blue-600 rounded-lg text-white">
+            <ShoppingBag className="h-5 w-5" />
+          </div>
+          Yaz<span className="text-blue-500">Mart</span>
+        </Link>
+        <ThemeToggle />
+      </header>
 
-                <h2 className="text-2xl font-bold text-center mb-6 text-[var(--foreground)]">
-                    {isLogin ? "Welcome Back" : "Create Account"}
-                </h2>
+      {/* Main Auth Form Section */}
+      <main className="flex-1 flex items-center justify-center p-6 bg-gradient-to-br from-blue-900/5 via-zinc-950/10 to-zinc-900/5">
+        <div className="w-full max-w-md p-8 rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-xl relative overflow-hidden space-y-6">
+          
+          {/* Back to storefront link */}
+          <Link href="/" className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-500 hover:underline">
+            <ArrowLeft className="h-3 w-3" /> Back to Storefront
+          </Link>
 
-                {message && (
-                    <div
-                        className={`p-3 rounded mb-4 text-sm ${message.type === "success"
-                                ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
-                                : "bg-rose-500/10 text-rose-500 border border-rose-500/20"
-                            }`}
-                    >
-                        {message.text}
-                    </div>
-                )}
+          {/* Title Header */}
+          <div className="text-center space-y-1.5">
+            <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-[var(--foreground)]">
+              {isLogin ? "Welcome Back" : "Create Account"}
+            </h2>
+            <p className="text-xs text-[var(--muted-foreground)]">
+              {isLogin ? "Sign in to access your YazMart account" : "Sign up to track orders and save your wishlist"}
+            </p>
+          </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    {!isLogin && (
-                        <div>
-                            <label className="block text-sm font-medium mb-1 text-[var(--muted-foreground)]">Full Name</label>
-                            <input
-                                type="text"
-                                name="fullName"
-                                required
-                                className="w-full px-3 py-2 rounded bg-[var(--background)] border border-[var(--border)] text-[var(--foreground)] focus:outline-none focus:border-[var(--primary)]"
-                                placeholder="John Doe"
-                            />
-                        </div>
-                    )}
+          {/* Tabs switch */}
+          <div className="flex border border-[var(--border)] bg-[var(--background)] p-1 rounded-xl">
+            <button
+              type="button"
+              onClick={() => { setIsLogin(true); setMessage(null); }}
+              className={`flex-1 py-2 text-xs font-black uppercase rounded-lg transition-all cursor-pointer ${
+                isLogin 
+                  ? "bg-blue-600 text-white shadow-sm" 
+                  : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+              }`}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => { setIsLogin(false); setMessage(null); }}
+              className={`flex-1 py-2 text-xs font-black uppercase rounded-lg transition-all cursor-pointer ${
+                !isLogin 
+                  ? "bg-blue-600 text-white shadow-sm" 
+                  : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+              }`}
+            >
+              Register
+            </button>
+          </div>
 
-                    <div>
-                        <label className="block text-sm font-medium mb-1 text-[var(--muted-foreground)]">Email Address</label>
-                        <input
-                            type="email"
-                            name="email"
-                            required
-                            className="w-full px-3 py-2 rounded bg-[var(--background)] border border-[var(--border)] text-[var(--foreground)] focus:outline-none focus:border-[var(--primary)]"
-                            placeholder="you@example.com"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium mb-1 text-[var(--muted-foreground)]">Password</label>
-                        <input
-                            type="password"
-                            name="password"
-                            required
-                            className="w-full px-3 py-2 rounded bg-[var(--background)] border border-[var(--border)] text-[var(--foreground)] focus:outline-none focus:border-[var(--primary)]"
-                            placeholder="••••••••"
-                        />
-                    </div>
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full py-2 px-4 rounded bg-[var(--primary)] text-[var(--primary-foreground)] font-medium hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer"
-                    >
-                        {loading ? "Processing..." : isLogin ? "Sign In" : "Register"}
-                    </button>
-                </form>
+          {/* Feedback Messages */}
+          {message && (
+            <div
+              className={`p-3.5 rounded-xl text-xs font-semibold animate-fade-in ${
+                message.type === "success"
+                  ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                  : "bg-rose-500/10 text-rose-500 border border-rose-500/20"
+              }`}
+            >
+              {message.text}
             </div>
+          )}
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {!isLogin && (
+              <div className="space-y-1">
+                <label className="block text-[9px] font-bold uppercase text-[var(--muted-foreground)]">Full Name</label>
+                <div className="relative">
+                  <User className="absolute left-3 top-2.5 h-4 w-4 text-[var(--muted-foreground)]" />
+                  <input
+                    type="text"
+                    name="fullName"
+                    required
+                    className="pl-9 pr-3 py-2 text-xs rounded-xl bg-[var(--background)] border border-[var(--border)] w-full focus:outline-none focus:border-blue-500 font-medium text-[var(--foreground)] placeholder-[var(--muted-foreground)]"
+                    placeholder="John Doe"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-1">
+              <label className="block text-[9px] font-bold uppercase text-[var(--muted-foreground)]">Email Address</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-2.5 h-4 w-4 text-[var(--muted-foreground)]" />
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  className="pl-9 pr-3 py-2 text-xs rounded-xl bg-[var(--background)] border border-[var(--border)] w-full focus:outline-none focus:border-blue-500 font-medium text-[var(--foreground)] placeholder-[var(--muted-foreground)]"
+                  placeholder="you@example.com"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="block text-[9px] font-bold uppercase text-[var(--muted-foreground)]">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-2.5 h-4 w-4 text-[var(--muted-foreground)]" />
+                <input
+                  type="password"
+                  name="password"
+                  required
+                  className="pl-9 pr-3 py-2 text-xs rounded-xl bg-[var(--background)] border border-[var(--border)] w-full focus:outline-none focus:border-blue-500 font-medium text-[var(--foreground)] placeholder-[var(--muted-foreground)]"
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-colors disabled:opacity-50 cursor-pointer shadow-sm mt-2"
+            >
+              {loading ? "Processing..." : isLogin ? "Sign In" : "Register"}
+            </button>
+          </form>
         </div>
-    );
+      </main>
+    </div>
+  );
 }

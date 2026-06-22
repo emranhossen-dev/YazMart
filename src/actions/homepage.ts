@@ -16,7 +16,7 @@ const DEFAULT_CONFIG = {
   promo_banners: [
     "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?q=80&w=1600&auto=format&fit=crop"
   ],
-  section_order: ["hero", "categories", "quick_deal", "featured", "brands", "testimonials", "newsletter"],
+  section_order: ["hero", "categories", "quick_deal", "promo_banner", "featured", "brands", "testimonials", "newsletter"],
   disabled_sections: [],
   colors: {
     primary: "#3b82f6",

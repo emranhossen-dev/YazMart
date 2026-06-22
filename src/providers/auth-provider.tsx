@@ -3,30 +3,26 @@
 import { useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/auth-store";
+import { syncAndGetUserProfile } from "@/actions/auth";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const setAuth = useAuthStore((state) => state.setAuth);
   const setLoading = useAuthStore((state) => state.setLoading);
 
   useEffect(() => {
-    const getUserProfile = async (userId: string) => {
+    const getUserProfile = async (userId: string, email?: string, fullName?: string) => {
       try {
-        const { data: profile, error } = await supabase
-          .from("profiles")
-          .select("id, full_name, avatar_url, roles(name)")
-          .eq("id", userId)
-          .single();
-
-        if (error) throw error;
+        const profile = await syncAndGetUserProfile(userId, email, fullName);
 
         if (profile) {
-          const rawRole = profile.roles as unknown as { name: string } | null;
           setAuth({
             id: profile.id,
-            fullName: profile.full_name,
-            avatarUrl: profile.avatar_url,
-            role: rawRole ? rawRole.name : "customer",
+            fullName: profile.fullName,
+            avatarUrl: profile.avatarUrl,
+            role: profile.role,
           });
+        } else {
+          setAuth(null);
         }
       } catch (err) {
         console.error("Error fetching user profile:", err);
@@ -37,7 +33,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (session?.user) {
-          await getUserProfile(session.user.id);
+          const user = session.user;
+          await getUserProfile(
+            user.id,
+            user.email,
+            user.user_metadata?.full_name || ""
+          );
         } else {
           setAuth(null);
         }
@@ -51,4 +52,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [setAuth, setLoading]);
 
   return <>{children}</>;
-}
+}

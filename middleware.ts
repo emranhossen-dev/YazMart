@@ -13,9 +13,9 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // ২. লগইন করা ইউজারকে অথ পেজে যেতে না দিয়ে ড্যাশবোর্ডে পাঠানো
+  // ২. লগইন করা ইউজারকে অথ পেজে যেতে না দিয়ে হোম পেজে পাঠানো
   if (pathname.startsWith("/auth") && sessionToken) {
-    return NextResponse.redirect(new URL("/admin", request.url));
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   return NextResponse.next();

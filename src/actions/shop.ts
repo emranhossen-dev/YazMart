@@ -6,7 +6,12 @@ import { prisma } from "../lib/prisma";
 export async function getShopData(selectedCategorySlug?: string) {
   try {
     const categories = await prisma.categoryMatrix.findMany({
-      where: { status: "ACTIVE" },
+      where: { status: "ACTIVE", parent_id: null },
+      include: {
+        sub_categories: {
+          where: { status: "ACTIVE" }
+        }
+      },
       orderBy: { name: "asc" },
     });
 
@@ -189,5 +194,68 @@ export async function getProductDetails(slug: string) {
   } catch (error: any) {
     console.error("❌ GET PRODUCT DETAILS ERROR:", error);
     return { error: "Failed to load product details." };
+  }
+}
+
+// ৪. সব প্রোডাক্ট একসাথে নিয়ে আসা (ফিল্টারসহ)
+export async function getAllProducts(filters?: {
+  search?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  sortBy?: string;
+  categoryId?: string;
+}) {
+  try {
+    const categories = await prisma.categoryMatrix.findMany({
+      where: { status: "ACTIVE" },
+      orderBy: { name: "asc" },
+    });
+
+    const where: any = {
+      status: "PUBLISHED"
+    };
+
+    if (filters?.categoryId && filters.categoryId !== "all") {
+      where.category_id = filters.categoryId;
+    }
+
+    if (filters?.search) {
+      where.OR = [
+        { name: { contains: filters.search, mode: "insensitive" } },
+        { short_desc: { contains: filters.search, mode: "insensitive" } }
+      ];
+    }
+
+    if (filters?.minPrice !== undefined || filters?.maxPrice !== undefined) {
+      where.selling_price = {};
+      if (filters.minPrice !== undefined) where.selling_price.gte = filters.minPrice;
+      if (filters.maxPrice !== undefined) where.selling_price.lte = filters.maxPrice;
+    }
+
+    let orderBy: any = { createdAt: "desc" };
+    if (filters?.sortBy === "price_asc") orderBy = { selling_price: "asc" };
+    else if (filters?.sortBy === "price_desc") orderBy = { selling_price: "desc" };
+    else if (filters?.sortBy === "name_asc") orderBy = { name: "asc" };
+
+    const rawProducts = await prisma.pimProducts.findMany({
+      where,
+      include: { category: true, brand: true },
+      orderBy
+    });
+
+    const products = rawProducts.map(p => ({
+      ...p,
+      buying_price: Number(p.buying_price),
+      selling_price: Number(p.selling_price),
+      compare_price: p.compare_price ? Number(p.compare_price) : null,
+      current_stock: Number(p.current_stock),
+      createdAt: p.createdAt.toISOString(),
+      updatedAt: p.updatedAt.toISOString(),
+    }));
+
+    return { products, categories, error: null };
+  } catch (error: any) {
+    console.error("❌ ALL PRODUCTS FETCH ERROR:", error);
+    return { error: `Database failed: ${error?.message}`, products: [], categories: [] };
   }
 }
