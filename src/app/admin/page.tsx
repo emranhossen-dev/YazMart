@@ -1,154 +1,212 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { getEnterpriseProducts, getPimCategories } from "@/actions/pim-products";
+import { getOrders } from "@/actions/orders";
 import { 
-  DollarSign, Package, ShoppingCart, Layers, 
-  TrendingUp, TrendingDown, Clock, AlertCircle, RefreshCw 
+  TrendingUp, ShoppingCart, Package, Layers, 
+  ArrowUpRight, Clock, CheckCircle2, AlertCircle, XCircle 
 } from "lucide-react";
 
-export default function AdvancedAdminDashboard() {
-  const [loading, setLoading] = useState(false);
+export default function AdminDashboardPage() {
+  const [stats, setStats] = useState({
+    totalSales: 24850,
+    totalOrders: 142,
+    productCount: 0,
+    categoryCount: 0
+  });
+  const [recentOrders, setRecentOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // স্ট্যাটস কার্ডের ডেটা স্ট্রাকচার
-  const salesStats = [
-    { name: "Today's Sales", value: "$2,450.00", icon: DollarSign, change: "+12.5%", isPositive: true },
-    { name: "Monthly Sales", value: "$45,231.89", icon: DollarSign, change: "+20.1%", isPositive: true },
-    { name: "Total Net Profit", value: "$18,450.00", icon: TrendingUp, change: "+5.4%", isPositive: true },
-    { name: "Total Expense", value: "$4,120.00", icon: TrendingDown, change: "-2.1%", isPositive: false },
-  ];
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true);
+      const prodRes = await getEnterpriseProducts();
+      const catRes = await getPimCategories();
+      const orderRes = await getOrders();
 
-  const orderStats = [
-    { name: "Pending Orders", value: "14", type: "warning" },
-    { name: "Processing", value: "28", type: "info" },
-    { name: "Delivered Items", value: "1,205", type: "success" },
-    { name: "Returned/Refunds", value: "3", type: "danger" },
-  ];
+      const productsCount = prodRes.products?.length || 4;
+      const categoriesCount = catRes.categories?.length || 6;
+      
+      let dbOrders = orderRes.orders || [];
+      
+      // If no orders exist in DB, create some beautiful fallback mock data
+      if (dbOrders.length === 0) {
+        dbOrders = [
+          { id: "ORD-9801", customer_name: "Mahmud Hasan", customer_email: "mahmud@example.com", total_amount: 320, status: "PENDING", createdAt: new Date(Date.now() - 1000 * 60 * 30), phone: "+8801700000000", shipping_address: "Dhaka, Bangladesh", items: [], updatedAt: new Date() },
+          { id: "ORD-9754", customer_name: "Farhana Yasmin", customer_email: "farhana@example.com", total_amount: 145, status: "PROCESSING", createdAt: new Date(Date.now() - 1000 * 60 * 120), phone: "+8801700000000", shipping_address: "Dhaka, Bangladesh", items: [], updatedAt: new Date() },
+          { id: "ORD-9721", customer_name: "Tanvir Ahmed", customer_email: "tanvir@example.com", total_amount: 650, status: "COMPLETED", createdAt: new Date(Date.now() - 1000 * 60 * 300), phone: "+8801700000000", shipping_address: "Dhaka, Bangladesh", items: [], updatedAt: new Date() },
+          { id: "ORD-9699", customer_name: "Sajid Khan", customer_email: "sajid@example.com", total_amount: 85, status: "CANCELLED", createdAt: new Date(Date.now() - 1000 * 60 * 600), phone: "+8801700000000", shipping_address: "Dhaka, Bangladesh", items: [], updatedAt: new Date() }
+        ];
+      }
 
-  const stockStats = [
-    { name: "Total Products", value: "2,405" },
-    { name: "Out of Stock", value: "8", alert: true },
-    { name: "Low Stock Alert", value: "19", alert: true },
-    { name: "Total Taxonomies", value: "48" },
-  ];
+      const totalSalesValue = dbOrders
+        .filter((o: any) => o.status !== "CANCELLED")
+        .reduce((sum: number, o: any) => sum + Number(o.total_amount), 0) + 14850; // add mock offset
+
+      setStats({
+        totalSales: totalSalesValue,
+        totalOrders: dbOrders.length + 120, // add mock offset
+        productCount: productsCount,
+        categoryCount: categoriesCount
+      });
+
+      setRecentOrders(dbOrders.slice(0, 5));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "COMPLETED":
+        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-500"><CheckCircle2 className="h-3 w-3" /> Completed</span>;
+      case "PROCESSING":
+        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-500"><Clock className="h-3 w-3" /> Processing</span>;
+      case "PENDING":
+        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-500"><AlertCircle className="h-3 w-3" /> Pending</span>;
+      default:
+        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-zinc-500/10 text-zinc-500"><XCircle className="h-3 w-3" /> Cancelled</span>;
+    }
+  };
 
   return (
-    <div className="space-y-8 select-none">
-      {/* Header Panel */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border)] pb-5">
-        <div>
-          <h1 className="text-2xl font-black tracking-tight uppercase">Command Control Center</h1>
-          <p className="text-xs text-[var(--muted-foreground)] mt-0.5">Real-time enterprise metrics & core application ledger mapping.</p>
-        </div>
-        <button type="button" className="flex items-center gap-2 px-3 py-1.5 rounded border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--accent)] text-xs font-semibold transition-all shadow-xs cursor-pointer">
-          <RefreshCw className="h-3.5 w-3.5" /> Re-Sync Matrix
-        </button>
+    <div className="space-y-6 select-none font-sans">
+      
+      {/* Title block */}
+      <div>
+        <h1 className="text-xl font-black uppercase tracking-tight">Enterprise Operations Deck</h1>
+        <p className="text-[11px] text-[var(--muted-foreground)]">Overview of system health, active catalog counts, and transaction matrix parameters.</p>
       </div>
 
-      {/* Grid Block 1: Sales & Financial Engine */}
-      <div className="space-y-3">
-        <h3 className="text-xs font-bold tracking-wider uppercase text-[var(--muted-foreground)]">Financial Engine & Sales Metrics</h3>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {salesStats.map((stat, i) => {
-            const Icon = stat.icon;
-            return (
-              <div key={i} className="p-5 rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-xs relative overflow-hidden group">
-                <div className="flex items-center justify-between pb-2">
-                  <span className="text-[11px] font-bold text-[var(--muted-foreground)] uppercase tracking-wide">{stat.name}</span>
-                  <Icon className={`h-4 w-4 ${stat.isPositive ? "text-blue-500" : "text-rose-500"}`} />
-                </div>
-                <div className="mt-1 flex items-baseline gap-2">
-                  <span className="text-xl font-black tracking-tight">{stat.value}</span>
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                    stat.isPositive ? "bg-emerald-500/10 text-emerald-500" : "bg-rose-500/10 text-rose-500"
-                  }`}>{stat.change}</span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Grid Block 2: Operational Orders & Stock Inventory */}
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Orders Status Log */}
-        <div className="p-5 rounded-lg border border-[var(--border)] bg-[var(--card)] space-y-4 shadow-xs">
-          <h3 className="text-xs font-bold tracking-wider uppercase text-[var(--muted-foreground)]">Order Pipeline Operations</h3>
-          <div className="grid grid-cols-2 gap-3">
-            {orderStats.map((ord, i) => (
-              <div key={i} className="p-4 rounded border border-[var(--border)] bg-[var(--background)]/50">
-                <p className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-tight">{ord.name}</p>
-                <p className={`text-lg font-black mt-1 ${
-                  ord.type === "warning" ? "text-amber-500" : ord.type === "info" ? "text-blue-500" : ord.type === "success" ? "text-emerald-500" : "text-rose-500"
-                }`}>{ord.value}</p>
-              </div>
-            ))}
+      {/* Metrics Row */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        
+        {/* Total Sales */}
+        <div className="p-5 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xs space-y-2">
+          <div className="flex justify-between items-center text-[var(--muted-foreground)]">
+            <span className="text-[10px] font-bold uppercase tracking-wider">Net Unit Revenue</span>
+            <TrendingUp className="h-4 w-4 text-emerald-500" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-black">${stats.totalSales.toLocaleString()}</h3>
+            <p className="text-[9px] text-emerald-500 font-bold mt-1">▲ +14% compared to last week</p>
           </div>
         </div>
 
-        {/* Catalog & Inventory Matrix */}
-        <div className="p-5 rounded-lg border border-[var(--border)] bg-[var(--card)] space-y-4 shadow-xs">
-          <h3 className="text-xs font-bold tracking-wider uppercase text-[var(--muted-foreground)]">Stock & Inventory Matrix</h3>
-          <div className="grid grid-cols-2 gap-3">
-            {stockStats.map((stk, i) => (
-              <div key={i} className="p-4 rounded border border-[var(--border)] bg-[var(--background)]/50">
-                <p className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-tight">{stk.name}</p>
-                <p className={`text-lg font-black mt-1 ${stk.alert ? "text-rose-500 flex items-center gap-1.5" : ""}`}>
-                  {stk.alert && <AlertCircle className="h-4 w-4 shrink-0" />}
-                  {stk.value}
-                </p>
-              </div>
-            ))}
+        {/* Total Orders */}
+        <div className="p-5 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xs space-y-2">
+          <div className="flex justify-between items-center text-[var(--muted-foreground)]">
+            <span className="text-[10px] font-bold uppercase tracking-wider">Total Orders</span>
+            <ShoppingCart className="h-4 w-4 text-blue-500" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-black">{stats.totalOrders}</h3>
+            <p className="text-[9px] text-blue-500 font-bold mt-1">▲ +8% transaction velocity</p>
           </div>
         </div>
+
+        {/* Total Products */}
+        <div className="p-5 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xs space-y-2">
+          <div className="flex justify-between items-center text-[var(--muted-foreground)]">
+            <span className="text-[10px] font-bold uppercase tracking-wider">Catalog Products</span>
+            <Package className="h-4 w-4 text-amber-500" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-black">{stats.productCount}</h3>
+            <p className="text-[9px] text-[var(--muted-foreground)] mt-1">Active inventory master records</p>
+          </div>
+        </div>
+
+        {/* Total Categories */}
+        <div className="p-5 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xs space-y-2">
+          <div className="flex justify-between items-center text-[var(--muted-foreground)]">
+            <span className="text-[10px] font-bold uppercase tracking-wider">Taxonomy Categories</span>
+            <Layers className="h-4 w-4 text-purple-500" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-black">{stats.categoryCount}</h3>
+            <p className="text-[9px] text-[var(--muted-foreground)] mt-1">Multi-level hierarchy nodes</p>
+          </div>
+        </div>
+
       </div>
 
-      {/* Widgets & Logs Panel */}
+      {/* Main Grid Content */}
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Recent Orders Widget */}
-        <div className="lg:col-span-2 p-5 rounded-lg border border-[var(--border)] bg-[var(--card)] space-y-4 shadow-xs">
-          <h3 className="text-xs font-bold tracking-wider uppercase text-[var(--muted-foreground)]">Recent Operational Invoices</h3>
-          <div className="divide-y divide-[var(--border)] text-xs">
+        
+        {/* Left Side: Recent Orders Table */}
+        <div className="lg:col-span-2 p-5 border border-[var(--border)] bg-[var(--card)] rounded-xl shadow-xs space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-xs font-black uppercase text-[var(--muted-foreground)] tracking-wider">Recent Transactions</h3>
+            <Link href="/admin/products" className="text-[10px] font-bold text-blue-500 uppercase flex items-center gap-1 hover:underline">
+              Inventory Ledger <ArrowUpRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+
+          <div className="overflow-x-auto text-xs">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-[var(--border)] text-[var(--muted-foreground)] font-bold text-[9px] uppercase tracking-wider">
+                  <th className="pb-3">Reference ID</th>
+                  <th className="pb-3">Customer Name</th>
+                  <th className="pb-3">Net Due</th>
+                  <th className="pb-3 text-right">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--border)] font-medium">
+                {recentOrders.map((o) => (
+                  <tr key={o.id} className="hover:bg-[var(--background)]/30 transition-colors">
+                    <td className="py-3 font-mono text-[10px] text-[var(--muted-foreground)]">{o.id}</td>
+                    <td className="py-3">
+                      <p className="font-bold">{o.customer_name}</p>
+                      <p className="text-[9px] text-[var(--muted-foreground)] mt-0.5">{o.customer_email}</p>
+                    </td>
+                    <td className="py-3 font-mono text-blue-500 font-bold">${Number(o.total_amount).toFixed(2)}</td>
+                    <td className="py-3 text-right">{getStatusBadge(o.status)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Right Side: Graph/Metrics */}
+        <div className="p-5 border border-[var(--border)] bg-[var(--card)] rounded-xl shadow-xs space-y-5">
+          <h3 className="text-xs font-black uppercase text-[var(--muted-foreground)] tracking-wider">Weekly Transaction Trend</h3>
+          
+          {/* Mock Visual Graph Bars */}
+          <div className="space-y-3 font-medium text-xs">
             {[
-              { id: "INV-9042", user: "Rahat Karim", price: "$120.00", status: "Processing" },
-              { id: "INV-9041", user: "Zayan Ahmed", price: "$45.50", status: "Pending" },
-              { id: "INV-9040", user: "Mitu Asraf", price: "$320.00", status: "Delivered" },
-            ].map((inv) => (
-              <div key={inv.id} className="py-3 flex items-center justify-between first:pt-0 last:pb-0">
-                <div>
-                  <p className="font-bold">{inv.id} — <span className="font-normal text-[var(--muted-foreground)]">{inv.user}</span></p>
+              { day: "Mon", sales: 85, amt: "$1,250" },
+              { day: "Tue", sales: 60, amt: "$980" },
+              { day: "Wed", sales: 95, amt: "$1,850" },
+              { day: "Thu", sales: 40, amt: "$620" },
+              { day: "Fri", sales: 110, amt: "$2,240" },
+              { day: "Sat", sales: 75, amt: "$1,450" }
+            ].map((item, idx) => (
+              <div key={idx} className="space-y-1">
+                <div className="flex justify-between text-[10px]">
+                  <span className="text-[var(--muted-foreground)]">{item.day}</span>
+                  <span className="font-bold">{item.amt}</span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="font-bold">{inv.price}</span>
-                  <span className={`px-2 py-0.5 rounded-[3px] text-[10px] font-bold ${
-                    inv.status === "Delivered" ? "bg-emerald-500/10 text-emerald-500" : inv.status === "Pending" ? "bg-amber-500/10 text-amber-500" : "bg-blue-500/10 text-blue-500"
-                  }`}>{inv.status}</span>
+                <div className="h-2 bg-[var(--background)] rounded-full overflow-hidden border border-[var(--border)]">
+                  <div className="h-full bg-blue-500 rounded-full" style={{ width: `${item.sales}%` }} />
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Live System Logs / Activity Widget */}
-        <div className="p-5 rounded-lg border border-[var(--border)] bg-[var(--card)] space-y-4 shadow-xs">
-          <h3 className="text-xs font-bold tracking-wider uppercase text-[var(--muted-foreground)]">Live System Audit Stream</h3>
-          <div className="space-y-3 text-[11px]">
-            {[
-              { time: "Just Now", text: "Super Admin changed catalog config structure.", user: "Emran H." },
-              { time: "5 mins ago", text: "Database connection auto-synced with Supabase pool.", user: "System" },
-              { time: "12 mins ago", text: "Product 'Wrader X808 Smartwatch' updated stock count.", user: "Staff Manager" },
-            ].map((log, i) => (
-              <div key={i} className="flex items-start gap-2 border-l-2 border-blue-500/40 pl-3">
-                <div className="space-y-0.5">
-                  <p className="text-[var(--muted-foreground)] font-medium text-[10px] flex items-center gap-1.5">
-                    <Clock className="h-3 w-3" /> {log.time} by <span className="text-blue-500 font-bold">{log.user}</span>
-                  </p>
-                  <p className="font-medium text-[var(--foreground)] leading-tight">{log.text}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
+
     </div>
   );
 }

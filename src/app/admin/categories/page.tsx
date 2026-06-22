@@ -1,192 +1,399 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { createCategory, getCategories, deleteCategory, updateCategory } from "../../../actions/categories";
-import { Plus, Trash2, Edit2, Check, X } from "lucide-react";
+import { createCategory, getCategories, deleteCategory, updateCategory } from "@/actions/categories";
+import { uploadImage } from "@/actions/upload";
+import { Plus, Trash2, Edit3, FolderPlus, Search, Image as ImageIcon, CheckCircle, XCircle, Star } from "lucide-react";
 
 interface Category {
   id: string;
   name: string;
   slug: string;
+  description: string | null;
+  status: string;
+  is_featured: boolean;
+  image_url: string | null;
+  parent_id: string | null;
+  parent?: Category | null;
+  sub_categories?: Category[];
 }
 
-export default function CategoriesPage() {
+export default function EnterpriseCategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editName, setEditName] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  // ডাটা লোড করার ফাংশন
+  // Edit Mode States
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+
+  // Form Field States
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [parentId, setParentId] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [status, setStatus] = useState("ACTIVE");
+  const [isFeatured, setIsFeatured] = useState(false);
+
   const loadCategories = async () => {
     const res = await getCategories();
-    if (res.categories) setCategories(res.categories as unknown as Category[]);
+    if (res.categories) setCategories(res.categories as any);
   };
 
   useEffect(() => {
     loadCategories();
   }, []);
 
-  // ক্রিয়েট সাবমিট হ্যান্ডলার
+  const resetForm = () => {
+    setEditingCategory(null);
+    setName("");
+    setDescription("");
+    setParentId("");
+    setImageUrl("");
+    setStatus("ACTIVE");
+    setIsFeatured(false);
+    setMessage(null);
+  };
 
-  const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleEditInit = (cat: Category) => {
+    setEditingCategory(cat);
+    setName(cat.name);
+    setDescription(cat.description || "");
+    setParentId(cat.parent_id || "");
+    setImageUrl(cat.image_url || "");
+    setStatus(cat.status);
+    setIsFeatured(cat.is_featured);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    const fd = new FormData();
+    fd.append("file", file);
+
+    const res = await uploadImage(fd);
+    if (res.error) {
+      setMessage({ type: "error", text: res.error });
+    } else if (res.url) {
+      setImageUrl(res.url);
+      setMessage({ type: "success", text: "Image uploaded successfully!" });
+    }
+    setUploading(false);
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setMessage(null);
 
-    const form = e.currentTarget; // ফর্মের রেফারেন্সটি আগেই ধরে রাখা হলো
-    const formData = new FormData(form);
-    const res = await createCategory(formData);
+    const fd = new FormData();
+    fd.append("name", name);
+    fd.append("description", description);
+    fd.append("parent_id", parentId);
+    fd.append("image_url", imageUrl);
+    fd.append("status", status);
+    fd.append("is_featured", String(isFeatured));
+
+    let res;
+    if (editingCategory) {
+      res = await updateCategory(editingCategory.id, fd);
+    } else {
+      res = await createCategory(fd);
+    }
 
     if (res.error) {
       setMessage({ type: "error", text: res.error });
     } else {
-      setMessage({ type: "success", text: res.success || "" });
-      form.reset(); // এখন আর নাল এরর আসবে না
+      setMessage({ type: "success", text: res.success || "Operation complete!" });
+      resetForm();
       await loadCategories();
     }
     setLoading(false);
   };
-  
-  // আপডেট হ্যান্ডলার
-  const handleUpdate = async (id: string) => {
-    if (!editName.trim()) return;
-    const res = await updateCategory(id, editName);
-    if (res.error) {
-      alert(res.error);
-    } else {
-      setEditingId(null);
-      await loadCategories();
-    }
-  };
 
-  // ডিলিট হ্যান্ডলার
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this category?")) return;
+    if (!confirm("Are you sure you want to delete this category node? This might break dependent child links.")) return;
     const res = await deleteCategory(id);
     if (res.error) {
       setMessage({ type: "error", text: res.error });
     } else {
-      setMessage({ type: "success", text: res.success || "" });
+      setMessage({ type: "success", text: res.success || "Category deleted." });
       await loadCategories();
     }
   };
 
+  // Filter Logic
+  const filteredCategories = categories.filter((cat) => {
+    const matchesSearch = cat.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          (cat.description && cat.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesStatus = statusFilter === "all" || cat.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 select-none font-sans max-w-[1700px] mx-auto p-1">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Categories</h1>
-        <p className="text-[var(--muted-foreground)]">Manage structure and taxonomies for your ecommerce inventory.</p>
+        <h1 className="text-xl font-black uppercase tracking-tight">Category Taxonomy Deck</h1>
+        <p className="text-[11px] text-[var(--muted-foreground)]">Manage multi-level hierarchies, subcategories, status matrices, and image assets.</p>
       </div>
 
       {message && (
-        <div className={`p-3 rounded text-sm max-w-md ${
-          message.type === "success" ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" : "bg-rose-500/10 text-rose-500 border border-rose-500/20"
+        <div className={`p-3 rounded text-xs font-bold max-w-xl ${
+          message.type === "success" ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/10" : "bg-rose-500/10 text-rose-500 border border-rose-500/10"
         }`}>
           {message.text}
         </div>
       )}
 
-      <div className="grid gap-6 md:grid-cols-3">
-        {/* Left: Create Form */}
-        <div className="p-6 rounded-lg border border-[var(--border)] bg-[var(--card)] h-fit">
-          <h3 className="font-semibold mb-4">Add New Category</h3>
-          <form onSubmit={handleCreate} className="space-y-4">
+      <div className="grid gap-6 lg:grid-cols-3 items-start">
+        {/* Left Column: Form Setup (Add/Edit) */}
+        <div className="p-5 rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-xs space-y-4">
+          <h3 className="text-xs font-black uppercase text-[var(--muted-foreground)] flex items-center gap-2">
+            <FolderPlus className="h-4 w-4 text-blue-500" /> 
+            {editingCategory ? `Modify Node: ${editingCategory.name}` : "Establish Taxonomy"}
+          </h3>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1 text-[var(--muted-foreground)]">Name</label>
-              <input
-                type="text"
-                name="name"
-                required
-                className="w-full px-3 py-2 rounded bg-[var(--background)] border border-[var(--border)] text-[var(--foreground)] focus:outline-none focus:border-[var(--primary)] text-sm"
-                placeholder="e.g., Electronics"
+              <label className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Category Name</label>
+              <input 
+                type="text" 
+                value={name} 
+                onChange={(e) => setName(e.target.value)} 
+                required 
+                className="w-full px-3 py-2 text-xs rounded bg-[var(--background)] border border-[var(--border)] focus:outline-none focus:border-blue-500 font-medium" 
+                placeholder="e.g., Electronics, Smart Watches" 
               />
             </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded bg-[var(--primary)] text-[var(--primary-foreground)] text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer"
-            >
-              <Plus className="h-4 w-4" />
-              {loading ? "Creating..." : "Add Category"}
-            </button>
+
+            <div>
+              <label className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Parent Category</label>
+              <select 
+                value={parentId} 
+                onChange={(e) => setParentId(e.target.value)}
+                className="w-full px-3 py-2 text-xs rounded bg-[var(--background)] border border-[var(--border)] focus:outline-none focus:border-blue-500 font-bold"
+              >
+                <option value="">No Parent (Top-level Category)</option>
+                {categories
+                  .filter((cat) => !editingCategory || cat.id !== editingCategory.id) // Avoid self nesting
+                  .map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.parent ? `${cat.parent.name} > ` : ""}{cat.name}
+                    </option>
+                  ))
+                }
+              </select>
+            </div>
+
+            {/* Category Image Selector */}
+            <div>
+              <label className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Category Image</label>
+              <div className="flex gap-3 items-center">
+                {imageUrl ? (
+                  <div className="relative w-16 h-16 border border-[var(--border)] rounded bg-[var(--background)] overflow-hidden">
+                    <img src={imageUrl} className="w-full h-full object-contain" />
+                    <button 
+                      type="button" 
+                      onClick={() => setImageUrl("")} 
+                      className="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[10px] font-bold"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <div className="w-16 h-16 border border-dashed border-[var(--border)] rounded flex items-center justify-center text-[var(--muted-foreground)]">
+                    <ImageIcon className="h-6 w-6" />
+                  </div>
+                )}
+                
+                <div className="flex-1">
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleImageUpload} 
+                    className="hidden" 
+                    id="cat-image-file" 
+                  />
+                  <label 
+                    htmlFor="cat-image-file" 
+                    className="inline-block px-3 py-1.5 bg-[var(--background)] hover:bg-[var(--accent)] border border-[var(--border)] text-[10px] font-bold uppercase rounded cursor-pointer transition-colors"
+                  >
+                    {uploading ? "Uploading..." : "Upload Image"}
+                  </label>
+                  <p className="text-[9px] text-[var(--muted-foreground)] mt-1">PNG, JPG up to 2MB</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Status</label>
+                <select 
+                  value={status} 
+                  onChange={(e) => setStatus(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded bg-[var(--background)] border border-[var(--border)] focus:outline-none font-bold"
+                >
+                  <option value="ACTIVE">ACTIVE</option>
+                  <option value="INACTIVE">INACTIVE</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col justify-end pb-1">
+                <label className="flex items-center gap-2 text-xs font-bold text-[var(--foreground)] cursor-pointer select-none">
+                  <input 
+                    type="checkbox" 
+                    checked={isFeatured} 
+                    onChange={(e) => setIsFeatured(e.target.checked)} 
+                    className="rounded bg-[var(--background)] border-[var(--border)] text-blue-500 h-4 w-4"
+                  />
+                  <span>Featured Category</span>
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Description</label>
+              <textarea 
+                value={description} 
+                onChange={(e) => setDescription(e.target.value)} 
+                rows={3} 
+                className="w-full px-3 py-2 text-xs rounded bg-[var(--background)] border border-[var(--border)] focus:outline-none focus:border-blue-500" 
+                placeholder="Describe this category hierarchy..." 
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <button 
+                type="submit" 
+                disabled={loading || uploading} 
+                className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider rounded transition-colors cursor-pointer text-center"
+              >
+                {loading ? "Saving..." : editingCategory ? "Update Node" : "Publish Category"}
+              </button>
+              {editingCategory && (
+                <button 
+                  type="button" 
+                  onClick={resetForm} 
+                  className="px-3 py-2 bg-[var(--background)] hover:bg-[var(--accent)] border border-[var(--border)] text-xs font-bold uppercase rounded cursor-pointer"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
           </form>
         </div>
 
-        {/* Right: Categories List Table */}
-        <div className="md:col-span-2 p-6 rounded-lg border border-[var(--border)] bg-[var(--card)] overflow-hidden">
-          <h3 className="font-semibold mb-4">All Categories</h3>
+        {/* Right Column: Dynamic Matrix List View */}
+        <div className="lg:col-span-2 p-5 border border-[var(--border)] bg-[var(--card)] rounded-xl shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
+            <h3 className="text-xs font-black uppercase text-[var(--muted-foreground)]">Active System Taxonomies</h3>
+            
+            {/* Filters */}
+            <div className="flex gap-2 w-full sm:w-auto">
+              <div className="relative flex-1 sm:flex-initial">
+                <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[var(--muted-foreground)]" />
+                <input 
+                  type="text" 
+                  value={searchQuery} 
+                  onChange={(e) => setSearchQuery(e.target.value)} 
+                  placeholder="Search categories..." 
+                  className="pl-8 pr-3 py-1.5 text-xs rounded bg-[var(--background)] border border-[var(--border)] focus:outline-none focus:border-blue-500 font-medium w-full"
+                />
+              </div>
+              <select 
+                value={statusFilter} 
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-2 py-1.5 text-xs rounded bg-[var(--background)] border border-[var(--border)] focus:outline-none font-bold"
+              >
+                <option value="all">All Status</option>
+                <option value="ACTIVE">ACTIVE</option>
+                <option value="INACTIVE">INACTIVE</option>
+              </select>
+            </div>
+          </div>
+
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-sm">
+            <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-[var(--border)] text-[var(--muted-foreground)]">
-                  <th className="pb-3 font-medium">Name</th>
-                  <th className="pb-3 font-medium">Slug</th>
-                  <th className="pb-3 font-medium text-right">Actions</th>
+                <tr className="border-b border-[var(--border)] text-[var(--muted-foreground)] font-bold text-[9px] uppercase tracking-wider">
+                  <th className="pb-3">Thumbnail</th>
+                  <th className="pb-3">Category Title Node</th>
+                  <th className="pb-3">Parent Route</th>
+                  <th className="pb-3">Status</th>
+                  <th className="pb-3">Featured</th>
+                  <th className="pb-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--border)]">
-                {categories.length === 0 ? (
+              <tbody className="divide-y divide-[var(--border)] font-medium">
+                {filteredCategories.length === 0 ? (
                   <tr>
-                    <td colSpan={3} className="py-4 text-center text-[var(--muted-foreground)]">No categories found.</td>
+                    <td colSpan={6} className="py-4 text-center text-[var(--muted-foreground)] font-normal">No operational nodes active in configuration stack.</td>
                   </tr>
                 ) : (
-                  categories.map((category) => (
-                    <tr key={category.id} className="hover:bg-[var(--background)]/50 transition-colors">
-                      <td className="py-3.5 font-medium">
-                        {editingId === category.id ? (
-                          <input
-                            type="text"
-                            value={editName}
-                            onChange={(e) => setEditName(e.target.value)}
-                            className="px-2 py-1 rounded bg-[var(--background)] border border-[var(--border)] text-[var(--foreground)] text-sm focus:outline-none"
-                          />
-                        ) : (
-                          category.name
-                        )}
-                      </td>
-                      <td className="py-3.5 text-[var(--muted-foreground)]">{category.slug}</td>
-                      <td className="py-3.5 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          {editingId === category.id ? (
-                            <>
-                              <button
-                                type="button"
-                                onClick={() => handleUpdate(category.id)}
-                                className="p-1.5 text-emerald-500 hover:bg-emerald-500/10 rounded transition-colors cursor-pointer"
-                              >
-                                <Check className="h-4 w-4" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setEditingId(null)}
-                                className="p-1.5 text-[var(--muted-foreground)] hover:bg-[var(--accent)] rounded transition-colors cursor-pointer"
-                              >
-                                <X className="h-4 w-4" />
-                              </button>
-                            </>
+                  filteredCategories.map((cat) => (
+                    <tr key={cat.id} className="hover:bg-[var(--background)]/40 transition-colors">
+                      <td className="py-3">
+                        <div className="w-10 h-10 border border-[var(--border)] rounded bg-[var(--background)] flex items-center justify-center overflow-hidden p-0.5">
+                          {cat.image_url ? (
+                            <img src={cat.image_url} className="w-full h-full object-contain" />
                           ) : (
-                            <>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setEditingId(category.id);
-                                  setEditName(category.name);
-                                }}
-                                className="p-1.5 text-blue-500 hover:bg-blue-500/10 rounded transition-colors cursor-pointer"
-                              >
-                                <Edit2 className="h-4 w-4" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleDelete(category.id)}
-                                className="p-1.5 text-rose-500 hover:bg-rose-500/10 rounded transition-colors cursor-pointer"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            </>
+                            <ImageIcon className="h-4 w-4 text-[var(--border)]" />
                           )}
                         </div>
+                      </td>
+                      <td className="py-3 font-bold">
+                        <p className="text-blue-500">{cat.name}</p>
+                        <p className="font-mono text-[9px] text-[var(--muted-foreground)]">{cat.slug}</p>
+                      </td>
+                      <td className="py-3 text-[var(--muted-foreground)]">
+                        {cat.parent ? (
+                          <span className="bg-[var(--background)] px-1.5 py-0.5 rounded border border-[var(--border)] text-[10px]">
+                            {cat.parent.name}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-zinc-400">Root Node</span>
+                        )}
+                      </td>
+                      <td className="py-3">
+                        {cat.status === "ACTIVE" ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded">
+                            <CheckCircle className="h-3 w-3" /> ACTIVE
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded">
+                            <XCircle className="h-3 w-3" /> INACTIVE
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3">
+                        {cat.is_featured ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded">
+                            <Star className="h-3 w-3 fill-amber-500 text-amber-500" /> FEATURED
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-zinc-400">-</span>
+                        )}
+                      </td>
+                      <td className="py-3 text-right space-x-1">
+                        <button 
+                          type="button" 
+                          onClick={() => handleEditInit(cat)} 
+                          className="p-1.5 text-blue-500 hover:bg-blue-500/10 rounded cursor-pointer"
+                        >
+                          <Edit3 className="h-3.5 w-3.5" />
+                        </button>
+                        <button 
+                          type="button" 
+                          onClick={() => handleDelete(cat.id)} 
+                          className="p-1.5 text-rose-500 hover:bg-rose-500/10 rounded cursor-pointer"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
                       </td>
                     </tr>
                   ))

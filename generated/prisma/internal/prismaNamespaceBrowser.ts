@@ -77,7 +77,13 @@ export const ModelName = {
   categories: 'categories',
   products: 'products',
   profiles: 'profiles',
-  roles: 'roles'
+  roles: 'roles',
+  CategoryMatrix: 'CategoryMatrix',
+  BrandMatrix: 'BrandMatrix',
+  PimProducts: 'PimProducts',
+  ProductVariants: 'ProductVariants',
+  OrderMatrix: 'OrderMatrix',
+  HomepageConfig: 'HomepageConfig'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -517,6 +523,142 @@ export const RolesScalarFieldEnum = {
 } as const
 
 export type RolesScalarFieldEnum = (typeof RolesScalarFieldEnum)[keyof typeof RolesScalarFieldEnum]
+
+
+export const CategoryMatrixScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  parent_id: 'parent_id',
+  image_url: 'image_url',
+  banner_url: 'banner_url',
+  icon: 'icon',
+  description: 'description',
+  status: 'status',
+  is_featured: 'is_featured',
+  sort_order: 'sort_order',
+  meta_title: 'meta_title',
+  meta_desc: 'meta_desc',
+  meta_keywords: 'meta_keywords',
+  canonical_url: 'canonical_url',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CategoryMatrixScalarFieldEnum = (typeof CategoryMatrixScalarFieldEnum)[keyof typeof CategoryMatrixScalarFieldEnum]
+
+
+export const BrandMatrixScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  logo_url: 'logo_url',
+  banner_url: 'banner_url',
+  website: 'website',
+  description: 'description',
+  status: 'status',
+  meta_title: 'meta_title',
+  meta_desc: 'meta_desc',
+  createdAt: 'createdAt'
+} as const
+
+export type BrandMatrixScalarFieldEnum = (typeof BrandMatrixScalarFieldEnum)[keyof typeof BrandMatrixScalarFieldEnum]
+
+
+export const PimProductsScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  sku: 'sku',
+  barcode: 'barcode',
+  product_code: 'product_code',
+  product_type: 'product_type',
+  status: 'status',
+  featured_image: 'featured_image',
+  gallery_images: 'gallery_images',
+  video_url: 'video_url',
+  buying_price: 'buying_price',
+  selling_price: 'selling_price',
+  compare_price: 'compare_price',
+  discount_type: 'discount_type',
+  discount_amount: 'discount_amount',
+  discount_start: 'discount_start',
+  discount_end: 'discount_end',
+  current_stock: 'current_stock',
+  low_stock_alert: 'low_stock_alert',
+  stock_status: 'stock_status',
+  weight: 'weight',
+  length: 'length',
+  width: 'width',
+  height: 'height',
+  shipping_charge: 'shipping_charge',
+  cod_available: 'cod_available',
+  short_desc: 'short_desc',
+  full_desc: 'full_desc',
+  specifications: 'specifications',
+  warranty: 'warranty',
+  meta_title: 'meta_title',
+  meta_desc: 'meta_desc',
+  meta_keywords: 'meta_keywords',
+  canonical_url: 'canonical_url',
+  is_featured: 'is_featured',
+  is_trending: 'is_trending',
+  is_best_seller: 'is_best_seller',
+  is_flash_sale: 'is_flash_sale',
+  is_new_arrival: 'is_new_arrival',
+  category_id: 'category_id',
+  brand_id: 'brand_id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PimProductsScalarFieldEnum = (typeof PimProductsScalarFieldEnum)[keyof typeof PimProductsScalarFieldEnum]
+
+
+export const ProductVariantsScalarFieldEnum = {
+  id: 'id',
+  product_id: 'product_id',
+  variant_name: 'variant_name',
+  sku: 'sku',
+  barcode: 'barcode',
+  price: 'price',
+  stock: 'stock',
+  image_url: 'image_url',
+  createdAt: 'createdAt'
+} as const
+
+export type ProductVariantsScalarFieldEnum = (typeof ProductVariantsScalarFieldEnum)[keyof typeof ProductVariantsScalarFieldEnum]
+
+
+export const OrderMatrixScalarFieldEnum = {
+  id: 'id',
+  customer_name: 'customer_name',
+  customer_email: 'customer_email',
+  shipping_address: 'shipping_address',
+  phone: 'phone',
+  total_amount: 'total_amount',
+  status: 'status',
+  items: 'items',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OrderMatrixScalarFieldEnum = (typeof OrderMatrixScalarFieldEnum)[keyof typeof OrderMatrixScalarFieldEnum]
+
+
+export const HomepageConfigScalarFieldEnum = {
+  id: 'id',
+  slider_images: 'slider_images',
+  right_banners: 'right_banners',
+  promo_banners: 'promo_banners',
+  section_order: 'section_order',
+  disabled_sections: 'disabled_sections',
+  colors: 'colors',
+  brand_logos: 'brand_logos',
+  testimonials: 'testimonials',
+  updatedAt: 'updatedAt'
+} as const
+
+export type HomepageConfigScalarFieldEnum = (typeof HomepageConfigScalarFieldEnum)[keyof typeof HomepageConfigScalarFieldEnum]
 
 
 export const SortOrder = {

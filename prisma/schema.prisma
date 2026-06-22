@@ -615,3 +615,169 @@ enum one_time_token_type {
 
   @@schema("auth")
 }
+
+
+
+
+// ১. এডভান্সড ক্যাটাগরি টেবিল (Nested Category Support)
+model CategoryMatrix {
+  id              String           @id @default(uuid())
+  name            String
+  slug            String           @unique
+  parent_id       String?          // সেলফ রিলেশন সাব-ক্যাটাগরির জন্য
+  image_url       String?
+  banner_url      String?
+  icon            String?
+  description     String?
+  status          String           @default("ACTIVE") // ACTIVE, INACTIVE
+  is_featured     Boolean          @default(false)
+  sort_order      Int              @default(0)
+  meta_title      String?
+  meta_desc       String?
+  meta_keywords   String?
+  canonical_url   String?
+  
+  parent          CategoryMatrix?  @relation("CategoryToSub", fields: [parent_id], references: [id], onDelete: Cascade)
+  sub_categories  CategoryMatrix[] @relation("CategoryToSub")
+  products        PimProducts[]
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@schema("public") // ফিক্সড: মাল্টি-স্কিমা সাপোর্ট
+}
+
+// ২. ব্র্যান্ড ম্যানেজমেন্ট
+model BrandMatrix {
+  id          String        @id @default(uuid())
+  name        String
+  logo_url    String?
+  banner_url  String?
+  website     String?
+  description String?
+  status      String        @default("ACTIVE")
+  meta_title  String?
+  meta_desc   String?
+  products    PimProducts[]
+
+  createdAt   DateTime      @default(now())
+
+  @@schema("public") // ফিক্সড: মাল্টি-স্কিমা সাপোর্ট
+}
+
+// ৩. কোর PIM প্রোডাক্ট টেবিল
+model PimProducts {
+  id              String            @id @default(uuid())
+  name            String
+  slug            String            @unique
+  sku             String            @unique
+  barcode         String?
+  product_code    String?
+  product_type    String            @default("PHYSICAL") // PHYSICAL, DIGITAL
+  status          String            @default("DRAFT")    // DRAFT, PUBLISHED, HIDDEN
+  
+  // Media & Video
+  featured_image  String?
+  gallery_images  String[]          // Array of URLs
+  video_url       String?
+
+  // Financial Engine
+  buying_price    Decimal           @db.Decimal(10, 2)
+  selling_price   Decimal           @db.Decimal(10, 2)
+  compare_price   Decimal?          @db.Decimal(10, 2)
+  discount_type   String?           // FIXED, PERCENTAGE
+  discount_amount Decimal?          @db.Decimal(10, 2)
+  discount_start  DateTime?
+  discount_end    DateTime?
+
+  // Inventory & Shipping
+  current_stock   Int               @default(0)
+  low_stock_alert Int               @default(5)
+  stock_status    String            @default("IN_STOCK") // IN_STOCK, LOW_STOCK, OUT_OF_STOCK, PRE_ORDER
+  weight          Decimal?          @db.Decimal(10, 2)
+  length          Decimal?          @db.Decimal(10, 2)
+  width           Decimal?          @db.Decimal(10, 2)
+  height          Decimal?          @db.Decimal(10, 2)
+  shipping_charge Decimal?          @db.Decimal(10, 2)
+  cod_available   Boolean           @default(true)
+
+  // Rich Content
+  short_desc      String?
+  full_desc       String?           @db.Text
+  specifications  Json?             // ডাইনামিক স্পেসিফিকেশন মেটাডাটা
+  warranty        String?
+
+  // SEO
+  meta_title      String?
+  meta_desc       String?
+  meta_keywords   String?
+  canonical_url   String?
+
+  // Visibility Rules
+  is_featured     Boolean           @default(false)
+  is_trending     Boolean           @default(false)
+  is_best_seller  Boolean           @default(false)
+  is_flash_sale   Boolean           @default(false)
+  is_new_arrival  Boolean           @default(false)
+
+  // Relations
+  category_id     String
+  category        CategoryMatrix    @relation(fields: [category_id], references: [id])
+  brand_id        String?
+  brand           BrandMatrix?      @relation(fields: [brand_id], references: [id])
+  variants        ProductVariants[]
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@schema("public") // ফিক্সড: মাল্টি-স্কিমা সাপোর্ট
+}
+
+// ৪. ডাইনামিক ভেরিয়েন্ট জেনারেটর টেবিল (Variant Matrix)
+model ProductVariants {
+  id             String      @id @default(uuid())
+  product_id     String
+  product        PimProducts @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  
+  variant_name   String      // e.g., "Black + M"
+  sku            String      @unique
+  barcode        String?
+  price          Decimal     @db.Decimal(10, 2)
+  stock          Int         @default(0)
+  image_url      String?
+
+  createdAt      DateTime    @default(now())
+
+  @@schema("public") // ফিক্সড: মাল্টি-স্কিমা সাপোর্ট
+}
+
+// ৫. অর্ডার টেবিল (Order Matrix)
+model OrderMatrix {
+  id               String      @id @default(uuid())
+  customer_name    String
+  customer_email   String
+  shipping_address String
+  phone            String
+  total_amount     Decimal     @db.Decimal(10, 2)
+  status           String      @default("PENDING") // PENDING, PROCESSING, COMPLETED, CANCELLED
+  items            Json        // Stores array of products { id, name, price, quantity, image }
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@schema("public")
+}
+
+model HomepageConfig {
+  id                String   @id @default("default")
+  slider_images     String[] // Array of image URLs
+  right_banners     Json     // Stores banner config array [{ title, sub, url, link }]
+  promo_banners     String[] // Full-width promotional banner image URLs
+  section_order     String[] // Order of sections, e.g. ["hero", "categories", "quick_deal", "featured", ...]
+  disabled_sections String[] // List of disabled section IDs
+  colors            Json     // Theme settings: { primary, secondary, cardBg, background }
+  brand_logos       Json     // Popular brand items [{ name, logoUrl, brandId }]
+  testimonials      Json     // Testimonial entries [{ name, text, rating, role }]
+  updatedAt         DateTime @updatedAt
+
+  @@schema("public")
+}

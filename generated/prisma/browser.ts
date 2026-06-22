@@ -177,3 +177,33 @@ export type profiles = Prisma.profilesModel
  * 
  */
 export type roles = Prisma.rolesModel
+/**
+ * Model CategoryMatrix
+ * 
+ */
+export type CategoryMatrix = Prisma.CategoryMatrixModel
+/**
+ * Model BrandMatrix
+ * 
+ */
+export type BrandMatrix = Prisma.BrandMatrixModel
+/**
+ * Model PimProducts
+ * 
+ */
+export type PimProducts = Prisma.PimProductsModel
+/**
+ * Model ProductVariants
+ * 
+ */
+export type ProductVariants = Prisma.ProductVariantsModel
+/**
+ * Model OrderMatrix
+ * 
+ */
+export type OrderMatrix = Prisma.OrderMatrixModel
+/**
+ * Model HomepageConfig
+ * 
+ */
+export type HomepageConfig = Prisma.HomepageConfigModel

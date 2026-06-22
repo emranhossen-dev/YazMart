@@ -1,19 +1,26 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export function middleware(request: NextRequest) {
-  const token = request.cookies.get("sb-access-token")?.value;
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const sessionToken = request.cookies.get("sb-access-token")?.value;
 
-  if (!token) {
-    if (pathname.startsWith("/admin") || pathname.startsWith("/customer")) {
-      return NextResponse.redirect(new URL("/", request.url));
+  // ১. প্রটেক্টেড অ্যাডমিন রাউট সিকিউরিটি
+  if (pathname.startsWith("/admin")) {
+    if (!sessionToken) {
+      const loginUrl = new URL("/auth", request.url);
+      return NextResponse.redirect(loginUrl);
     }
+  }
+
+  // ২. লগইন করা ইউজারকে অথ পেজে যেতে না দিয়ে ড্যাশবোর্ডে পাঠানো
+  if (pathname.startsWith("/auth") && sessionToken) {
+    return NextResponse.redirect(new URL("/admin", request.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/customer/:path*"],
+  matcher: ["/admin/:path*", "/auth/:path*"],
 };

@@ -1,16 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { 
   LayoutDashboard, Package, ShoppingCart, Warehouse, 
   Factory, Users, CircleDollarSign, Megaphone, FileText, 
   BarChart3, ShieldAlert, Settings, ChevronDown, ChevronRight, 
-  Menu, X, LogOut, Bell, Search, Globe
+  Menu, X, LogOut, Bell, Search
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { signOutAction } from "@/actions/auth";
+import { getEnterpriseUserSession } from "@/actions/auth-enterprise";
 
 interface SubMenuItem {
   name: string;
@@ -24,16 +25,93 @@ interface MenuItem {
   subItems?: SubMenuItem[];
 }
 
+function AdminSidebarNav({
+  menuItems,
+  openMenus,
+  toggleMenu,
+  pathname,
+}: {
+  menuItems: MenuItem[];
+  openMenus: Record<string, boolean>;
+  toggleMenu: (name: string) => void;
+  pathname: string;
+}) {
+  const searchParams = useSearchParams();
+  const currentTab = searchParams ? searchParams.get("tab") : null;
+
+  return (
+    <>
+      {menuItems.map((item) => {
+        const Icon = item.icon;
+        if (item.href) {
+          const isActive = pathname === item.href;
+          return (
+            <Link key={item.name} href={item.href} className={`flex items-center gap-3 px-3 py-2 rounded-md text-xs font-semibold transition-all ${
+              isActive ? "bg-blue-600 text-white shadow-sm" : "text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
+            }`}>
+              <Icon className="h-4 w-4 shrink-0" />
+              <span>{item.name}</span>
+            </Link>
+          );
+        }
+
+        const isMenuOpen = openMenus[item.name];
+        return (
+          <div key={item.name} className="space-y-1">
+            <button type="button" onClick={() => toggleMenu(item.name)} className="w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-semibold text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)] transition-all cursor-pointer">
+              <div className="flex items-center gap-3">
+                <Icon className="h-4 w-4 shrink-0" />
+                <span>{item.name}</span>
+              </div>
+              {isMenuOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+            </button>
+            {isMenuOpen && item.subItems && (
+              <div className="pl-9 space-y-1 border-l border-[var(--border)] ml-5 mt-1">
+                {item.subItems.map((sub) => {
+                  const isSubActive = sub.href.includes("?")
+                    ? pathname === sub.href.split("?")[0] && currentTab === new URLSearchParams(sub.href.split("?")[1]).get("tab")
+                    : pathname === sub.href && !currentTab;
+                  return (
+                    <Link key={sub.name} href={sub.href} className={`block px-3 py-1.5 rounded text-[11px] font-medium transition-colors ${
+                      isSubActive ? "text-blue-500 font-bold bg-blue-500/5" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                    }`}>
+                      {sub.name}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({
-    Catalog: true, // ডিফল্ট ওপেন
+    Catalog: true,
     Orders: false,
     Inventory: false,
   });
+  const [userData, setUserData] = useState({ name: "Emran Hossen", role: "Super Admin" });
   
   const pathname = usePathname();
   const router = useRouter();
+
+  useEffect(() => {
+    const syncSession = async () => {
+      const session = await getEnterpriseUserSession();
+      if (session.authenticated && session.user) {
+        setUserData({
+          name: session.user.name,
+          role: session.role === "admin" ? "Super Admin" : "Staff Member"
+        });
+      }
+    };
+    syncSession();
+  }, []);
 
   const toggleMenu = (menuName: string) => {
     setOpenMenus(prev => ({ ...prev, [menuName]: !prev[menuName] }));
@@ -58,8 +136,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       icon: ShoppingCart,
       subItems: [
         { name: "Orders List", href: "/admin/orders" },
-        { name: "Returns", href: "/admin/orders/returns" },
-        { name: "Refunds", href: "/admin/orders/refunds" },
+        { name: "Returns", href: "/admin/orders?tab=returns" },
+        { name: "Refunds", href: "/admin/orders?tab=refunds" },
       ]
     },
     {
@@ -67,18 +145,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       icon: Warehouse,
       subItems: [
         { name: "Stock Matrix", href: "/admin/inventory" },
-        { name: "Warehouses", href: "/admin/inventory/warehouses" },
-        { name: "Stock Transfer", href: "/admin/inventory/transfer" },
-        { name: "Stock History", href: "/admin/inventory/history" },
+        { name: "Warehouses", href: "/admin/inventory?tab=warehouses" },
+        { name: "Stock Transfer", href: "/admin/inventory?tab=transfer" },
+        { name: "Stock History", href: "/admin/inventory?tab=history" },
       ]
     },
     {
       name: "Purchase",
       icon: Factory,
       subItems: [
-        { name: "Suppliers", href: "/admin/purchase/suppliers" },
-        { name: "Purchase Orders", href: "/admin/purchase/orders" },
-        { name: "Purchase Returns", href: "/admin/purchase/returns" },
+        { name: "Suppliers", href: "/admin/purchase?tab=suppliers" },
+        { name: "Purchase Orders", href: "/admin/purchase" },
+        { name: "Purchase Returns", href: "/admin/purchase?tab=returns" },
       ]
     },
     {
@@ -86,49 +164,49 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       icon: Users,
       subItems: [
         { name: "Customers Directory", href: "/admin/customers" },
-        { name: "Customer Groups", href: "/admin/customers/groups" },
-        { name: "Support Tickets", href: "/admin/customers/tickets" },
+        { name: "Customer Groups", href: "/admin/customers?tab=groups" },
+        { name: "Support Tickets", href: "/admin/customers?tab=tickets" },
       ]
     },
     {
       name: "Finance",
       icon: CircleDollarSign,
       subItems: [
-        { name: "Sales Matrix", href: "/admin/finance/sales" },
-        { name: "Expenses Tracker", href: "/admin/finance/expenses" },
-        { name: "Profit & Loss", href: "/admin/finance/profit-loss" },
-        { name: "Accounting Ledger", href: "/admin/finance/accounting" },
-        { name: "Transactions", href: "/admin/finance/transactions" },
+        { name: "Sales Matrix", href: "/admin/finance" },
+        { name: "Expenses Tracker", href: "/admin/finance?tab=expenses" },
+        { name: "Profit & Loss", href: "/admin/finance?tab=profit-loss" },
+        { name: "Accounting Ledger", href: "/admin/finance?tab=accounting" },
+        { name: "Transactions", href: "/admin/finance?tab=transactions" },
       ]
     },
     {
       name: "Marketing",
       icon: Megaphone,
       subItems: [
-        { name: "Coupons", href: "/admin/marketing/coupons" },
-        { name: "Banners Slider", href: "/admin/marketing/banners" },
-        { name: "Campaigns", href: "/admin/marketing/campaigns" },
-        { name: "Newsletter", href: "/admin/marketing/newsletter" },
-        { name: "Notifications", href: "/admin/marketing/notifications" },
+        { name: "Coupons", href: "/admin/marketing?tab=coupons" },
+        { name: "Banners Slider", href: "/admin/marketing?tab=banners" },
+        { name: "Campaigns", href: "/admin/marketing" },
+        { name: "Newsletter", href: "/admin/marketing?tab=newsletter" },
+        { name: "Notifications", href: "/admin/marketing?tab=notifications" },
       ]
     },
     {
       name: "Content",
       icon: FileText,
       subItems: [
-        { name: "Blogs Management", href: "/admin/content/blogs" },
-        { name: "FAQ Matrix", href: "/admin/content/faq" },
-        { name: "Media Library", href: "/admin/content/media" },
+        { name: "Blogs Management", href: "/admin/content" },
+        { name: "FAQ Matrix", href: "/admin/content?tab=faq" },
+        { name: "Media Library", href: "/admin/content?tab=media" },
       ]
     },
     {
       name: "Reports",
       icon: BarChart3,
       subItems: [
-        { name: "Sales Report", href: "/admin/reports/sales" },
-        { name: "Inventory Report", href: "/admin/reports/inventory" },
-        { name: "Finance Report", href: "/admin/reports/finance" },
-        { name: "Customer Report", href: "/admin/reports/customers" },
+        { name: "Sales Report", href: "/admin/reports" },
+        { name: "Inventory Report", href: "/admin/reports?tab=inventory" },
+        { name: "Finance Report", href: "/admin/reports?tab=finance" },
+        { name: "Customer Report", href: "/admin/reports?tab=customers" },
       ]
     },
     {
@@ -136,18 +214,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       icon: ShieldAlert,
       subItems: [
         { name: "Users Directory", href: "/admin/staff" },
-        { name: "Roles & RBAC", href: "/admin/staff/roles" },
-        { name: "Activity Logs", href: "/admin/staff/logs" },
+        { name: "Roles & RBAC", href: "/admin/staff?tab=roles" },
+        { name: "Activity Logs", href: "/admin/staff?tab=logs" },
       ]
     },
     {
       name: "Settings",
       icon: Settings,
       subItems: [
-        { name: "General Settings", href: "/admin/settings" },
-        { name: "Payment Gateway", href: "/admin/settings/payment" },
-        { name: "Shipping Matrix", href: "/admin/settings/shipping" },
-        { name: "SEO Optimizer", href: "/admin/settings/seo" },
+        { name: "Homepage Layout", href: "/admin/settings" },
+        { name: "Payment Gateway", href: "/admin/settings?tab=payment" },
+        { name: "Shipping Matrix", href: "/admin/settings?tab=shipping" },
+        { name: "SEO Optimizer", href: "/admin/settings?tab=seo" },
       ]
     }
   ];
@@ -159,12 +237,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="min-h-screen flex bg-[var(--background)] text-[var(--foreground)] font-sans antialiased selection:bg-blue-500/30">
-      {/* Mobile Overlay */}
+      {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Dynamic Advanced Sidebar */}
+      {/* Advanced Sidebar */}
       <aside className={`fixed inset-y-0 left-0 z-50 w-68 bg-[var(--card)] border-r border-[var(--border)] flex flex-col transform transition-transform duration-300 lg:translate-x-0 lg:static ${
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       }`}>
@@ -177,52 +255,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </button>
         </div>
 
-        {/* Sidebar Nav Links Container */}
         <nav className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto custom-scrollbar select-none">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            if (item.href) {
-              const isActive = pathname === item.href;
-              return (
-                <Link key={item.name} href={item.href} className={`flex items-center gap-3 px-3 py-2 rounded-md text-xs font-semibold transition-all ${
-                  isActive ? "bg-blue-600 text-white shadow-sm" : "text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
-                }`}>
-                  <Icon className="h-4 w-4 shrink-0" />
-                  <span>{item.name}</span>
-                </Link>
-              );
-            }
-
-            const isMenuOpen = openMenus[item.name];
-            return (
-              <div key={item.name} className="space-y-1">
-                <button type="button" onClick={() => toggleMenu(item.name)} className="w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-semibold text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)] transition-all cursor-pointer">
-                  <div className="flex items-center gap-3">
-                    <Icon className="h-4 w-4 shrink-0" />
-                    <span>{item.name}</span>
-                  </div>
-                  {isMenuOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                </button>
-                {isMenuOpen && item.subItems && (
-                  <div className="pl-9 space-y-1 border-l border-[var(--border)] ml-5 mt-1">
-                    {item.subItems.map((sub) => {
-                      const isSubActive = pathname === sub.href;
-                      return (
-                        <Link key={sub.name} href={sub.href} className={`block px-3 py-1.5 rounded text-[11px] font-medium transition-colors ${
-                          isSubActive ? "text-blue-500 font-bold bg-blue-500/5" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                        }`}>
-                          {sub.name}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+          <Suspense fallback={<div className="p-3 text-xs text-[var(--muted-foreground)]">Loading Navigation...</div>}>
+            <AdminSidebarNav
+              menuItems={menuItems}
+              openMenus={openMenus}
+              toggleMenu={toggleMenu}
+              pathname={pathname}
+            />
+          </Suspense>
         </nav>
 
-        {/* Sidebar Footer Logout */}
         <div className="p-3 border-t border-[var(--border)] bg-[var(--background)]/30">
           <button type="button" onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-xs font-semibold text-rose-500 hover:bg-rose-500/10 transition-all cursor-pointer">
             <LogOut className="h-4 w-4" />
@@ -231,15 +274,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      {/* Main Content Operating Area */}
+      {/* Workspace Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Topbar Command Center */}
         <header className="h-16 bg-[var(--card)] border-b border-[var(--border)] flex items-center justify-between px-6 sticky top-0 z-30 shadow-xs">
           <button type="button" className="p-2 -ml-2 rounded-md lg:hidden hover:bg-[var(--accent)]" onClick={() => setSidebarOpen(true)}>
             <Menu className="h-5 w-5" />
           </button>
 
-          {/* Global Search Bar */}
           <div className="hidden md:flex items-center gap-2 max-w-sm w-full bg-[var(--background)] border border-[var(--border)] px-3 py-1.5 rounded-md focus-within:border-blue-500 transition-colors">
             <Search className="h-4 w-4 text-[var(--muted-foreground)]" />
             <input type="text" placeholder="Global Search (Ctrl + K)..." className="bg-transparent border-none text-xs focus:outline-none w-full" />
@@ -257,14 +298,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 E
               </div>
               <div className="hidden sm:block text-left">
-                <p className="text-xs font-bold leading-none">Emran Hossen</p>
-                <p className="text-[10px] text-[var(--muted-foreground)] mt-0.5">Super Admin</p>
+                <p className="text-xs font-bold leading-none">{userData.name}</p>
+                <p className="text-[10px] text-[var(--muted-foreground)] mt-0.5">{userData.role}</p>
               </div>
             </div>
           </div>
         </header>
 
-        {/* Dynamic Canvas Workspace */}
         <main className="flex-1 overflow-y-auto p-5 md:p-8 bg-[var(--background)] text-[var(--foreground)]">
           {children}
         </main>
