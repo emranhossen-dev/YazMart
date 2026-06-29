@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useQueryParam } from "@/hooks/use-admin-tab";
 import { getAllProducts } from "@/actions/shop";
 import { useShopStore } from "@/store/shop-store";
 import { ShoppingCart, Heart, Eye, ArrowLeft, Search, Sliders, ShoppingBag, Grid, List } from "lucide-react";
@@ -17,8 +17,7 @@ export default function ProductsPageClient({
   initialProducts,
   initialCategories,
 }: ProductsPageClientProps) {
-  const searchParams = useSearchParams();
-  const tabParam = searchParams.get("tab"); // Can be sale, featured, etc.
+  const tabParam = useQueryParam("tab");
 
   const [categories] = useState<any[]>(initialCategories);
   const [products, setProducts] = useState<any[]>(initialProducts);

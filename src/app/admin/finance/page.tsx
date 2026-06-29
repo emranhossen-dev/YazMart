@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAdminTab } from "@/hooks/use-admin-tab";
 import { CircleDollarSign, TrendingUp, Wallet, BookOpen, ListTodo } from "lucide-react";
 
 const SALES_MATRIX = [
@@ -32,10 +33,9 @@ const TRANSACTIONS = [
   { id: "TXN-8699", desc: "Amazon AWS Server Invoice", amt: "-৳580", type: "Debit", date: "2026-06-22 09:12" }
 ];
 
-function FinancePageContent() {
-  const searchParams = useSearchParams();
+export default function FinancePage() {
   const router = useRouter();
-  const tab = searchParams ? searchParams.get("tab") || "sales" : "sales";
+  const tab = useAdminTab("sales");
 
   const selectTab = (tabName: string) => {
     if (tabName === "sales") {
@@ -256,13 +256,5 @@ function FinancePageContent() {
         )}
       </div>
     </div>
-  );
-}
-
-export default function FinancePage() {
-  return (
-    <Suspense fallback={<div className="p-6 text-xs text-[var(--muted-foreground)]">Loading Finance Matrix...</div>}>
-      <FinancePageContent />
-    </Suspense>
   );
 }

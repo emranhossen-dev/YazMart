@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAdminTab } from "@/hooks/use-admin-tab";
 import { getOrders } from "@/actions/orders";
 import { ShoppingBag, ArrowLeftRight, CreditCard, Eye, ShieldAlert, Sparkles } from "lucide-react";
 
@@ -26,10 +27,9 @@ const FALLBACK_REFUNDS = [
   { id: "REF-302", customerName: "Tanvir Ahmed", amount: "$2,100", method: "Visa Card", status: "PROCESSING" }
 ];
 
-function AdminOrdersPageContent() {
-  const searchParams = useSearchParams();
+export default function AdminOrdersPage() {
   const router = useRouter();
-  const tab = searchParams ? searchParams.get("tab") || "list" : "list";
+  const tab = useAdminTab("list");
 
   const [orders, setOrders] = useState<DbOrder[]>([]);
   const [loading, setLoading] = useState(false);
@@ -217,13 +217,5 @@ function AdminOrdersPageContent() {
         )}
       </div>
     </div>
-  );
-}
-
-export default function AdminOrdersPage() {
-  return (
-    <Suspense fallback={<div className="p-6 text-xs text-[var(--muted-foreground)]">Loading Orders Matrix...</div>}>
-      <AdminOrdersPageContent />
-    </Suspense>
   );
 }

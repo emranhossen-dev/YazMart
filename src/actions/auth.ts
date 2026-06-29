@@ -45,8 +45,7 @@ export async function signInAction(formData: FormData) {
 
   if (error) return { error: error.message };
 
-  // মিডলওয়্যার ট্র্যাকিংয়ের জন্য কুকি সেট করা
-  if (data.session) {
+  if (data.session && data.user) {
     const cookieStore = await cookies();
     cookieStore.set("sb-access-token", data.session.access_token, {
       path: "/",
@@ -54,9 +53,21 @@ export async function signInAction(formData: FormData) {
       sameSite: "lax",
       maxAge: data.session.expires_in,
     });
+
+    const profile = await syncAndGetUserProfile(
+      data.user.id,
+      data.user.email,
+      data.user.user_metadata?.full_name
+    );
+
+    return {
+      success: "Login successful!",
+      user: data.user,
+      role: profile?.role ?? "customer",
+    };
   }
 
-  return { success: "Login successful!", user: data.user };
+  return { success: "Login successful!", user: data.user, role: "customer" };
 }
 
 // ৩. লগআউট অ্যাকশন

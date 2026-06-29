@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAdminTab } from "@/hooks/use-admin-tab";
 import { ShieldCheck, Users, Eye, KeyRound, Clock, Plus, Trash2 } from "lucide-react";
 
 const STAFF_MEMBERS = [
@@ -22,10 +23,9 @@ const ACTIVITIES = [
   { id: "ACT-703", user: "Tasnim Ara", action: "Approved Review Ticket", target: "REV-501 (Leather Shoes)", time: "2026-06-21 17:45" }
 ];
 
-function StaffPageContent() {
-  const searchParams = useSearchParams();
+export default function StaffPage() {
   const router = useRouter();
-  const tab = searchParams ? searchParams.get("tab") || "users" : "users";
+  const tab = useAdminTab("users");
 
   const selectTab = (tabName: string) => {
     if (tabName === "users") {
@@ -171,13 +171,5 @@ function StaffPageContent() {
         )}
       </div>
     </div>
-  );
-}
-
-export default function StaffPage() {
-  return (
-    <Suspense fallback={<div className="p-6 text-xs text-[var(--muted-foreground)]">Loading Staff & Permissions...</div>}>
-      <StaffPageContent />
-    </Suspense>
   );
 }

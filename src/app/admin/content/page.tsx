@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAdminTab } from "@/hooks/use-admin-tab";
 import { FileText, HelpCircle, Image as ImageIcon, Plus, Trash2, Edit, ExternalLink } from "lucide-react";
 
 const BLOGS = [
@@ -19,10 +20,9 @@ const MEDIA = [
   { id: "MED-202", fileName: "shoes_promo_banner.png", size: "812 KB", url: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=150&fit=crop&q=60" }
 ];
 
-function ContentPageContent() {
-  const searchParams = useSearchParams();
+export default function ContentPage() {
   const router = useRouter();
-  const tab = searchParams ? searchParams.get("tab") || "blogs" : "blogs";
+  const tab = useAdminTab("blogs");
 
   const selectTab = (tabName: string) => {
     if (tabName === "blogs") {
@@ -171,13 +171,5 @@ function ContentPageContent() {
         )}
       </div>
     </div>
-  );
-}
-
-export default function ContentPage() {
-  return (
-    <Suspense fallback={<div className="p-6 text-xs text-[var(--muted-foreground)]">Loading Content matrix...</div>}>
-      <ContentPageContent />
-    </Suspense>
   );
 }

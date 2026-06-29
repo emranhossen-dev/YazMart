@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React from "react";
 import { redirect } from "next/navigation";
 import { getEnterpriseUserSession } from "@/actions/auth-enterprise";
 import AdminLayoutClient from "./AdminLayoutClient";
@@ -16,9 +16,5 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect("/");
   }
 
-  return (
-    <Suspense fallback={<div className="p-6 text-xs text-[var(--muted-foreground)]">Loading Admin Workspace...</div>}>
-      <AdminLayoutClient>{children}</AdminLayoutClient>
-    </Suspense>
-  );
+  return <AdminLayoutClient>{children}</AdminLayoutClient>;
 }

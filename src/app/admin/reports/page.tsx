@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAdminTab } from "@/hooks/use-admin-tab";
 import { BarChart3, LineChart, PieChart, Users, ArrowUpRight, TrendingUp, AlertTriangle } from "lucide-react";
 
-function ReportsPageContent() {
-  const searchParams = useSearchParams();
+export default function ReportsPage() {
   const router = useRouter();
-  const tab = searchParams ? searchParams.get("tab") || "sales" : "sales";
+  const tab = useAdminTab("sales");
 
   const selectTab = (tabName: string) => {
     if (tabName === "sales") {
@@ -175,13 +175,5 @@ function ReportsPageContent() {
         )}
       </div>
     </div>
-  );
-}
-
-export default function ReportsPage() {
-  return (
-    <Suspense fallback={<div className="p-6 text-xs text-[var(--muted-foreground)]">Loading Reports matrix...</div>}>
-      <ReportsPageContent />
-    </Suspense>
   );
 }

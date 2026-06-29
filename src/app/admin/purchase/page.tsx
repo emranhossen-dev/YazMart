@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAdminTab } from "@/hooks/use-admin-tab";
 import { Factory, Truck, ClipboardList, ArrowLeftRight, CheckCircle, Plus } from "lucide-react";
 
 const SUPPLIERS = [
@@ -19,10 +20,9 @@ const PURCHASE_RETURNS = [
   { ref: "PR-401", poNum: "PO-2026-001", supplier: "Global Tech Electronics", qty: 5, reason: "Defective switch matrix", date: "2026-06-22", status: "PENDING_CREDIT" }
 ];
 
-function PurchasePageContent() {
-  const searchParams = useSearchParams();
+export default function PurchasePage() {
   const router = useRouter();
-  const tab = searchParams ? searchParams.get("tab") || "orders" : "orders";
+  const tab = useAdminTab("orders");
 
   const selectTab = (tabName: string) => {
     if (tabName === "orders") {
@@ -190,13 +190,5 @@ function PurchasePageContent() {
         )}
       </div>
     </div>
-  );
-}
-
-export default function PurchasePage() {
-  return (
-    <Suspense fallback={<div className="p-6 text-xs text-[var(--muted-foreground)]">Loading Procurement Matrix...</div>}>
-      <PurchasePageContent />
-    </Suspense>
   );
 }

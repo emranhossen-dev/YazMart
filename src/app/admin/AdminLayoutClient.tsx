@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { 
   LayoutDashboard, Package, ShoppingCart, Warehouse, 
   Factory, Users, CircleDollarSign, Megaphone, FileText, 
@@ -12,6 +12,7 @@ import {
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { signOutAction } from "@/actions/auth";
 import { getEnterpriseUserSession } from "@/actions/auth-enterprise";
+import { useQueryTab } from "@/hooks/use-admin-tab";
 
 interface SubMenuItem {
   name: string;
@@ -36,8 +37,7 @@ function AdminSidebarNav({
   toggleMenu: (name: string) => void;
   pathname: string;
 }) {
-  const searchParams = useSearchParams();
-  const currentTab = searchParams ? searchParams.get("tab") : null;
+  const currentTab = useQueryTab();
 
   return (
     <>
@@ -256,14 +256,12 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto custom-scrollbar select-none">
-          <Suspense fallback={<div className="p-3 text-xs text-[var(--muted-foreground)]">Loading Navigation...</div>}>
-            <AdminSidebarNav
-              menuItems={menuItems}
-              openMenus={openMenus}
-              toggleMenu={toggleMenu}
-              pathname={pathname}
-            />
-          </Suspense>
+          <AdminSidebarNav
+            menuItems={menuItems}
+            openMenus={openMenus}
+            toggleMenu={toggleMenu}
+            pathname={pathname}
+          />
         </nav>
 
         <div className="p-3 border-t border-[var(--border)] bg-[var(--background)]/30">

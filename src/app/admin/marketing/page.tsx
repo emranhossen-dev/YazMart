@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAdminTab } from "@/hooks/use-admin-tab";
 import { Megaphone, Ticket, Image as ImageIcon, Mail, Bell, Plus, Trash2 } from "lucide-react";
 
 const CAMPAIGNS = [
@@ -27,10 +28,9 @@ const NOTIFICATIONS = [
   { id: "NT-01", message: "Free Shipping on orders above ৳1,000 this weekend!", type: "Web Banner Push", clickRate: "18.4%", status: "PUBLISHED" }
 ];
 
-function MarketingPageContent() {
-  const searchParams = useSearchParams();
+export default function MarketingPage() {
   const router = useRouter();
-  const tab = searchParams ? searchParams.get("tab") || "campaigns" : "campaigns";
+  const tab = useAdminTab("campaigns");
 
   const selectTab = (tabName: string) => {
     if (tabName === "campaigns") {
@@ -274,13 +274,5 @@ function MarketingPageContent() {
         )}
       </div>
     </div>
-  );
-}
-
-export default function MarketingPage() {
-  return (
-    <Suspense fallback={<div className="p-6 text-xs text-[var(--muted-foreground)]">Loading Marketing Deck...</div>}>
-      <MarketingPageContent />
-    </Suspense>
   );
 }

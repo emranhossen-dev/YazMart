@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAdminTab } from "@/hooks/use-admin-tab";
 import { Warehouse, ArrowLeftRight, Layers, FileText, CheckCircle, Search, AlertCircle } from "lucide-react";
 
 const STOCK_MATRIX = [
@@ -27,10 +28,9 @@ const LOGS = [
   { id: "LOG-02", action: "Inventory Dispatch", item: "Noise Cancelling Headphones", qty: "-2 items", staff: "System Checkout", time: "2026-06-22 08:45" }
 ];
 
-function InventoryPageContent() {
-  const searchParams = useSearchParams();
+export default function InventoryPage() {
   const router = useRouter();
-  const tab = searchParams ? searchParams.get("tab") || "matrix" : "matrix";
+  const tab = useAdminTab("matrix");
 
   const selectTab = (tabName: string) => {
     if (tabName === "matrix") {
@@ -240,13 +240,5 @@ function InventoryPageContent() {
         )}
       </div>
     </div>
-  );
-}
-
-export default function InventoryPage() {
-  return (
-    <Suspense fallback={<div className="p-6 text-xs text-[var(--muted-foreground)]">Loading Inventory Matrix...</div>}>
-      <InventoryPageContent />
-    </Suspense>
   );
 }

@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { signInAction, signUpAction } from "@/actions/auth";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ShoppingBag, Lock, Mail, User, ArrowLeft } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -11,7 +10,6 @@ export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -26,12 +24,16 @@ export default function AuthPage() {
         if (res.error) {
           setMessage({ type: "error", text: res.error });
         } else {
-          setMessage({ type: "success", text: "Login successful! Redirecting..." });
-          setTimeout(() => {
-            router.push("/");
-            // Force a reload to sync navbar auth state
-            window.location.reload();
-          }, 1000);
+          const isAdmin =
+            res.role === "admin" || res.role === "Super Admin";
+          const destination = isAdmin ? "/admin" : "/";
+
+          setMessage({
+            type: "success",
+            text: `Login successful! Redirecting to ${isAdmin ? "admin dashboard" : "storefront"}...`,
+          });
+
+          window.location.href = destination;
         }
       } else {
         const res = await signUpAction(formData);
