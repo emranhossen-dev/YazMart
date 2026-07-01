@@ -5,6 +5,7 @@ import {
   createEnterpriseProduct, 
   getEnterpriseProducts, 
   deleteEnterpriseProduct, 
+  deleteMultipleProducts,
   duplicateEnterpriseProduct,
   bulkImportEnterpriseProducts, 
   getPimCategories,
@@ -41,6 +42,7 @@ export default function UltimateShopifyPimDashboard() {
   const [jsonInput, setJsonInput] = useState("");
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [bulkPreview, setBulkPreview] = useState<any[]>([]);
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
 
   // Brand Modal/Add States
   const [newBrandName, setNewBrandName] = useState("");
@@ -110,6 +112,7 @@ export default function UltimateShopifyPimDashboard() {
     if (prodRes.totalPages) setTotalPages(prodRes.totalPages);
     if (catRes.categories) setCategories(catRes.categories);
     if (brandRes.brands) setBrands(brandRes.brands);
+    setSelectedProductIds([]);
     setLoading(false);
   };
 
@@ -263,6 +266,20 @@ export default function UltimateShopifyPimDashboard() {
     setLoading(false);
   };
 
+  const handleBulkDeleteProducts = async () => {
+    if (!confirm(`Purge ${selectedProductIds.length} product records? This action is irreversible.`)) return;
+    setLoading(true);
+    const res = await deleteMultipleProducts(selectedProductIds);
+    if (res.error) {
+      setMessage({ type: "error", text: res.error });
+    } else {
+      setMessage({ type: "success", text: res.success || "Selected products deleted." });
+      setSelectedProductIds([]);
+      await loadData();
+    }
+    setLoading(false);
+  };
+
   // CSV Parsing helper (supports quotes)
   const parseCSVLine = (text: string) => {
     let p = '', r = [];
@@ -340,15 +357,97 @@ export default function UltimateShopifyPimDashboard() {
   };
 
   const handleLoadSampleJsonData = () => {
-    const sample = [{
-      "name": "Luxury Smart Sunglasses",
-      "sku": `SKU-GLASS-${Math.floor(1000 + Math.random() * 9000)}`,
-      "buying_price": 90,
-      "selling_price": 180,
-      "current_stock": 40,
-      "category_id": categories[0]?.id || "category_uuid_here"
-    }];
+    if (categories.length === 0) {
+      setMessage({
+        type: "error",
+        text: "Please create at least one category in the Category Taxonomy Deck first, so we can link the sample products to a valid Category ID!"
+      });
+      return;
+    }
+
+    const sample = [
+      {
+        "name": "Luxury Smart Sunglasses",
+        "sku": `SKU-GLASS-${Math.floor(1000 + Math.random() * 9000)}`,
+        "barcode": "123456789012",
+        "product_code": "PC-GLASS-001",
+        "product_type": "PHYSICAL",
+        "status": "PUBLISHED",
+        "featured_image": "https://images.unsplash.com/photo-1572635196237-14b3f281503f?q=80&w=400&auto=format&fit=crop",
+        "gallery_images": [
+          "https://images.unsplash.com/photo-1572635196237-14b3f281503f?q=80&w=400&auto=format&fit=crop",
+          "https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=400&auto=format&fit=crop"
+        ],
+        "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "buying_price": 90.00,
+        "selling_price": 180.00,
+        "compare_price": 220.00,
+        "current_stock": 40,
+        "low_stock_alert": 5,
+        "weight": 0.25,
+        "shipping_charge": 15.00,
+        "cod_available": true,
+        "short_desc": "Premium smart polarized sunglasses with audio integration.",
+        "full_desc": "<p>Experience the ultimate fusion of style and modern intelligence. Crafted with lightweight carbon fiber frames and premium polarized lenses.</p>",
+        "meta_title": "Luxury Smart Sunglasses - YazMart Elite",
+        "meta_desc": "Shop luxury smart sunglasses with audio integration at YazMart. Exclusive premium collection.",
+        "is_featured": true,
+        "is_trending": false,
+        "is_best_seller": true,
+        "is_flash_sale": false,
+        "is_new_arrival": true,
+        "specifications": {
+          "Lens Material": "Polarized TAC",
+          "Frame Type": "Full Rim",
+          "Connectivity": "Bluetooth 5.2",
+          "Battery Life": "Up to 6 hours"
+        },
+        "warranty": "1 Year Brand Warranty",
+        "category_id": categories[0]?.id || "category_uuid_here",
+        "brand_id": brands[0]?.id || "brand_uuid_here"
+      },
+      {
+        "name": "Mechanical Gaming Keyboard",
+        "sku": `SKU-KEY-${Math.floor(1000 + Math.random() * 9000)}`,
+        "barcode": "987654321098",
+        "product_code": "PC-KEY-002",
+        "product_type": "PHYSICAL",
+        "status": "PUBLISHED",
+        "featured_image": "https://images.unsplash.com/photo-1587829741301-dc798b83add3?q=80&w=400&auto=format&fit=crop",
+        "gallery_images": [
+          "https://images.unsplash.com/photo-1587829741301-dc798b83add3?q=80&w=400&auto=format&fit=crop"
+        ],
+        "video_url": "",
+        "buying_price": 50.00,
+        "selling_price": 95.00,
+        "compare_price": 120.00,
+        "current_stock": 75,
+        "low_stock_alert": 10,
+        "weight": 0.85,
+        "shipping_charge": 10.00,
+        "cod_available": true,
+        "short_desc": "Tactile blue switch RGB mechanical keyboard with hot-swappable keys.",
+        "full_desc": "<p>Premium gaming keyboard featuring dynamic per-key RGB backlighting, aircraft-grade anodized aluminum frame, and 100% anti-ghosting.</p>",
+        "meta_title": "Mechanical Gaming Keyboard - RGB Hot-swappable",
+        "meta_desc": "Buy premium mechanical gaming keyboard at YazMart. Hot-swappable switches, dynamic RGB backlight.",
+        "is_featured": false,
+        "is_trending": true,
+        "is_best_seller": false,
+        "is_flash_sale": true,
+        "is_new_arrival": true,
+        "specifications": {
+          "Switch Type": "Cherry MX Blue",
+          "Layout": "ANSI Full Size",
+          "Backlight": "RGB Dynamic",
+          "Interface": "Wired USB Type-C"
+        },
+        "warranty": "2 Years Limited Warranty",
+        "category_id": categories[0]?.id || "category_uuid_here",
+        "brand_id": brands[0]?.id || "brand_uuid_here"
+      }
+    ];
     setJsonInput(JSON.stringify(sample, null, 2));
+    setMessage({ type: "success", text: "Loaded sample JSON data! Click copy to copy to clipboard or import to commit." });
   };
 
   const executeBulkImport = async () => {
@@ -850,7 +949,21 @@ export default function UltimateShopifyPimDashboard() {
                 
                 <div className="flex flex-wrap gap-2 items-center bg-[var(--background)] p-3 rounded-lg border border-[var(--border)]">
                   {bulkMode === "json" ? (
-                    <button type="button" onClick={handleLoadSampleJsonData} className="px-3 py-1.5 bg-emerald-600 text-white font-bold rounded text-xs cursor-pointer hover:bg-emerald-700">⚡ Load Sample JSON</button>
+                    <>
+                      <button type="button" onClick={handleLoadSampleJsonData} className="px-3 py-1.5 bg-emerald-600 text-white font-bold rounded text-xs cursor-pointer hover:bg-emerald-700">⚡ Load Sample JSON</button>
+                      {jsonInput && (
+                        <button 
+                          type="button" 
+                          onClick={() => {
+                            navigator.clipboard.writeText(jsonInput);
+                            alert("Copied sample JSON array to clipboard!");
+                          }}
+                          className="px-3 py-1.5 bg-zinc-700 hover:bg-zinc-800 text-white font-bold rounded text-xs cursor-pointer flex items-center gap-1"
+                        >
+                          📋 Copy JSON
+                        </button>
+                      )}
+                    </>
                   ) : (
                     <>
                       <button type="button" onClick={handleLoadSampleCsv} className="px-3 py-1.5 bg-emerald-600 text-white font-bold rounded text-xs cursor-pointer hover:bg-emerald-700">⚡ Load Sample CSV</button>
@@ -1052,6 +1165,15 @@ export default function UltimateShopifyPimDashboard() {
               <option value="name_desc">Name Z-A</option>
             </select>
           </div>
+          {selectedProductIds.length > 0 && (
+            <button 
+              type="button" 
+              onClick={handleBulkDeleteProducts}
+              className="px-2.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-[10px] uppercase tracking-wider rounded transition-colors cursor-pointer flex items-center gap-1 shadow-xs"
+            >
+              <Trash2 className="h-3 w-3" /> Purge Selected ({selectedProductIds.length})
+            </button>
+          )}
         </div>
 
         {/* PRODUCTS LIST TABLE */}
@@ -1059,6 +1181,20 @@ export default function UltimateShopifyPimDashboard() {
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="border-b border-[var(--border)] text-[var(--muted-foreground)] font-bold text-[9px] uppercase tracking-wider">
+                <th className="pb-3 w-8">
+                  <input 
+                    type="checkbox" 
+                    checked={products.length > 0 && selectedProductIds.length === products.length}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedProductIds(products.map(p => p.id));
+                      } else {
+                        setSelectedProductIds([]);
+                      }
+                    }}
+                    className="rounded bg-[var(--background)] border-[var(--border)] text-blue-500 h-3.5 w-3.5 cursor-pointer"
+                  />
+                </th>
                 <th className="pb-3">Thumbnail</th>
                 <th className="pb-3">Product Name & SKU</th>
                 <th className="pb-3">Taxonomy</th>
@@ -1071,13 +1207,27 @@ export default function UltimateShopifyPimDashboard() {
             </thead>
             <tbody className="divide-y divide-[var(--border)] font-medium">
               {loading ? (
-                <tr><td colSpan={8} className="py-8 text-center text-[var(--muted-foreground)]">Loading operational directory ledger nodes...</td></tr>
+                <tr><td colSpan={9} className="py-8 text-center text-[var(--muted-foreground)]">Loading operational directory ledger nodes...</td></tr>
               ) : products.length === 0 ? (
-                <tr><td colSpan={8} className="py-4 text-center text-[var(--muted-foreground)]">No master data node entities found inside directory repository.</td></tr>
+                <tr><td colSpan={9} className="py-4 text-center text-[var(--muted-foreground)]">No master data node entities found inside directory repository.</td></tr>
               ) : (
                 products.map((p) => {
                   return (
                     <tr key={p.id} className="hover:bg-[var(--background)]/40 transition-colors">
+                      <td className="py-2.5">
+                        <input 
+                          type="checkbox"
+                          checked={selectedProductIds.includes(p.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedProductIds([...selectedProductIds, p.id]);
+                            } else {
+                              setSelectedProductIds(selectedProductIds.filter(id => id !== p.id));
+                            }
+                          }}
+                          className="rounded bg-[var(--background)] border-[var(--border)] text-blue-500 h-3.5 w-3.5 cursor-pointer"
+                        />
+                      </td>
                       <td className="py-2.5">
                         <div className="w-10 h-10 border border-[var(--border)] rounded bg-[var(--background)] flex items-center justify-center overflow-hidden p-0.5">
                           {p.featured_image ? <img src={p.featured_image} className="w-full h-full object-contain" /> : <Package className="h-4 w-4 text-[var(--border)]" />}
@@ -1090,8 +1240,8 @@ export default function UltimateShopifyPimDashboard() {
                       <td className="py-2.5 text-[var(--muted-foreground)]">{p.category ? p.category.name : "Unassigned"}</td>
                       <td className="py-2.5 text-[var(--muted-foreground)]">{p.brand ? p.brand.name : "-"}</td>
                       <td className="py-2.5 font-mono">
-                        <span className="text-blue-500 font-bold">${p.selling_price.toFixed(2)}</span>
-                        {p.compare_price && <span className="line-through text-[var(--muted-foreground)] ml-1.5 text-[10px]">${p.compare_price.toFixed(2)}</span>}
+                        <span className="text-blue-500 font-bold">৳{p.selling_price.toFixed(2)}</span>
+                        {p.compare_price && <span className="line-through text-[var(--muted-foreground)] ml-1.5 text-[10px]">৳{p.compare_price.toFixed(2)}</span>}
                       </td>
                       <td className="py-2.5">
                         <span className={`px-1.5 py-0.5 rounded-[3px] text-[10px] font-bold ${p.current_stock === 0 ? "bg-rose-500/10 text-rose-500" : p.current_stock < p.low_stock_alert ? "bg-amber-500/10 text-amber-500" : "bg-emerald-500/10 text-emerald-500"}`}>

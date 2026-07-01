@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { 
   ShoppingCart, Heart, Eye, ArrowRight, Layers, Sparkles, 
   Flame, ShoppingBag, ShieldCheck, Star, Clock, ChevronLeft, 
   ChevronRight, Search, ChevronDown, CheckCircle, Mail, MapPin, 
-  Phone, Shield, Award 
+  Phone, Shield, Award, Trash2 
 } from "lucide-react";
 import { ThemeToggle } from "./ui/theme-toggle";
 import { useShopStore } from "../store/shop-store";
@@ -33,15 +34,21 @@ export default function HomePageClient({
   const [searchQuery, setSearchQuery] = useState("");
   const [activeQuickDealTab, setActiveQuickDealTab] = useState("sale"); // sale, best, trending, new
   const [activeSlide, setActiveSlide] = useState(0);
+  const [featuredPage, setFeaturedPage] = useState(1);
+  const [categoryPageMap, setCategoryPageMap] = useState<Record<string, number>>({});
 
   // Active mega menu hover
   const [activeMegaMenu, setActiveMegaMenu] = useState<string | null>(null);
+  const [megaMenuLeftOffset, setMegaMenuLeftOffset] = useState<number | null>(null);
+  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
 
   // Slide interval ref
   const slideInterval = useRef<NodeJS.Timeout | null>(null);
 
   // Horizontal scroll ref for category cards
   const categoryScrollRef = useRef<HTMLDivElement>(null);
+  const headerCategoryScrollRef = useRef<HTMLDivElement>(null);
+  const flashSaleScrollRef = useRef<HTMLDivElement>(null);
 
   // Testimonial slider index
   const [activeReviewIndex, setActiveReviewIndex] = useState(0);
@@ -50,9 +57,53 @@ export default function HomePageClient({
   const [categoryMenuOpen, setCategoryMenuOpen] = useState(false);
   const [headerCategoryMenuOpen, setHeaderCategoryMenuOpen] = useState(false);
 
+  // Right sidebar state ("cart", "wishlist", or null)
+  const [rightSidebar, setRightSidebar] = useState<"cart" | "wishlist" | null>(null);
+
+  // Countdown timer state
+  const [timeLeft, setTimeLeft] = useState({ hours: 8, minutes: 42, seconds: 15 });
+
+  const router = useRouter();
+
   // Zustand Store hooks
-  const { cart, wishlist, addToCart, toggleWishlist } = useShopStore();
+  const { 
+    cart, 
+    wishlist, 
+    addToCart, 
+    toggleWishlist, 
+    removeFromCart, 
+    updateQuantity, 
+    removeFromWishlist 
+  } = useShopStore();
   const { user } = useAuthStore();
+
+  // Countdown clock ticking logic
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const now = new Date();
+      const target = new Date();
+      target.setHours(23, 59, 59, 999);
+      
+      let diff = target.getTime() - now.getTime();
+      if (diff <= 0) {
+        target.setDate(target.getDate() + 1);
+        diff = target.getTime() - now.getTime();
+      }
+
+      return {
+        hours: Math.floor(diff / (1000 * 60 * 60)),
+        minutes: Math.floor((diff / 1000 / 60) % 60),
+        seconds: Math.floor((diff / 1000) % 60)
+      };
+    };
+
+    setTimeLeft(calculateTimeLeft());
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   // Auto Slider Timer
   useEffect(() => {
@@ -84,6 +135,44 @@ export default function HomePageClient({
         behavior: "smooth"
       });
     }
+  };
+
+  const scrollHeaderCategories = (direction: "left" | "right") => {
+    if (headerCategoryScrollRef.current) {
+      const scrollAmt = 200;
+      headerCategoryScrollRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmt : scrollAmt,
+        behavior: "smooth"
+      });
+    }
+  };
+
+  const scrollFlashSale = (direction: "left" | "right") => {
+    if (flashSaleScrollRef.current) {
+      const scrollAmt = 300;
+      flashSaleScrollRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmt : scrollAmt,
+        behavior: "smooth"
+      });
+    }
+  };
+
+  const handleAddToCart = (product: any) => {
+    addToCart(product);
+    setRightSidebar("cart");
+  };
+
+  const handleToggleWishlist = (product: any) => {
+    const wasInWishlist = wishlist.some(item => item.id === product.id);
+    toggleWishlist(product);
+    if (!wasInWishlist) {
+      setRightSidebar("wishlist");
+    }
+  };
+
+  const handleBuyNow = (product: any) => {
+    addToCart(product);
+    router.push("/checkout");
   };
 
   const getQuickDealProducts = () => {
@@ -148,7 +237,7 @@ export default function HomePageClient({
                     </div>
                     <div>
                       <p className="font-bold">{p.name}</p>
-                      <p className="text-[10px] text-blue-500 font-bold" style={{ color: config?.colors?.primary || undefined }}>${p.selling_price.toFixed(2)}</p>
+                      <p className="text-[10px] text-blue-500 font-bold" style={{ color: config?.colors?.primary || undefined }}>৳{p.selling_price.toFixed(2)}</p>
                     </div>
                   </Link>
                 ))}
@@ -187,6 +276,14 @@ export default function HomePageClient({
                   <span className="max-w-[70px] truncate hidden md:inline">{user.fullName || "Account"}</span>
                 </button>
                 <div className="absolute right-0 top-full mt-1 w-40 bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-xl p-1.5 hidden group-hover:block z-50 text-xs text-[var(--foreground)] animate-fade-in">
+                  {user.role === "admin" && (
+                    <Link 
+                      href="/admin" 
+                      className="block w-full text-left px-3 py-2 hover:bg-[var(--accent)] rounded-xl font-bold transition-colors"
+                    >
+                      Admin Panel
+                    </Link>
+                  )}
                   <button 
                     onClick={async () => {
                       await signOutAction();
@@ -207,94 +304,170 @@ export default function HomePageClient({
                 Sign In
               </Link>
             )}
-
-            <Link 
-              href="/admin" 
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--accent)] hover:opacity-90 text-[var(--foreground)] text-xs font-bold transition-all border border-outline-variant/20"
-            >
-              <ShieldCheck className="h-3.5 w-3.5" />
-              Admin
-            </Link>
           </div>
         </div>
 
         {/* 2. CATEGORY NAVIGATION BAR */}
         <div className="border-t border-outline-variant/10 bg-[var(--card)]/95 backdrop-blur-sm relative z-40 hidden sm:block overflow-visible">
-          <div className="max-w-7xl mx-auto px-4 md:px-6 flex items-center h-12 gap-8 overflow-visible">
+          <div className="max-w-7xl mx-auto px-4 md:px-6 flex items-center h-12 gap-4 overflow-visible relative relative-subbar">
             <div 
-              className="relative shrink-0 z-50 overflow-visible"
+              className="relative shrink-0 z-50 overflow-visible h-full flex items-center"
               onMouseEnter={() => setHeaderCategoryMenuOpen(true)}
               onMouseLeave={() => setHeaderCategoryMenuOpen(false)}
             >
               <button
                 type="button"
                 onClick={() => setHeaderCategoryMenuOpen(!headerCategoryMenuOpen)}
-                className="flex items-center gap-2 text-blue-500 hover:opacity-85 font-black text-xs uppercase tracking-wider transition-opacity whitespace-nowrap cursor-pointer"
+                className="flex items-center gap-2 text-blue-500 hover:opacity-85 font-black text-xs uppercase tracking-wider transition-opacity whitespace-nowrap cursor-pointer h-full"
                 style={{ color: config?.colors?.primary || undefined }}
               >
                 <Layers className="h-4 w-4" /> ALL CATEGORIES
               </button>
 
               {headerCategoryMenuOpen && (
-                <div className="absolute top-9 left-0 w-60 bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-xl p-2.5 z-50 grid gap-1 text-xs text-[var(--foreground)] animate-fade-in text-left">
+                <div className="absolute top-full left-0 w-60 bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-xl p-2.5 z-50 grid gap-1 text-xs text-[var(--foreground)] animate-fade-in text-left">
                   <p className="font-black text-[9px] uppercase text-[var(--muted-foreground)] tracking-wider px-2 py-1">Select Category</p>
                   <Link 
                     href="/products" 
                     className="flex items-center gap-2 p-2 hover:bg-[var(--accent)] rounded-lg font-bold text-blue-500 transition-colors"
                     style={{ color: config?.colors?.primary || undefined }}
+                    onMouseEnter={() => setHoveredCategory(null)}
                   >
                     All Products
                   </Link>
                   <div className="h-px bg-[var(--border)] my-0.5" />
-                  {categories.map((cat: any) => (
-                    <Link 
-                      key={cat.id} 
-                      href={`/categories/${cat.slug}`}
-                      className="flex items-center gap-2 p-2 hover:bg-[var(--accent)] rounded-lg font-semibold text-[var(--foreground)] transition-colors"
-                    >
-                      {cat.name}
-                    </Link>
-                  ))}
+                  
+                  <div className="grid gap-1 relative" onMouseLeave={() => setHoveredCategory(null)}>
+                    {categories.map((cat: any) => (
+                      <div
+                        key={cat.id}
+                        onMouseEnter={() => setHoveredCategory(cat.id)}
+                        className="relative"
+                      >
+                        <Link 
+                          href={`/categories/${cat.slug}`}
+                          className="flex items-center justify-between gap-2 p-2 hover:bg-[var(--accent)] rounded-lg font-semibold text-[var(--foreground)] transition-colors"
+                        >
+                          <span>{cat.name}</span>
+                          {cat.sub_categories && cat.sub_categories.length > 0 && (
+                            <ChevronRight className="h-3 w-3 text-[var(--muted-foreground)]" />
+                          )}
+                        </Link>
+                      </div>
+                    ))}
+
+                    {/* Side Flyout for Subcategories */}
+                    {hoveredCategory && (() => {
+                      const cat = categories.find((c: any) => c.id === hoveredCategory);
+                      if (!cat || !cat.sub_categories || cat.sub_categories.length === 0) return null;
+                      return (
+                        <div 
+                          className="absolute left-full top-0 ml-1.5 w-60 bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-xl p-3 grid gap-1 text-xs text-[var(--foreground)] animate-fade-in z-[60]"
+                        >
+                          <p className="font-black text-[9px] uppercase text-[var(--muted-foreground)] tracking-wider px-2 py-1">Browse {cat.name}</p>
+                          <Link 
+                            href={`/categories/${cat.slug}`}
+                            className="flex items-center gap-2 p-2 hover:bg-[var(--accent)] rounded-lg font-bold text-blue-500 transition-colors"
+                            style={{ color: config?.colors?.primary || undefined }}
+                          >
+                            All Products
+                          </Link>
+                          <div className="h-px bg-[var(--border)] my-0.5" />
+                          {cat.sub_categories.map((sub: any) => (
+                            <Link 
+                              key={sub.id} 
+                              href={`/categories/${sub.slug}`}
+                              className="flex items-center gap-2 p-2 hover:bg-[var(--accent)] rounded-lg font-semibold text-[var(--foreground)] transition-colors"
+                            >
+                              — {sub.name}
+                            </Link>
+                          ))}
+                        </div>
+                      );
+                    })()}
+                  </div>
                 </div>
               )}
             </div>
 
             <div className="h-4 w-px bg-[var(--border)] shrink-0 mx-1" />
 
-            <nav className="flex items-center gap-8 overflow-x-auto scrollbar-none py-1 overflow-y-visible flex-1">
-              {categories.slice(0, 10).map((cat: any) => (
+            <div className="flex-1 flex items-center overflow-hidden h-full">
+              <nav 
+                ref={headerCategoryScrollRef}
+                className="flex items-center gap-6 overflow-x-auto scrollbar-none py-1 overflow-y-visible flex-1 h-full"
+              >
+                {categories.map((cat: any) => (
+                  <div 
+                    key={cat.id}
+                    onMouseEnter={(e) => {
+                      setActiveMegaMenu(cat.id);
+                      const btn = e.currentTarget.querySelector('button');
+                      const parent = e.currentTarget.closest('.relative-subbar');
+                      if (btn && parent) {
+                        const btnRect = btn.getBoundingClientRect();
+                        const parentRect = parent.getBoundingClientRect();
+                        setMegaMenuLeftOffset(btnRect.left - parentRect.left);
+                      }
+                    }}
+                    onMouseLeave={() => setActiveMegaMenu(null)}
+                    className="relative shrink-0 h-full flex items-center"
+                  >
+                    <button 
+                      type="button"
+                      className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] rounded-lg transition-colors whitespace-nowrap flex items-center gap-1 cursor-pointer"
+                    >
+                      {cat.name} <ChevronDown className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </nav>
+
+              <div className="flex items-center gap-1 shrink-0 ml-2">
+                <button 
+                  type="button"
+                  onClick={() => scrollHeaderCategories("left")}
+                  className="p-1 border border-outline-variant/20 rounded-md hover:bg-[var(--accent)] text-[var(--foreground)] cursor-pointer"
+                >
+                  <ChevronLeft className="h-3 w-3" />
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => scrollHeaderCategories("right")}
+                  className="p-1 border border-outline-variant/20 rounded-md hover:bg-[var(--accent)] text-[var(--foreground)] cursor-pointer"
+                >
+                  <ChevronRight className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
+
+            {/* Hover mega menu list rendered outside scroll container to avoid layout clipping */}
+            {activeMegaMenu && (() => {
+              const cat = categories.find((c: any) => c.id === activeMegaMenu);
+              if (!cat) return null;
+              return (
                 <div 
-                  key={cat.id}
                   onMouseEnter={() => setActiveMegaMenu(cat.id)}
                   onMouseLeave={() => setActiveMegaMenu(null)}
-                  className="relative shrink-0"
+                  className="absolute top-full bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-lg p-4 z-50 grid gap-2 text-xs text-[var(--foreground)] w-64 animate-fade-in"
+                  style={{ 
+                    left: megaMenuLeftOffset !== null ? `${megaMenuLeftOffset}px` : '16px',
+                  }}
                 >
-                  <button 
-                    type="button"
-                    className="px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] rounded-lg transition-colors whitespace-nowrap flex items-center gap-1 cursor-pointer"
-                  >
-                    {cat.name} <ChevronDown className="h-3 w-3" />
-                  </button>
-
-                  {/* Hover mega menu list */}
-                  {activeMegaMenu === cat.id && (
-                    <div className="absolute top-9 left-0 w-64 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-lg p-4 z-50 grid gap-2 text-xs text-[var(--foreground)]">
-                      <p className="font-black text-[10px] uppercase text-[var(--muted-foreground)] tracking-wider">Browse {cat.name}</p>
-                      <Link href={`/categories/${cat.slug}`} className="font-bold text-blue-500 hover:underline" style={{ color: config?.colors?.primary || undefined }}>All Products</Link>
-                      {cat.sub_categories && cat.sub_categories.map((sub: any) => (
-                        <Link 
-                          key={sub.id} 
-                          href={`/categories/${sub.slug}`}
-                          className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] font-medium pl-2"
-                        >
-                          — {sub.name}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
+                  <p className="font-black text-[10px] uppercase text-[var(--muted-foreground)] tracking-wider">Browse {cat.name}</p>
+                  <Link href={`/categories/${cat.slug}`} className="font-bold text-blue-500 hover:underline" style={{ color: config?.colors?.primary || undefined }}>All Products</Link>
+                  {cat.sub_categories && cat.sub_categories.map((sub: any) => (
+                    <Link 
+                      key={sub.id} 
+                      href={`/categories/${sub.slug}`}
+                      className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] font-medium pl-2"
+                    >
+                      — {sub.name}
+                    </Link>
+                  ))}
                 </div>
-              ))}
-            </nav>
+              );
+            })()}
           </div>
         </div>
       </header>
@@ -396,90 +569,136 @@ export default function HomePageClient({
                 <section key={sectionId} className="max-w-7xl w-full mx-auto px-4 md:px-6 py-4 space-y-6">
                   <div className="flex items-center justify-between">
                     <h2 className="font-display text-base md:text-lg font-black uppercase tracking-wider text-[var(--foreground)]">Shop by Category</h2>
-                    <div className="flex items-center gap-4">
-                      <Link href="/products" className="text-blue-500 font-bold text-[10px] flex items-center gap-1 hover:underline uppercase tracking-wider" style={{ color: config?.colors?.primary || undefined }}>
-                        View All Categories <ArrowRight className="h-3.5 w-3.5" />
-                      </Link>
-                      <div className="flex gap-1.5">
-                        <button 
-                          onClick={() => scrollCategories("left")}
-                          className="p-1.5 border border-outline-variant/20 rounded-lg hover:bg-[var(--accent)] text-[var(--foreground)] cursor-pointer"
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                        </button>
-                        <button 
-                          onClick={() => scrollCategories("right")}
-                          className="p-1.5 border border-outline-variant/20 rounded-lg hover:bg-[var(--accent)] text-[var(--foreground)] cursor-pointer"
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
+                    <Link href="/products" className="text-blue-500 font-bold text-[10px] flex items-center gap-1 hover:underline uppercase tracking-wider" style={{ color: config?.colors?.primary || undefined }}>
+                      View All Categories <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
                   </div>
 
-                  <div 
-                    ref={categoryScrollRef}
-                    className="flex gap-6 overflow-x-auto pb-4 scrollbar-none snap-x items-center -mx-4 px-4"
-                  >
-                    {/* All Categories Dropdown Card */}
-                    <div 
-                      className="relative shrink-0 snap-start"
-                      onMouseLeave={() => setCategoryMenuOpen(false)}
+                  <div className="relative group/categories">
+                    {/* Left Scroll Arrow */}
+                    <button 
+                      onClick={() => scrollCategories("left")}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-9 h-9 bg-white/95 dark:bg-zinc-900/95 shadow-md border border-outline-variant/20 rounded-full flex items-center justify-center text-[var(--foreground)] hover:scale-105 active:scale-95 transition-all opacity-0 group-hover/categories:opacity-100 cursor-pointer"
                     >
-                      <button
-                        onClick={() => setCategoryMenuOpen(!categoryMenuOpen)}
-                        className="w-36 h-40 bg-surface-container-low rounded-2xl flex flex-col items-center justify-center border border-outline-variant/10 shadow-xs cursor-pointer text-[var(--foreground)] hover:bg-blue-600 hover:text-white transition-all group"
-                        style={{ '--hover-bg': config?.colors?.primary || '#2563eb' } as React.CSSProperties}
-                      >
-                        <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform">
-                          <Layers className="h-6 w-6 text-blue-500" style={{ color: config?.colors?.primary || undefined }} />
-                        </div>
-                        <span className="text-[10px] font-black uppercase flex items-center justify-center gap-1 w-full px-2 group-hover:text-white">
-                          Categories <ChevronDown className="h-3.5 w-3.5" />
-                        </span>
-                      </button>
+                      <ChevronLeft className="h-5 w-5" />
+                    </button>
 
-                      {categoryMenuOpen && (
-                        <div className="absolute top-44 left-0 w-56 bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-xl p-2.5 z-50 grid gap-1 text-xs text-[var(--foreground)] animate-fade-in text-left">
-                          <p className="font-black text-[9px] uppercase text-[var(--muted-foreground)] tracking-wider px-2 py-1">Select Category</p>
-                          <Link 
-                            href="/products" 
-                            className="flex items-center gap-2 p-2 hover:bg-[var(--accent)] rounded-lg font-bold text-blue-500 transition-colors"
-                            style={{ color: config?.colors?.primary || undefined }}
-                          >
-                            All Products
-                          </Link>
-                          <div className="h-px bg-[var(--border)] my-0.5" />
-                          {categories.map((cat: any) => (
-                            <Link 
-                              key={cat.id} 
-                              href={`/categories/${cat.slug}`}
-                              className="flex items-center gap-2 p-2 hover:bg-[var(--accent)] rounded-lg font-semibold text-[var(--foreground)] transition-colors"
-                            >
-                              {cat.name}
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                    {/* Right Scroll Arrow */}
+                    <button 
+                      onClick={() => scrollCategories("right")}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-9 h-9 bg-white/95 dark:bg-zinc-900/95 shadow-md border border-outline-variant/20 rounded-full flex items-center justify-center text-[var(--foreground)] hover:scale-105 active:scale-95 transition-all opacity-0 group-hover/categories:opacity-100 cursor-pointer"
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </button>
 
-                    {categories.map((cat: any) => (
-                      <Link 
-                        key={cat.id} 
-                        href={`/categories/${cat.slug}`}
-                        className="flex-shrink-0 w-36 h-40 bg-surface-container-low rounded-2xl flex flex-col items-center justify-center border border-outline-variant/10 shadow-xs cursor-pointer snap-start hover:bg-[var(--hover-bg)] hover:text-white transition-all group"
-                        style={{ '--hover-bg': config?.colors?.primary || '#2563eb' } as React.CSSProperties}
+                    <div 
+                      ref={categoryScrollRef}
+                      className="flex gap-6 overflow-x-auto pb-4 scrollbar-none snap-x items-center px-2"
+                    >
+                      {/* All Categories Dropdown Card */}
+                      <div 
+                        className="relative shrink-0 snap-start"
+                        onMouseLeave={() => setCategoryMenuOpen(false)}
                       >
-                        <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform overflow-hidden p-1.5 border border-outline-variant/5">
-                          {cat.image_url ? (
-                            <img src={cat.image_url} className="w-full h-full object-contain" />
-                          ) : (
+                        <button
+                          onClick={() => setCategoryMenuOpen(!categoryMenuOpen)}
+                          className="w-36 h-40 bg-surface-container-low rounded-2xl flex flex-col items-center justify-center border border-outline-variant/10 shadow-xs cursor-pointer text-[var(--foreground)] hover:bg-blue-600 hover:text-white transition-all group"
+                          style={{ '--hover-bg': config?.colors?.primary || '#2563eb' } as React.CSSProperties}
+                        >
+                          <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform">
                             <Layers className="h-6 w-6 text-blue-500" style={{ color: config?.colors?.primary || undefined }} />
-                          )}
-                        </div>
-                        <span className="text-[10px] font-black uppercase line-clamp-1 px-2 group-hover:text-white">{cat.name}</span>
-                      </Link>
-                    ))}
+                          </div>
+                          <span className="text-[10px] font-black uppercase flex items-center justify-center gap-1 w-full px-2 group-hover:text-white">
+                            Categories <ChevronDown className="h-3.5 w-3.5" />
+                          </span>
+                        </button>
+
+                        {categoryMenuOpen && (
+                          <div 
+                            onMouseLeave={() => setHoveredCategory(null)}
+                            className="absolute top-44 left-0 w-56 bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-xl p-2.5 z-50 grid gap-1 text-xs text-[var(--foreground)] animate-fade-in text-left"
+                          >
+                            <p className="font-black text-[9px] uppercase text-[var(--muted-foreground)] tracking-wider px-2 py-1">Select Category</p>
+                            <Link 
+                              href="/products" 
+                              className="flex items-center gap-2 p-2 hover:bg-[var(--accent)] rounded-lg font-bold text-blue-500 transition-colors"
+                              style={{ color: config?.colors?.primary || undefined }}
+                              onMouseEnter={() => setHoveredCategory(null)}
+                            >
+                              All Products
+                            </Link>
+                            <div className="h-px bg-[var(--border)] my-0.5" />
+                            <div className="grid gap-1 relative" onMouseLeave={() => setHoveredCategory(null)}>
+                              {categories.map((cat: any) => (
+                                <div
+                                  key={cat.id}
+                                  onMouseEnter={() => setHoveredCategory(cat.id)}
+                                  className="relative"
+                                >
+                                  <Link 
+                                    href={`/categories/${cat.slug}`}
+                                    className="flex items-center justify-between gap-2 p-2 hover:bg-[var(--accent)] rounded-lg font-semibold text-[var(--foreground)] transition-colors"
+                                  >
+                                    <span>{cat.name}</span>
+                                    {cat.sub_categories && cat.sub_categories.length > 0 && (
+                                      <ChevronRight className="h-3 w-3 text-[var(--muted-foreground)]" />
+                                    )}
+                                  </Link>
+                                </div>
+                              ))}
+
+                              {/* Side Flyout for Subcategories */}
+                              {hoveredCategory && (() => {
+                                const cat = categories.find((c: any) => c.id === hoveredCategory);
+                                if (!cat || !cat.sub_categories || cat.sub_categories.length === 0) return null;
+                                return (
+                                  <div 
+                                    className="absolute left-full top-0 ml-1.5 w-56 bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-xl p-3 grid gap-1 text-xs text-[var(--foreground)] animate-fade-in z-[60]"
+                                  >
+                                    <p className="font-black text-[9px] uppercase text-[var(--muted-foreground)] tracking-wider px-2 py-1">Browse {cat.name}</p>
+                                    <Link 
+                                      href={`/categories/${cat.slug}`}
+                                      className="flex items-center gap-2 p-2 hover:bg-[var(--accent)] rounded-lg font-bold text-blue-500 transition-colors"
+                                      style={{ color: config?.colors?.primary || undefined }}
+                                    >
+                                      All Products
+                                    </Link>
+                                    <div className="h-px bg-[var(--border)] my-0.5" />
+                                    {cat.sub_categories.map((sub: any) => (
+                                      <Link 
+                                        key={sub.id} 
+                                        href={`/categories/${sub.slug}`}
+                                        className="flex items-center gap-2 p-2 hover:bg-[var(--accent)] rounded-lg font-semibold text-[var(--foreground)] transition-colors"
+                                      >
+                                        — {sub.name}
+                                      </Link>
+                                    ))}
+                                  </div>
+                                );
+                              })()}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {categories.map((cat: any) => (
+                        <Link 
+                          key={cat.id} 
+                          href={`/categories/${cat.slug}`}
+                          className="flex-shrink-0 w-36 h-40 bg-surface-container-low rounded-2xl flex flex-col items-center justify-center border border-outline-variant/10 shadow-xs cursor-pointer snap-start hover:bg-[var(--hover-bg)] hover:text-white transition-all group"
+                          style={{ '--hover-bg': config?.colors?.primary || '#2563eb' } as React.CSSProperties}
+                        >
+                          <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform overflow-hidden p-1.5 border border-outline-variant/5">
+                            {cat.image_url ? (
+                              <img src={cat.image_url} className="w-full h-full object-contain" />
+                            ) : (
+                              <Layers className="h-6 w-6 text-blue-500" style={{ color: config?.colors?.primary || undefined }} />
+                            )}
+                          </div>
+                          <span className="text-[10px] font-black uppercase line-clamp-1 px-2 group-hover:text-white">{cat.name}</span>
+                        </Link>
+                      ))}
+                    </div>
                   </div>
                 </section>
               );
@@ -504,15 +723,21 @@ export default function HomePageClient({
                       {/* Timer block */}
                       <div className="flex gap-4">
                         <div className="flex flex-col items-center">
-                          <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center text-white text-2xl font-bold border border-white/20">08</div>
+                          <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center text-white text-2xl font-bold border border-white/20">
+                            {String(timeLeft.hours).padStart(2, "0")}
+                          </div>
                           <span className="text-white/60 text-[10px] mt-2 font-black uppercase">HOURS</span>
                         </div>
                         <div className="flex flex-col items-center">
-                          <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center text-white text-2xl font-bold border border-white/20">42</div>
+                          <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center text-white text-2xl font-bold border border-white/20">
+                            {String(timeLeft.minutes).padStart(2, "0")}
+                          </div>
                           <span className="text-white/60 text-[10px] mt-2 font-black uppercase">MINS</span>
                         </div>
                         <div className="flex flex-col items-center">
-                          <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center text-white text-2xl font-bold border border-white/20">15</div>
+                          <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center text-white text-2xl font-bold border border-white/20">
+                            {String(timeLeft.seconds).padStart(2, "0")}
+                          </div>
                           <span className="text-white/60 text-[10px] mt-2 font-black uppercase">SECS</span>
                         </div>
                       </div>
@@ -553,75 +778,104 @@ export default function HomePageClient({
                         No active deal products listed.
                       </div>
                     ) : (
-                      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 text-zinc-900">
-                        {quickDealProducts.slice(0, 4).map((product: any) => {
-                          const discount = product.compare_price && product.compare_price > product.selling_price
-                            ? Math.round(((product.compare_price - product.selling_price) / product.compare_price) * 100)
-                            : null;
-                          const inWishlist = wishlist.some(item => item.id === product.id);
+                      <div className="relative group/flash">
+                        {/* Left Scroll Arrow */}
+                        <button 
+                          onClick={() => scrollFlashSale("left")}
+                          className="absolute -left-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 bg-white/90 dark:bg-zinc-900/90 text-zinc-900 dark:text-white backdrop-blur-md rounded-full shadow-lg border border-outline-variant/20 flex items-center justify-center hover:scale-105 transition-all opacity-0 group-hover/flash:opacity-100 cursor-pointer"
+                        >
+                          <ChevronLeft className="h-5 w-5" />
+                        </button>
 
-                          return (
-                            <div 
-                              key={product.id}
-                              className="product-card group bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden relative border border-outline-variant/10 flex flex-col justify-between"
-                            >
-                              <div className="relative">
-                                {discount && (
-                                  <span className="absolute top-4 left-4 z-10 px-2.5 py-1 rounded-md text-[9px] font-black bg-rose-500 text-white uppercase tracking-wider">
-                                    -{discount}% OFF
-                                  </span>
-                                )}
+                        {/* Right Scroll Arrow */}
+                        <button 
+                          onClick={() => scrollFlashSale("right")}
+                          className="absolute -right-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 bg-white/90 dark:bg-zinc-900/90 text-zinc-900 dark:text-white backdrop-blur-md rounded-full shadow-lg border border-outline-variant/20 flex items-center justify-center hover:scale-105 transition-all opacity-0 group-hover/flash:opacity-100 cursor-pointer"
+                        >
+                          <ChevronRight className="h-5 w-5" />
+                        </button>
 
-                                <button 
-                                  onClick={() => toggleWishlist(product)}
-                                  className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white border border-outline-variant/20 hover:text-rose-500 transition-colors shadow-xs cursor-pointer text-zinc-900"
-                                >
-                                  <Heart className={`h-4 w-4 ${inWishlist ? "fill-rose-500 text-rose-500" : ""}`} />
-                                </button>
+                        <div 
+                          ref={flashSaleScrollRef}
+                          className="flex gap-6 overflow-x-auto pb-4 scrollbar-none snap-x items-stretch px-2 text-zinc-900"
+                        >
+                          {quickDealProducts.map((product: any) => {
+                            const discount = product.compare_price && product.compare_price > product.selling_price
+                              ? Math.round(((product.compare_price - product.selling_price) / product.compare_price) * 100)
+                              : null;
+                            const inWishlist = wishlist.some(item => item.id === product.id);
 
-                                <Link href={`/products/${product.slug}`} className="h-56 bg-surface-container-low flex items-center justify-center border-b border-outline-variant/10 p-4 overflow-hidden relative">
-                                  <img src={product.featured_image} className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300" />
-                                  <div className="action-overlay absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
-                                    <span className="bg-white text-zinc-900 px-4 py-2 rounded-lg font-black text-[10px] uppercase tracking-wider">Quick View</span>
-                                  </div>
-                                </Link>
-                              </div>
-
-                              <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
-                                <div>
-                                  <span className="text-[9px] font-bold text-blue-600 uppercase tracking-wider">{product.brand?.name || "General"}</span>
-                                  <h4 className="font-bold text-xs line-clamp-1 mt-0.5 hover:text-blue-600 transition-colors">
-                                    <Link href={`/products/${product.slug}`}>{product.name}</Link>
-                                  </h4>
-                                  <div className="flex items-center gap-1.5 mt-1">
-                                    <div className="flex text-amber-500 text-[10px]">
-                                      <Star className="h-3.5 w-3.5 fill-current" />
-                                      <span className="font-bold text-zinc-500 ml-1">4.8</span>
-                                    </div>
-                                    <span className="text-[9px] text-zinc-400 font-medium">• 120 sold</span>
-                                  </div>
-                                </div>
-
-                                <div className="flex flex-col gap-2 pt-2 border-t border-outline-variant/10">
-                                  <div className="flex items-baseline justify-between">
-                                    <span className="text-base font-black text-blue-600" style={{ color: config?.colors?.primary || undefined }}>${product.selling_price.toFixed(2)}</span>
-                                    {product.compare_price && (
-                                      <span className="text-[10px] line-through text-zinc-400 font-semibold">${product.compare_price.toFixed(2)}</span>
-                                    )}
-                                  </div>
+                            return (
+                              <div 
+                                key={product.id}
+                                className="product-card w-64 shrink-0 snap-start bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden relative border border-outline-variant/10 flex flex-col justify-between"
+                              >
+                                <div className="relative">
+                                  {discount && (
+                                    <span className="absolute top-4 left-4 z-10 px-2.5 py-1 rounded-md text-[9px] font-black bg-rose-500 text-white uppercase tracking-wider">
+                                      -{discount}% OFF
+                                    </span>
+                                  )}
 
                                   <button 
-                                    onClick={() => addToCart(product)}
-                                    className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[10px] font-black uppercase tracking-wider cursor-pointer shadow-xs"
-                                    style={{ backgroundColor: config?.colors?.primary || undefined }}
+                                    onClick={() => handleToggleWishlist(product)}
+                                    className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white border border-outline-variant/20 hover:text-rose-500 transition-colors shadow-xs cursor-pointer text-zinc-900"
                                   >
-                                    <ShoppingCart className="h-3.5 w-3.5" /> Add to Cart
+                                    <Heart className={`h-4 w-4 ${inWishlist ? "fill-rose-500 text-rose-500" : ""}`} />
                                   </button>
+
+                                  <Link href={`/products/${product.slug}`} className="h-56 bg-surface-container-low flex items-center justify-center border-b border-outline-variant/10 p-4 overflow-hidden relative">
+                                    <img src={product.featured_image} className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300" />
+                                    <div className="action-overlay absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+                                      <span className="bg-white text-zinc-900 px-4 py-2 rounded-lg font-black text-[10px] uppercase tracking-wider">Quick View</span>
+                                    </div>
+                                  </Link>
+                                </div>
+
+                                <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
+                                  <div>
+                                    <span className="text-[9px] font-bold text-blue-600 uppercase tracking-wider">{product.brand?.name || "General"}</span>
+                                    <h4 className="font-bold text-xs line-clamp-1 mt-0.5 hover:text-blue-600 transition-colors">
+                                      <Link href={`/products/${product.slug}`}>{product.name}</Link>
+                                    </h4>
+                                    <div className="flex items-center gap-1.5 mt-1">
+                                      <div className="flex text-amber-500 text-[10px]">
+                                        <Star className="h-3.5 w-3.5 fill-current" />
+                                        <span className="font-bold text-zinc-500 ml-1">4.8</span>
+                                      </div>
+                                      <span className="text-[9px] text-zinc-400 font-medium">• 120 sold</span>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex flex-col gap-2 pt-2 border-t border-outline-variant/10">
+                                    <div className="flex items-baseline justify-between">
+                                      <span className="text-base font-black text-blue-600" style={{ color: config?.colors?.primary || undefined }}>৳{product.selling_price.toFixed(2)}</span>
+                                      {product.compare_price && (
+                                        <span className="text-[10px] line-through text-zinc-400 font-semibold">৳{product.compare_price.toFixed(2)}</span>
+                                      )}
+                                    </div>
+
+                                    <div className="flex gap-2 w-full mt-1">
+                                      <button 
+                                        onClick={() => handleBuyNow(product)}
+                                        className="flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-[10px] font-black uppercase tracking-wider cursor-pointer shadow-xs text-center flex items-center justify-center"
+                                      >
+                                        Buy Now
+                                      </button>
+                                      <button 
+                                        onClick={() => handleAddToCart(product)}
+                                        className="w-10 h-10 shrink-0 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center justify-center cursor-pointer shadow-xs"
+                                        style={{ backgroundColor: config?.colors?.primary || undefined }}
+                                      >
+                                        <ShoppingCart className="h-4 w-4" />
+                                      </button>
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          );
-                        })}
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -631,86 +885,252 @@ export default function HomePageClient({
             // 7. MULTIPLE PRODUCT SECTIONS
             case "featured":
               return (
-                <section key={sectionId} className="max-w-7xl w-full mx-auto px-4 md:px-6 space-y-12">
-                  <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-outline-variant/15 pb-6">
-                    <div>
-                      <h2 className="font-display text-2xl md:text-3xl font-bold uppercase tracking-tight text-[var(--foreground)]">Featured Masterpieces</h2>
-                      <p className="text-[var(--muted-foreground)] text-xs font-medium max-w-lg mt-2">Hand-selected pieces from the world's most prestigious designers and innovators.</p>
-                    </div>
-                    <Link 
-                      href="/products?tab=featured" 
-                      className="text-xs font-black text-blue-500 hover:underline flex items-center gap-1.5 uppercase tracking-widest shrink-0"
-                      style={{ color: config?.colors?.primary || undefined }}
-                    >
-                      View All Masterpieces <ArrowRight className="h-3.5 w-3.5" />
-                    </Link>
-                  </div>
-
-                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                    {sections.featured.slice(0, 4).map((product: any) => {
-                      const discount = product.compare_price && product.compare_price > product.selling_price
-                        ? Math.round(((product.compare_price - product.selling_price) / product.compare_price) * 100)
-                        : null;
-                      const inWishlist = wishlist.some(item => item.id === product.id);
-
-                      return (
-                        <div 
-                          key={product.id}
-                          className="product-card group bg-white rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden relative border border-outline-variant/10 flex flex-col justify-between text-zinc-900"
-                        >
-                          <div className="relative">
-                            {discount && (
-                              <span className="absolute top-4 left-4 z-10 px-2.5 py-1 rounded-md text-[9px] font-black bg-rose-500 text-white uppercase tracking-wider">
-                                -{discount}%
-                              </span>
-                            )}
-
+                <div key={sectionId} className="space-y-16">
+                  {/* Featured Masterpieces with Pagination */}
+                  <section className="max-w-7xl w-full mx-auto px-4 md:px-6 space-y-12">
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-outline-variant/15 pb-6">
+                      <div>
+                        <h2 className="font-display text-2xl md:text-3xl font-bold uppercase tracking-tight text-[var(--foreground)]">Featured Masterpieces</h2>
+                        <p className="text-[var(--muted-foreground)] text-xs font-medium max-w-lg mt-2">Hand-selected pieces from the world's most prestigious designers and innovators.</p>
+                      </div>
+                      <div className="flex items-center gap-4 shrink-0">
+                        {/* Pagination controls */}
+                        {sections.featured.length > 4 && (
+                          <div className="flex items-center gap-2">
                             <button 
-                              onClick={() => toggleWishlist(product)}
-                              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white border border-outline-variant/20 hover:text-rose-500 transition-colors shadow-xs cursor-pointer text-zinc-900"
+                              type="button"
+                              onClick={() => setFeaturedPage(p => Math.max(1, p - 1))}
+                              disabled={featuredPage === 1}
+                              className="w-8 h-8 rounded-full border border-outline-variant/30 flex items-center justify-center text-[var(--foreground)] disabled:opacity-30 hover:bg-[var(--accent)] cursor-pointer"
                             >
-                              <Heart className={`h-4 w-4 ${inWishlist ? "fill-rose-500 text-rose-500" : ""}`} />
+                              <ChevronLeft className="h-4 w-4" />
                             </button>
-
-                            <Link href={`/products/${product.slug}`} className="h-72 bg-surface-container-low flex items-center justify-center p-4 overflow-hidden relative border-b border-outline-variant/5">
-                              <img src={product.featured_image} className="max-h-full max-w-full object-contain group-hover:scale-110 transition-transform duration-700" />
-                              <div className="action-overlay absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
-                                <span className="bg-white text-zinc-900 px-4 py-2 rounded-lg font-black text-[10px] uppercase tracking-wider">Quick View</span>
-                              </div>
-                            </Link>
+                            <span className="text-xs font-mono font-bold text-zinc-500">
+                              {featuredPage} / {Math.ceil(sections.featured.length / 4)}
+                            </span>
+                            <button 
+                              type="button"
+                              onClick={() => setFeaturedPage(p => Math.min(Math.ceil(sections.featured.length / 4), p + 1))}
+                              disabled={featuredPage === Math.ceil(sections.featured.length / 4)}
+                              className="w-8 h-8 rounded-full border border-outline-variant/30 flex items-center justify-center text-[var(--foreground)] disabled:opacity-30 hover:bg-[var(--accent)] cursor-pointer"
+                            >
+                              <ChevronRight className="h-4 w-4" />
+                            </button>
                           </div>
+                        )}
+                        <div className="h-4 w-px bg-outline-variant/30 hidden md:block" />
+                        <Link 
+                          href="/products?tab=featured" 
+                          className="text-xs font-black text-blue-500 hover:underline flex items-center gap-1.5 uppercase tracking-widest shrink-0"
+                          style={{ color: config?.colors?.primary || undefined }}
+                        >
+                          View All Masterpieces <ArrowRight className="h-3.5 w-3.5" />
+                        </Link>
+                      </div>
+                    </div>
 
-                          <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                            <div>
-                              <div className="flex items-center justify-between">
-                                <span className="text-[9px] font-bold text-blue-600 uppercase tracking-wider">{product.brand?.name || "General"}</span>
-                                <div className="flex items-center gap-1 text-amber-500 text-[10px]">
-                                  <Star className="h-3.5 w-3.5 fill-current" />
-                                  <span className="font-bold text-zinc-500">4.9</span>
+                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                      {sections.featured.slice((featuredPage - 1) * 4, featuredPage * 4).map((product: any) => {
+                        const discount = product.compare_price && product.compare_price > product.selling_price
+                          ? Math.round(((product.compare_price - product.selling_price) / product.compare_price) * 100)
+                          : null;
+                        const inWishlist = wishlist.some(item => item.id === product.id);
+
+                        return (
+                          <div 
+                            key={product.id}
+                            className="product-card group bg-white rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden relative border border-outline-variant/10 flex flex-col justify-between text-zinc-900"
+                          >
+                            <div className="relative">
+                              {discount && (
+                                <span className="absolute top-4 left-4 z-10 px-2.5 py-1 rounded-md text-[9px] font-black bg-rose-500 text-white uppercase tracking-wider">
+                                  -{discount}%
+                                </span>
+                              )}
+
+                              <button 
+                                onClick={() => handleToggleWishlist(product)}
+                                className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white border border-outline-variant/20 hover:text-rose-500 transition-colors shadow-xs cursor-pointer text-zinc-900"
+                              >
+                                <Heart className={`h-4 w-4 ${inWishlist ? "fill-rose-500 text-rose-500" : ""}`} />
+                              </button>
+
+                              <Link href={`/products/${product.slug}`} className="h-72 bg-surface-container-low flex items-center justify-center p-4 overflow-hidden relative border-b border-outline-variant/5">
+                                <img src={product.featured_image} className="max-h-full max-w-full object-contain group-hover:scale-110 transition-transform duration-700" />
+                                <div className="action-overlay absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+                                  <span className="bg-white text-zinc-900 px-4 py-2 rounded-lg font-black text-[10px] uppercase tracking-wider">Quick View</span>
+                                </div>
+                              </Link>
+                            </div>
+
+                            <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                              <div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[9px] font-bold text-blue-600 uppercase tracking-wider">{product.brand?.name || "General"}</span>
+                                  <div className="flex items-center gap-1 text-amber-500 text-[10px]">
+                                    <Star className="h-3.5 w-3.5 fill-current" />
+                                    <span className="font-bold text-zinc-500">4.9</span>
+                                  </div>
+                                </div>
+                                <h4 className="font-bold text-sm line-clamp-1 mt-1 group-hover:text-blue-600 transition-colors">
+                                  <Link href={`/products/${product.slug}`}>{product.name}</Link>
+                                </h4>
+                              </div>
+
+                              <div className="flex flex-col gap-2 pt-2 border-t border-outline-variant/10">
+                                <span className="text-base font-black text-zinc-900">৳{product.selling_price.toFixed(2)}</span>
+                                
+                                <div className="flex gap-2 w-full mt-1">
+                                  <button 
+                                    onClick={() => handleBuyNow(product)}
+                                    className="flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-[10px] font-black uppercase tracking-wider cursor-pointer shadow-xs text-center flex items-center justify-center"
+                                  >
+                                    Buy Now
+                                  </button>
+                                  <button 
+                                    onClick={() => handleAddToCart(product)}
+                                    className="w-10 h-10 shrink-0 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center justify-center cursor-pointer shadow-xs"
+                                    style={{ backgroundColor: config?.colors?.primary || undefined }}
+                                  >
+                                    <ShoppingCart className="h-4 w-4" />
+                                  </button>
                                 </div>
                               </div>
-                              <h4 className="font-bold text-sm line-clamp-1 mt-1 group-hover:text-blue-600 transition-colors">
-                                <Link href={`/products/${product.slug}`}>{product.name}</Link>
-                              </h4>
-                            </div>
-
-                            <div className="flex items-center justify-between pt-2 border-t border-outline-variant/10">
-                              <span className="text-base font-black text-zinc-900">${product.selling_price.toFixed(2)}</span>
-                              
-                              <button 
-                                onClick={() => addToCart(product)}
-                                className="w-10 h-10 bg-surface-container hover:bg-blue-600 hover:text-white rounded-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-all cursor-pointer text-blue-600"
-                                style={{ '--hover-bg': config?.colors?.primary || '#2563eb' } as React.CSSProperties}
-                              >
-                                <ShoppingCart className="h-4.5 w-4.5" />
-                              </button>
                             </div>
                           </div>
+                        );
+                      })}
+                    </div>
+                  </section>
+
+                  {/* Category-Specific Paginated Product Rows */}
+                  {categories.map((cat: any) => {
+                    const catProducts = products.filter((p: any) => p.category_id === cat.id);
+                    if (catProducts.length === 0) return null;
+
+                    const catPage = categoryPageMap[cat.id] || 1;
+                    const catTotalPages = Math.ceil(catProducts.length / 4);
+                    const paginatedCatProducts = catProducts.slice((catPage - 1) * 4, catPage * 4);
+
+                    return (
+                      <section key={cat.id} className="max-w-7xl w-full mx-auto px-4 md:px-6 space-y-12 animate-fade-in">
+                        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-outline-variant/15 pb-6">
+                          <div>
+                            <h2 className="font-display text-2xl md:text-3xl font-bold uppercase tracking-tight text-[var(--foreground)]">{cat.name} Collection</h2>
+                            <p className="text-[var(--muted-foreground)] text-xs font-medium max-w-lg mt-2">Premium curated list of items categorized under {cat.name}.</p>
+                          </div>
+                          <div className="flex items-center gap-4 shrink-0">
+                            {/* Pagination controls */}
+                            {catProducts.length > 4 && (
+                              <div className="flex items-center gap-2">
+                                <button 
+                                  type="button"
+                                  onClick={() => setCategoryPageMap(prev => ({ ...prev, [cat.id]: Math.max(1, (prev[cat.id] || 1) - 1) }))}
+                                  disabled={catPage === 1}
+                                  className="w-8 h-8 rounded-full border border-outline-variant/30 flex items-center justify-center text-[var(--foreground)] disabled:opacity-30 hover:bg-[var(--accent)] cursor-pointer"
+                                >
+                                  <ChevronLeft className="h-4 w-4" />
+                                </button>
+                                <span className="text-xs font-mono font-bold text-zinc-500">
+                                  {catPage} / {catTotalPages}
+                                </span>
+                                <button 
+                                  type="button"
+                                  onClick={() => setCategoryPageMap(prev => ({ ...prev, [cat.id]: Math.min(catTotalPages, (prev[cat.id] || 1) + 1) }))}
+                                  disabled={catPage === catTotalPages}
+                                  className="w-8 h-8 rounded-full border border-outline-variant/30 flex items-center justify-center text-[var(--foreground)] disabled:opacity-30 hover:bg-[var(--accent)] cursor-pointer"
+                                >
+                                  <ChevronRight className="h-4 w-4" />
+                                </button>
+                              </div>
+                            )}
+                            <div className="h-4 w-px bg-outline-variant/30 hidden md:block" />
+                            <Link 
+                              href={`/categories/${cat.slug}`}
+                              className="text-xs font-black text-blue-500 hover:underline flex items-center gap-1.5 uppercase tracking-widest shrink-0"
+                              style={{ color: config?.colors?.primary || undefined }}
+                            >
+                              View All Products <ArrowRight className="h-3.5 w-3.5" />
+                            </Link>
+                          </div>
                         </div>
-                      );
-                    })}
-                  </div>
-                </section>
+
+                        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                          {paginatedCatProducts.map((product: any) => {
+                            const discount = product.compare_price && product.compare_price > product.selling_price
+                              ? Math.round(((product.compare_price - product.selling_price) / product.compare_price) * 100)
+                              : null;
+                            const inWishlist = wishlist.some(item => item.id === product.id);
+
+                            return (
+                              <div 
+                                key={product.id}
+                                className="product-card group bg-white rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden relative border border-outline-variant/10 flex flex-col justify-between text-zinc-900"
+                              >
+                                <div className="relative">
+                                  {discount && (
+                                    <span className="absolute top-4 left-4 z-10 px-2.5 py-1 rounded-md text-[9px] font-black bg-rose-500 text-white uppercase tracking-wider">
+                                      -{discount}%
+                                    </span>
+                                  )}
+
+                                  <button 
+                                    onClick={() => handleToggleWishlist(product)}
+                                    className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white border border-outline-variant/20 hover:text-rose-500 transition-colors shadow-xs cursor-pointer text-zinc-900"
+                                  >
+                                    <Heart className={`h-4 w-4 ${inWishlist ? "fill-rose-500 text-rose-500" : ""}`} />
+                                  </button>
+
+                                  <Link href={`/products/${product.slug}`} className="h-72 bg-surface-container-low flex items-center justify-center p-4 overflow-hidden relative border-b border-outline-variant/5">
+                                    <img src={product.featured_image} className="max-h-full max-w-full object-contain group-hover:scale-110 transition-transform duration-700" />
+                                    <div className="action-overlay absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+                                      <span className="bg-white text-zinc-900 px-4 py-2 rounded-lg font-black text-[10px] uppercase tracking-wider">Quick View</span>
+                                    </div>
+                                  </Link>
+                                </div>
+
+                                <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                                  <div>
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-[9px] font-bold text-blue-600 uppercase tracking-wider">{product.brand?.name || "General"}</span>
+                                      <div className="flex items-center gap-1 text-amber-500 text-[10px]">
+                                        <Star className="h-3.5 w-3.5 fill-current" />
+                                        <span className="font-bold text-zinc-500">4.9</span>
+                                      </div>
+                                    </div>
+                                    <h4 className="font-bold text-sm line-clamp-1 mt-1 group-hover:text-blue-600 transition-colors">
+                                      <Link href={`/products/${product.slug}`}>{product.name}</Link>
+                                    </h4>
+                                  </div>
+
+                                  <div className="flex flex-col gap-2 pt-2 border-t border-outline-variant/10">
+                                    <span className="text-base font-black text-zinc-900">৳{product.selling_price.toFixed(2)}</span>
+                                    
+                                    <div className="flex gap-2 w-full mt-1">
+                                      <button 
+                                        onClick={() => handleBuyNow(product)}
+                                        className="flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-[10px] font-black uppercase tracking-wider cursor-pointer shadow-xs text-center flex items-center justify-center"
+                                      >
+                                        Buy Now
+                                      </button>
+                                      <button 
+                                        onClick={() => handleAddToCart(product)}
+                                        className="w-10 h-10 shrink-0 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center justify-center cursor-pointer shadow-xs"
+                                        style={{ backgroundColor: config?.colors?.primary || undefined }}
+                                      >
+                                        <ShoppingCart className="h-4 w-4" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </section>
+                    );
+                  })}
+                </div>
               );
 
             // 8. PROMOTIONAL FULL WIDTH BANNER
@@ -718,9 +1138,10 @@ export default function HomePageClient({
               return (
                 <section key={sectionId} className="max-w-7xl w-full mx-auto px-4 md:px-6 py-4">
                   {config.promo_banners && config.promo_banners.length > 0 && (
-                    <div className="w-full h-44 md:h-[300px] rounded-3xl overflow-hidden border border-outline-variant/10 shadow-md relative group">
-                      <img src={config.promo_banners[0]} className="w-full h-full object-cover transition-transform group-hover:scale-102 duration-1000" />
-                    </div>
+                    <Link href="/products" className="block w-full h-44 md:h-[300px] rounded-3xl overflow-hidden border border-outline-variant/10 shadow-md relative group cursor-pointer">
+                      <img src={config.promo_banners[0]} className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-1000" />
+                      <div className="absolute inset-0 bg-black/10 group-hover:bg-black/25 transition-colors duration-300" />
+                    </Link>
                   )}
                 </section>
               );
@@ -900,6 +1321,188 @@ export default function HomePageClient({
           </div>
         </div>
       </footer>
+
+      {/* RIGHT SIDEBAR (CART / WISHLIST DRAWER) */}
+      {rightSidebar && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-xs transition-opacity"
+            onClick={() => setRightSidebar(null)}
+          />
+
+          {/* Drawer Panel */}
+          <div className="fixed inset-y-0 right-0 z-[100] w-full sm:w-96 bg-[var(--card)] border-l border-[var(--border)] shadow-2xl flex flex-col transition-all duration-300 animate-fade-in text-left">
+            {/* Header */}
+            <div className="p-4 border-b border-[var(--border)] flex items-center justify-between">
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => setRightSidebar("cart")}
+                  className={`text-xs font-black uppercase tracking-wider pb-1 border-b-2 cursor-pointer transition-all ${
+                    rightSidebar === "cart" 
+                      ? "border-blue-500 text-blue-500 font-black" 
+                      : "border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                  }`}
+                  style={rightSidebar === "cart" ? { color: config?.colors?.primary, borderColor: config?.colors?.primary } : {}}
+                >
+                  Cart ({cart.length})
+                </button>
+                <button 
+                  onClick={() => setRightSidebar("wishlist")}
+                  className={`text-xs font-black uppercase tracking-wider pb-1 border-b-2 cursor-pointer transition-all ${
+                    rightSidebar === "wishlist" 
+                      ? "border-blue-500 text-blue-500 font-black" 
+                      : "border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                  }`}
+                  style={rightSidebar === "wishlist" ? { color: config?.colors?.primary, borderColor: config?.colors?.primary } : {}}
+                >
+                  Wishlist ({wishlist.length})
+                </button>
+              </div>
+              <button 
+                onClick={() => setRightSidebar(null)}
+                className="p-1 rounded-lg hover:bg-[var(--accent)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors cursor-pointer"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Content List */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
+              {rightSidebar === "cart" ? (
+                cart.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-center text-[var(--muted-foreground)] py-12 space-y-3">
+                    <ShoppingCart className="h-10 w-10 text-[var(--border)]" />
+                    <p className="text-xs font-bold uppercase">Your cart is empty</p>
+                    <button 
+                      onClick={() => setRightSidebar(null)} 
+                      className="px-4 py-2 bg-blue-600 text-white text-[10px] font-black uppercase tracking-wider rounded-xl hover:bg-blue-700 transition-colors"
+                      style={{ backgroundColor: config?.colors?.primary }}
+                    >
+                      Continue Shopping
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {cart.map((item) => (
+                      <div key={item.id} className="flex gap-3 p-3 border border-[var(--border)] bg-[var(--background)] rounded-xl relative group">
+                        <div className="w-12 h-12 rounded border border-[var(--border)] bg-white overflow-hidden flex items-center justify-center p-1 shrink-0">
+                          {item.image ? (
+                            <img src={item.image} className="max-h-full max-w-full object-contain" />
+                          ) : (
+                            <ShoppingBag className="h-5 w-5 text-zinc-400" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0 pr-6">
+                          <h4 className="font-bold text-xs text-[var(--foreground)] line-clamp-1">{item.name}</h4>
+                          <p className="text-[9px] text-[var(--muted-foreground)] font-mono mt-0.5">{item.sku}</p>
+                          <p className="text-xs font-black text-blue-500 mt-1" style={{ color: config?.colors?.primary }}>৳{item.price.toFixed(2)}</p>
+                          
+                          {/* Quantity control */}
+                          <div className="flex items-center border border-[var(--border)] rounded-md w-fit bg-[var(--card)] mt-2">
+                            <button 
+                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                              className="px-2 py-0.5 text-xs font-bold hover:bg-[var(--accent)] rounded-l"
+                            >
+                              -
+                            </button>
+                            <span className="px-3 py-0.5 text-xs font-bold border-x border-[var(--border)]">{item.quantity}</span>
+                            <button 
+                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                              className="px-2 py-0.5 text-xs font-bold hover:bg-[var(--accent)] rounded-r"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                        <button 
+                          onClick={() => removeFromCart(item.id)}
+                          className="absolute top-3 right-3 text-zinc-400 hover:text-rose-500 transition-colors p-1 cursor-pointer"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )
+              ) : (
+                wishlist.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-center text-[var(--muted-foreground)] py-12 space-y-3">
+                    <Heart className="h-10 w-10 text-[var(--border)]" />
+                    <p className="text-xs font-bold uppercase">Your wishlist is empty</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {wishlist.map((item) => (
+                      <div key={item.id} className="flex gap-3 p-3 border border-[var(--border)] bg-[var(--background)] rounded-xl relative group">
+                        <div className="w-12 h-12 rounded border border-[var(--border)] bg-white overflow-hidden flex items-center justify-center p-1 shrink-0">
+                          {item.image ? (
+                            <img src={item.image} className="max-h-full max-w-full object-contain" />
+                          ) : (
+                            <ShoppingBag className="h-5 w-5 text-zinc-400" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0 pr-6">
+                          <h4 className="font-bold text-xs text-[var(--foreground)] line-clamp-1">{item.name}</h4>
+                          <p className="text-[9px] text-[var(--muted-foreground)] font-mono mt-0.5">{item.sku}</p>
+                          <p className="text-xs font-black text-blue-500 mt-1" style={{ color: config?.colors?.primary }}>৳{item.price.toFixed(2)}</p>
+                          
+                          <button 
+                            onClick={() => {
+                              addToCart(item);
+                              removeFromWishlist(item.id);
+                              setRightSidebar("cart");
+                            }}
+                            className="mt-2 flex items-center gap-1.5 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[9px] font-black uppercase tracking-wider cursor-pointer"
+                            style={{ backgroundColor: config?.colors?.primary }}
+                          >
+                            <ShoppingCart className="h-3 w-3" /> Add to Cart
+                          </button>
+                        </div>
+                        <button 
+                          onClick={() => removeFromWishlist(item.id)}
+                          className="absolute top-3 right-3 text-zinc-400 hover:text-rose-500 transition-colors p-1 cursor-pointer"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )
+              )}
+            </div>
+
+            {/* Bottom Panel */}
+            {rightSidebar === "cart" && cart.length > 0 && (
+              <div className="p-4 border-t border-[var(--border)] bg-[var(--card)] space-y-4">
+                <div className="flex items-center justify-between text-xs font-bold uppercase">
+                  <span>Subtotal:</span>
+                  <span className="text-sm font-black text-blue-500" style={{ color: config?.colors?.primary }}>
+                    ৳{cart.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2)}
+                  </span>
+                </div>
+                <div className="grid gap-2 grid-cols-2">
+                  <Link 
+                    href="/cart" 
+                    onClick={() => setRightSidebar(null)}
+                    className="block text-center py-2.5 bg-[var(--accent)] hover:bg-[var(--border)] border border-[var(--border)] text-xs font-black uppercase tracking-wider rounded-xl transition-all text-[var(--foreground)]"
+                  >
+                    View Cart
+                  </Link>
+                  <Link 
+                    href="/checkout" 
+                    onClick={() => setRightSidebar(null)}
+                    className="block text-center py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-md"
+                    style={{ backgroundColor: config?.colors?.primary }}
+                  >
+                    Checkout
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }

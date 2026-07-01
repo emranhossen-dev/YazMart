@@ -114,3 +114,79 @@ export async function deleteCategory(id: string) {
     return { error: "Failed to delete category (it may be linked to products or subcategories)." };
   }
 }
+
+export async function deleteMultipleCategories(ids: string[]) {
+  try {
+    await prisma.categoryMatrix.deleteMany({
+      where: {
+        id: { in: ids }
+      }
+    });
+
+    revalidatePath("/admin/categories");
+    revalidatePath("/admin/products");
+    revalidatePath("/");
+    return { success: `Successfully deleted ${ids.length} categories.` };
+  } catch (error: any) {
+    console.error(error);
+    return { error: `Failed to delete categories. Ensure none are linked to active products or child subcategories.` };
+  }
+}
+
+export async function bulkImportCategories(categoriesList: any[]) {
+  try {
+    const validationErrors: string[] = [];
+    
+    // Fetch all existing categories to validate parent_id
+    const existing = await prisma.categoryMatrix.findMany({ select: { id: true } });
+    const existingIds = new Set(existing.map((c) => c.id));
+
+    const validatedCategories: any[] = [];
+
+    for (let i = 0; i < categoriesList.length; i++) {
+      const cat = categoriesList[i];
+      const rowNum = i + 1;
+
+      if (!cat.name) {
+        validationErrors.push(`Row ${rowNum}: Category Name is missing.`);
+      }
+
+      // Check if parent_id is valid
+      if (cat.parent_id && !existingIds.has(cat.parent_id)) {
+        validationErrors.push(`Row ${rowNum}: Parent Category ID '${cat.parent_id}' does not exist in the taxonomy database.`);
+      }
+
+      if (validationErrors.length === 0) {
+        const cleanSlug = cat.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "") + "-" + Math.floor(1000 + Math.random() * 9000);
+        validatedCategories.push({
+          name: cat.name,
+          slug: cat.slug || cleanSlug,
+          description: cat.description || "",
+          parent_id: cat.parent_id || null,
+          image_url: cat.image_url || null,
+          status: cat.status || "ACTIVE",
+          is_featured: cat.is_featured === true || cat.is_featured === "true" || cat.is_featured === 1 || cat.is_featured === "1",
+        });
+      }
+    }
+
+    if (validationErrors.length > 0) {
+      return { error: "Validation Failed", details: validationErrors };
+    }
+
+    if (validatedCategories.length > 0) {
+      await prisma.categoryMatrix.createMany({
+        data: validatedCategories,
+        skipDuplicates: true
+      });
+    }
+
+    revalidatePath("/admin/categories");
+    revalidatePath("/admin/products");
+    revalidatePath("/");
+    return { success: `Successfully bulk imported ${validatedCategories.length} category records.` };
+  } catch (error: any) {
+    console.error("❌ CATEGORY BULK IMPORT ERROR:", error);
+    return { error: `Bulk crash: ${error?.message || "Database validation error"}` };
+  }
+}

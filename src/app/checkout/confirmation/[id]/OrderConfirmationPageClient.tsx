@@ -95,15 +95,15 @@ export default function OrderConfirmationPageClient() {
                 <div key={index} className="py-2 flex justify-between items-center">
                   <div className="min-w-0 pr-2">
                     <p className="font-bold line-clamp-1">{item.name}</p>
-                    <p className="text-[9px] text-[var(--muted-foreground)] font-mono">Qty: {item.quantity} x ${item.price}</p>
+                    <p className="text-[9px] text-[var(--muted-foreground)] font-mono">Qty: {item.quantity} x ৳{item.price}</p>
                   </div>
-                  <span className="font-bold text-blue-500">${(item.price * item.quantity).toFixed(2)}</span>
+                  <span className="font-bold text-blue-500">৳{(item.price * item.quantity).toFixed(2)}</span>
                 </div>
               ))}
             </div>
             <div className="pt-3 border-t border-[var(--border)] flex justify-between font-black text-sm text-[var(--foreground)]">
               <span>Amount Paid</span>
-              <span className="text-emerald-500">${order.total_amount.toFixed(2)}</span>
+              <span className="text-emerald-500">৳{order.total_amount.toFixed(2)}</span>
             </div>
           </div>
         </div>

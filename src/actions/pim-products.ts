@@ -217,7 +217,6 @@ export async function getEnterpriseProducts(filters?: {
 // ৪. বাল্ক ইম্পোর্ট প্রসেসর (সহ প্রি-ভ্যালিডেশন)
 export async function bulkImportEnterpriseProducts(productsList: any[]) {
   try {
-    // ১. SKU ডুপ্লিকেশন ও ফিল্ড ভ্যালিডেশন
     const validationErrors: string[] = [];
     const existingSkus = new Set(
       (await prisma.pimProducts.findMany({ select: { sku: true } })).map((p) => p.sku)
@@ -225,6 +224,9 @@ export async function bulkImportEnterpriseProducts(productsList: any[]) {
 
     const categories = await prisma.categoryMatrix.findMany({ select: { id: true } });
     const categoryIds = new Set(categories.map((c) => c.id));
+
+    const brands = await prisma.brandMatrix.findMany({ select: { id: true } });
+    const brandIds = new Set(brands.map((b) => b.id));
 
     const validatedProducts: any[] = [];
     const listSkus = new Set<string>();
@@ -259,6 +261,11 @@ export async function bulkImportEnterpriseProducts(productsList: any[]) {
         validationErrors.push(`Row ${rowNum}: Category ID '${p.category_id}' does not exist in the taxonomy.`);
       }
 
+      // Check missing brand node in DB
+      if (p.brand_id && !brandIds.has(p.brand_id)) {
+        validationErrors.push(`Row ${rowNum}: Brand ID '${p.brand_id}' does not exist in the database.`);
+      }
+
       // Check duplicate SKU in DB or in this bulk list
       if (p.sku) {
         if (existingSkus.has(p.sku)) {
@@ -272,16 +279,73 @@ export async function bulkImportEnterpriseProducts(productsList: any[]) {
 
       if (validationErrors.length === 0) {
         const cleanSlug = p.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "") + "-" + Math.floor(1000 + Math.random() * 9000);
+        
+        let galleryImgs: string[] = [];
+        if (Array.isArray(p.gallery_images)) {
+          galleryImgs = p.gallery_images;
+        } else if (typeof p.gallery_images === "string") {
+          try {
+            const parsed = JSON.parse(p.gallery_images);
+            if (Array.isArray(parsed)) galleryImgs = parsed;
+            else galleryImgs = [p.gallery_images];
+          } catch {
+            galleryImgs = p.gallery_images.split(",").map((s: string) => s.trim()).filter(Boolean);
+          }
+        }
+
+        let specs: any = null;
+        if (p.specifications) {
+          if (typeof p.specifications === "object") {
+            specs = p.specifications;
+          } else if (typeof p.specifications === "string") {
+            try {
+              specs = JSON.parse(p.specifications);
+            } catch {
+              specs = { info: p.specifications };
+            }
+          }
+        }
+
+        const isFeatured = p.is_featured === true || p.is_featured === "true" || p.is_featured === 1 || p.is_featured === "1";
+        const isTrending = p.is_trending === true || p.is_trending === "true" || p.is_trending === 1 || p.is_trending === "1";
+        const isBestSeller = p.is_best_seller === true || p.is_best_seller === "true" || p.is_best_seller === 1 || p.is_best_seller === "1";
+        const isFlashSale = p.is_flash_sale === true || p.is_flash_sale === "true" || p.is_flash_sale === 1 || p.is_flash_sale === "1";
+        const isNewArrival = p.is_new_arrival === true || p.is_new_arrival === "true" || p.is_new_arrival === 1 || p.is_new_arrival === "1";
+        const codAvailable = p.cod_available !== undefined ? (p.cod_available === true || p.cod_available === "true" || p.cod_available === 1 || p.cod_available === "1") : true;
+
         validatedProducts.push({
           name: p.name,
-          slug: cleanSlug,
+          slug: p.slug || cleanSlug,
           sku: p.sku,
+          barcode: p.barcode || null,
+          product_code: p.product_code || null,
+          product_type: p.product_type || "PHYSICAL",
+          status: p.status || "PUBLISHED",
+          featured_image: p.featured_image || null,
+          gallery_images: galleryImgs,
+          video_url: p.video_url || null,
           buying_price: buyPrice,
           selling_price: sellPrice,
+          compare_price: p.compare_price ? parseFloat(p.compare_price) : null,
           current_stock: parseInt(p.current_stock) || 0,
-          category_id: p.category_id,
-          status: "PUBLISHED",
+          low_stock_alert: parseInt(p.low_stock_alert) || 5,
           stock_status: (parseInt(p.current_stock) || 0) > 0 ? "IN_STOCK" : "OUT_OF_STOCK",
+          weight: p.weight ? parseFloat(p.weight) : null,
+          shipping_charge: p.shipping_charge ? parseFloat(p.shipping_charge) : null,
+          cod_available: codAvailable,
+          short_desc: p.short_desc || "",
+          full_desc: p.full_desc || "",
+          meta_title: p.meta_title || p.name,
+          meta_desc: p.meta_desc || p.short_desc || "",
+          is_featured: isFeatured,
+          is_trending: isTrending,
+          is_best_seller: isBestSeller,
+          is_flash_sale: isFlashSale,
+          is_new_arrival: isNewArrival,
+          specifications: specs,
+          warranty: p.warranty || null,
+          category_id: p.category_id,
+          brand_id: p.brand_id || null,
         });
       }
     }
@@ -298,6 +362,8 @@ export async function bulkImportEnterpriseProducts(productsList: any[]) {
     }
 
     revalidatePath("/admin/products");
+    revalidatePath("/");
+    return { success: `Successfully bulk imported ${validatedProducts.length} product records.` };
     revalidatePath("/");
     return { success: `Bulk imported ${validatedProducts.length} products successfully!` };
   } catch (error: any) {
@@ -348,5 +414,21 @@ export async function deleteEnterpriseProduct(id: string) {
     return { success: "Product record purged successfully." };
   } catch (error) {
     return { error: "Failed to delete product." };
+  }
+}
+
+export async function deleteMultipleProducts(ids: string[]) {
+  try {
+    await prisma.pimProducts.deleteMany({
+      where: {
+        id: { in: ids }
+      }
+    });
+    revalidatePath("/admin/products");
+    revalidatePath("/");
+    return { success: `Successfully deleted ${ids.length} products.` };
+  } catch (error: any) {
+    console.error(error);
+    return { error: `Failed to delete products: ${error?.message}` };
   }
 }

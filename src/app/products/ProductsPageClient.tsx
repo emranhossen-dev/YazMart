@@ -258,7 +258,7 @@ export default function ProductsPageClient({
 
                       <div className="flex flex-col gap-2 pt-1 border-t border-[var(--border)]/40">
                         <div className="flex items-center justify-between">
-                          <span className="text-base font-black text-blue-500">${product.selling_price.toFixed(2)}</span>
+                          <span className="text-base font-black text-blue-500">৳{product.selling_price.toFixed(2)}</span>
                           <span className="text-[9px] text-[var(--muted-foreground)] font-mono">{product.sku}</span>
                         </div>
 

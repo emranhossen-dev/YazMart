@@ -18,7 +18,7 @@ export default function RootLayout({
       <body className="antialiased">
         <ThemeProvider
           attribute="data-theme"
-          defaultTheme="dark"
+          defaultTheme="light"
           enableSystem={false}
           storageKey="ecommerce-theme"
         >

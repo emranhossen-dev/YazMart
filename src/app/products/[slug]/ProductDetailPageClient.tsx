@@ -120,10 +120,10 @@ export default function ProductDetailPageClient({
 
             {/* Prices */}
             <div className="flex items-baseline gap-3">
-              <span className="text-2xl font-black text-blue-500">${product.selling_price.toFixed(2)}</span>
+              <span className="text-2xl font-black text-blue-500">৳{product.selling_price.toFixed(2)}</span>
               {product.compare_price && (
                 <>
-                  <span className="line-through text-xs text-[var(--muted-foreground)]">${product.compare_price.toFixed(2)}</span>
+                  <span className="line-through text-xs text-[var(--muted-foreground)]">৳{product.compare_price.toFixed(2)}</span>
                   <span className="text-[10px] bg-rose-500 text-white font-black px-2 py-0.5 rounded-md">Save {discount}%</span>
                 </>
               )}
@@ -268,7 +268,7 @@ export default function ProductDetailPageClient({
                   </Link>
                   <div>
                     <h4 className="font-bold text-xs line-clamp-1 hover:text-blue-500"><Link href={`/products/${p.slug}`}>{p.name}</Link></h4>
-                    <span className="text-xs font-black text-blue-500 mt-1 block">${p.selling_price.toFixed(2)}</span>
+                    <span className="text-xs font-black text-blue-500 mt-1 block">৳{p.selling_price.toFixed(2)}</span>
                   </div>
                 </div>
               ))}

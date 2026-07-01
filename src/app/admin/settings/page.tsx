@@ -150,6 +150,29 @@ export default function SuperAdminSettingsPage() {
     setUploading(false);
   };
 
+  const handleUploadRightBanner = async (idx: number, file: File) => {
+    setUploading(true);
+    const fd = new FormData();
+    fd.append("file", file);
+
+    const res = await uploadImage(fd);
+    if (res.url) {
+      const updated = [...(config?.right_banners || [])];
+      while (updated.length <= idx) {
+        updated.push({ title: "", sub: "", url: "", link: "" });
+      }
+      updated[idx] = {
+        ...updated[idx],
+        url: res.url
+      };
+      setConfig({
+        ...config,
+        right_banners: updated
+      });
+    }
+    setUploading(false);
+  };
+
   const handleUploadBrand = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -332,6 +355,106 @@ export default function SuperAdminSettingsPage() {
                   </button>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Right-Side campaign banners */}
+          <div className="p-5 rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-xs space-y-4">
+            <h3 className="text-xs font-black uppercase text-[var(--muted-foreground)] flex items-center gap-2">
+              <ImageIcon className="h-4 w-4 text-blue-500" /> Right-Side Campaign Banners (2 Slots)
+            </h3>
+            <p className="text-[10px] text-[var(--muted-foreground)]">Customize the two campaign banners displayed in the right column of the hero section.</p>
+
+            <div className="space-y-4">
+              {[0, 1].map((idx) => {
+                const banner = config.right_banners?.[idx] || { title: "", sub: "", url: "", link: "" };
+                return (
+                  <div key={idx} className="p-4 border border-[var(--border)] rounded-lg bg-[var(--background)] space-y-3">
+                    <p className="font-bold text-xs text-[var(--foreground)] uppercase">Slot #{idx + 1} Banner</p>
+                    
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[9px] uppercase text-[var(--muted-foreground)] mb-1">Banner Title</label>
+                        <input 
+                          type="text" 
+                          placeholder="e.g. Smart Gadgets Campaign" 
+                          value={banner.title || ""} 
+                          onChange={(e) => {
+                            const updated = [...(config.right_banners || [])];
+                            while (updated.length <= idx) {
+                              updated.push({ title: "", sub: "", url: "", link: "" });
+                            }
+                            updated[idx] = { ...updated[idx], title: e.target.value };
+                            setConfig({ ...config, right_banners: updated });
+                          }} 
+                          className="w-full px-3 py-1.5 text-xs rounded bg-[var(--background)] border border-[var(--border)] focus:outline-none" 
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] uppercase text-[var(--muted-foreground)] mb-1">Banner Subtitle</label>
+                        <input 
+                          type="text" 
+                          placeholder="e.g. Instant 15% cashback inside" 
+                          value={banner.sub || ""} 
+                          onChange={(e) => {
+                            const updated = [...(config.right_banners || [])];
+                            while (updated.length <= idx) {
+                              updated.push({ title: "", sub: "", url: "", link: "" });
+                            }
+                            updated[idx] = { ...updated[idx], sub: e.target.value };
+                            setConfig({ ...config, right_banners: updated });
+                          }} 
+                          className="w-full px-3 py-1.5 text-xs rounded bg-[var(--background)] border border-[var(--border)] focus:outline-none" 
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[9px] uppercase text-[var(--muted-foreground)] mb-1">Target Link Route</label>
+                        <input 
+                          type="text" 
+                          placeholder="e.g. /categories/electronics or #" 
+                          value={banner.link || ""} 
+                          onChange={(e) => {
+                            const updated = [...(config.right_banners || [])];
+                            while (updated.length <= idx) {
+                              updated.push({ title: "", sub: "", url: "", link: "" });
+                            }
+                            updated[idx] = { ...updated[idx], link: e.target.value };
+                            setConfig({ ...config, right_banners: updated });
+                          }} 
+                          className="w-full px-3 py-1.5 text-xs rounded bg-[var(--background)] border border-[var(--border)] focus:outline-none" 
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] uppercase text-[var(--muted-foreground)] mb-1">Banner Image File</label>
+                        <input 
+                          type="file" 
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleUploadRightBanner(idx, file);
+                          }} 
+                          className="hidden" 
+                          id={`right-banner-upload-${idx}`} 
+                        />
+                        <label 
+                          htmlFor={`right-banner-upload-${idx}`} 
+                          className="block text-center py-2 bg-[var(--card)] hover:bg-[var(--accent)] border border-[var(--border)] text-[10px] font-bold uppercase rounded cursor-pointer transition-colors"
+                        >
+                          {banner.url ? "Change Image ✓" : "Select Image File"}
+                        </label>
+                      </div>
+                    </div>
+
+                    {banner.url && (
+                      <div className="mt-2 h-20 border border-[var(--border)] rounded overflow-hidden bg-[var(--background)] p-1 w-full max-w-[200px]">
+                        <img src={banner.url} className="w-full h-full object-contain" />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 

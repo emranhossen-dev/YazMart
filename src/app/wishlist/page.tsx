@@ -56,7 +56,7 @@ export default function WishlistPage() {
                   <div>
                     <h4 className="font-bold text-sm text-[var(--foreground)] line-clamp-1">{item.name}</h4>
                     <p className="text-[10px] text-[var(--muted-foreground)] font-mono mt-0.5">{item.sku}</p>
-                    <p className="text-xs font-black text-blue-500 mt-1">${item.price.toFixed(2)}</p>
+                    <p className="text-xs font-black text-blue-500 mt-1">৳{item.price.toFixed(2)}</p>
                   </div>
                 </div>
 
