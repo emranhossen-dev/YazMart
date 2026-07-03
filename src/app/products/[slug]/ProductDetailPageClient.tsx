@@ -86,9 +86,9 @@ export default function ProductDetailPageClient({
   const locationName = isDhaka ? "Dhaka, Narsingdi, Belabo" : "Chittagong, Double Mooring, Agrabad";
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f4f4f6] text-[#191b23] font-sans">
+    <div className="min-h-screen flex flex-col bg-[var(--background)] text-[var(--foreground)] font-sans">
       {/* Premium Consistent Navbar */}
-      <header className="sticky top-0 z-50 bg-white border-b border-[#e5e5e5] shadow-xs">
+      <header className="sticky top-0 z-50 bg-[var(--card)] border-b border-[var(--border)] shadow-xs">
         <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between gap-4">
           <Link href="/" className="text-2xl font-black tracking-tight flex items-center gap-2 flex-shrink-0">
             <div className="p-1.5 bg-blue-600 rounded-lg text-white">
@@ -99,7 +99,7 @@ export default function ProductDetailPageClient({
 
           {/* Action Links */}
           <div className="flex items-center gap-4 flex-shrink-0">
-            <Link href="/wishlist" className="relative p-2 text-[#191b23] hover:text-blue-500 transition-colors">
+            <Link href="/wishlist" className="relative p-2 text-[var(--foreground)] hover:text-blue-500 transition-colors">
               <Heart className="h-5 w-5" />
               {wishlist.length > 0 && (
                 <span className="absolute top-0 right-0 bg-rose-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center">
@@ -108,7 +108,7 @@ export default function ProductDetailPageClient({
               )}
             </Link>
 
-            <Link href="/cart" className="relative p-2 text-[#191b23] hover:text-blue-500 transition-colors">
+            <Link href="/cart" className="relative p-2 text-[var(--foreground)] hover:text-blue-500 transition-colors">
               <ShoppingCart className="h-5 w-5" />
               {cart.length > 0 && (
                 <span className="absolute top-0 right-0 bg-blue-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center">
@@ -119,17 +119,17 @@ export default function ProductDetailPageClient({
 
             {user ? (
               <div className="relative group">
-                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#ededf9] hover:opacity-90 text-[#191b23] text-xs font-bold transition-all border border-[#c3c6d7]/30 cursor-pointer">
+                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--accent)] hover:opacity-90 text-[var(--foreground)] text-xs font-bold transition-all border border-[var(--outline-variant)]/30 cursor-pointer">
                   <div className="w-4.5 h-4.5 rounded-full bg-blue-500 text-white flex items-center justify-center font-black text-[9px] uppercase">
                     {user.fullName?.charAt(0) || "U"}
                   </div>
                   <span className="max-w-[70px] truncate hidden md:inline">{user.fullName || "Account"}</span>
                 </button>
-                <div className="absolute right-0 top-full mt-1 w-40 bg-white border border-[#c3c6d7] rounded-2xl shadow-xl p-1.5 hidden group-hover:block z-50 text-xs text-[#191b23] animate-fade-in">
+                <div className="absolute right-0 top-full mt-1 w-40 bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-xl p-1.5 hidden group-hover:block z-50 text-xs text-[var(--foreground)] animate-fade-in">
                   {user.role === "admin" && (
                     <Link 
                       href="/admin" 
-                      className="block w-full text-left px-3 py-2 hover:bg-[#ededf9] rounded-xl font-bold transition-colors"
+                      className="block w-full text-left px-3 py-2 hover:bg-[var(--accent)] rounded-xl font-bold transition-colors"
                     >
                       Admin Panel
                     </Link>
@@ -139,7 +139,7 @@ export default function ProductDetailPageClient({
                       await signOutAction();
                       window.location.reload();
                     }}
-                    className="w-full text-left px-3 py-2 hover:bg-[#ededf9] rounded-xl text-rose-500 font-bold transition-colors cursor-pointer"
+                    className="w-full text-left px-3 py-2 hover:bg-[var(--accent)] rounded-xl text-rose-500 font-bold transition-colors cursor-pointer"
                   >
                     Sign Out
                   </button>
@@ -159,12 +159,9 @@ export default function ProductDetailPageClient({
 
       {/* Main product display */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 md:px-6 py-8 space-y-12">
-        <Link href="/" className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:underline">
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to Storefront
-        </Link>
 
         {/* Product Details Section: Matches screenshot layout (Gallery 50%, Details 25%, Delivery 25%) */}
-        <div className="grid gap-6 lg:grid-cols-12 bg-white rounded-lg p-5 shadow-xs border border-zinc-200/50 animate-fade-in items-start">
+        <div className="grid gap-6 lg:grid-cols-12 bg-[var(--card)] rounded-lg p-5 shadow-xs border border-[var(--border)] animate-fade-in items-start">
           
           {/* Column 1: Image Gallery (Span 6 - 50% Width) */}
           <div className="lg:col-span-6 space-y-4">
@@ -341,7 +338,7 @@ export default function ProductDetailPageClient({
           </div>
 
           {/* Column 3: Courier / Delivery Options (Span 3 - 25% Width) */}
-          <div className="lg:col-span-3 border border-zinc-200 bg-[#fafafa] rounded-sm p-4 space-y-4 text-xs font-normal">
+          <div className="lg:col-span-3 border border-[var(--border)] bg-[var(--accent)] rounded-sm p-4 space-y-4 text-xs font-normal">
             
             {/* Delivery header */}
             <div className="flex items-center justify-between text-zinc-400 border-b border-zinc-200/50 pb-2">
@@ -518,7 +515,7 @@ export default function ProductDetailPageClient({
                   <h4 className="font-bold uppercase text-blue-600 flex items-center gap-1.5">
                     <ShieldCheck className="h-4 w-4" /> Guidelines &amp; Usage Instructions
                   </h4>
-                  <p className="font-normal leading-relaxed text-zinc-500">{product.usability}</p>
+                  <p className="font-normal leading-relaxed text-zinc-500 whitespace-pre-wrap">{product.usability}</p>
                 </div>
               )}
 

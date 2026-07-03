@@ -38,8 +38,6 @@ function AdminSidebarNav({
   toggleMenu: (name: string) => void;
   pathname: string;
 }) {
-  const currentTab = useQueryTab();
-
   return (
     <>
       {menuItems.map((item) => {
@@ -71,9 +69,7 @@ function AdminSidebarNav({
             {isMenuOpen && item.subItems && (
               <div className="pl-6 space-y-1 border-l border-[var(--border)] ml-5 mt-1">
                 {item.subItems.map((sub) => {
-                  const isSubActive = sub.href.includes("?")
-                    ? pathname === sub.href.split("?")[0] && currentTab === new URLSearchParams(sub.href.split("?")[1]).get("tab")
-                    : pathname === sub.href && !currentTab;
+                  const isSubActive = pathname === sub.href;
                   return (
                     <Link key={sub.name} href={sub.href} className={`block px-3 py-2 rounded text-[11px] font-semibold transition-colors border-l-2 ${
                       isSubActive 
@@ -99,6 +95,14 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
     Catalog: true,
     Orders: false,
     Inventory: false,
+    Purchase: false,
+    Customers: false,
+    Finance: false,
+    Marketing: false,
+    Content: false,
+    Reports: false,
+    "Staff Control": false,
+    Settings: false,
   });
   const [userData, setUserData] = useState({ name: "Emran Hossen", role: "Super Admin" });
   
@@ -118,8 +122,26 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
     syncSession();
   }, []);
 
+  // Update menu open states for pathname matching on page load
+  useEffect(() => {
+    menuItems.forEach(item => {
+      if (item.subItems) {
+        const hasActiveSub = item.subItems.some(sub => pathname === sub.href);
+        if (hasActiveSub) {
+          setOpenMenus(prev => ({
+            ...prev,
+            [item.name]: true
+          }));
+        }
+      }
+    });
+  }, [pathname]);
+
   const toggleMenu = (menuName: string) => {
-    setOpenMenus(prev => ({ ...prev, [menuName]: !prev[menuName] }));
+    setOpenMenus(prev => ({
+      ...prev,
+      [menuName]: !prev[menuName]
+    }));
   };
 
   const menuItems: MenuItem[] = [
@@ -128,12 +150,12 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
       name: "Catalog",
       icon: Package,
       subItems: [
-        { name: "Products", href: "/admin/products" },
+        { name: "All Products", href: "/admin/products" },
+        { name: "Add Product", href: "/admin/products/add" },
         { name: "Categories", href: "/admin/categories" },
         { name: "Brands", href: "/admin/brands" },
         { name: "Attributes", href: "/admin/attributes" },
         { name: "Tags", href: "/admin/tags" },
-        { name: "Reviews", href: "/admin/reviews" },
       ]
     },
     {
@@ -141,8 +163,8 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
       icon: ShoppingCart,
       subItems: [
         { name: "Orders List", href: "/admin/orders" },
-        { name: "Returns", href: "/admin/orders?tab=returns" },
-        { name: "Refunds", href: "/admin/orders?tab=refunds" },
+        { name: "Returns", href: "/admin/orders/returns" },
+        { name: "Refunds", href: "/admin/orders/refunds" },
       ]
     },
     {
@@ -150,18 +172,18 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
       icon: Warehouse,
       subItems: [
         { name: "Stock Matrix", href: "/admin/inventory" },
-        { name: "Warehouses", href: "/admin/inventory?tab=warehouses" },
-        { name: "Stock Transfer", href: "/admin/inventory?tab=transfer" },
-        { name: "Stock History", href: "/admin/inventory?tab=history" },
+        { name: "Warehouses", href: "/admin/inventory/warehouses" },
+        { name: "Stock Transfer", href: "/admin/inventory/transfer" },
+        { name: "Stock History", href: "/admin/inventory/history" },
       ]
     },
     {
       name: "Purchase",
       icon: Factory,
       subItems: [
-        { name: "Suppliers", href: "/admin/purchase?tab=suppliers" },
+        { name: "Suppliers", href: "/admin/purchase/suppliers" },
         { name: "Purchase Orders", href: "/admin/purchase" },
-        { name: "Purchase Returns", href: "/admin/purchase?tab=returns" },
+        { name: "Purchase Returns", href: "/admin/purchase/returns" },
       ]
     },
     {
@@ -169,8 +191,9 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
       icon: Users,
       subItems: [
         { name: "Customers Directory", href: "/admin/customers" },
-        { name: "Customer Groups", href: "/admin/customers?tab=groups" },
-        { name: "Support Tickets", href: "/admin/customers?tab=tickets" },
+        { name: "Customer Groups", href: "/admin/customers/groups" },
+        { name: "Support Tickets", href: "/admin/customers/tickets" },
+        { name: "Product Reviews", href: "/admin/reviews" },
       ]
     },
     {
@@ -178,21 +201,21 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
       icon: CircleDollarSign,
       subItems: [
         { name: "Sales Matrix", href: "/admin/finance" },
-        { name: "Expenses Tracker", href: "/admin/finance?tab=expenses" },
-        { name: "Profit & Loss", href: "/admin/finance?tab=profit-loss" },
-        { name: "Accounting Ledger", href: "/admin/finance?tab=accounting" },
-        { name: "Transactions", href: "/admin/finance?tab=transactions" },
+        { name: "Expenses Tracker", href: "/admin/finance/expenses" },
+        { name: "Profit & Loss", href: "/admin/finance/profit-loss" },
+        { name: "Accounting Ledger", href: "/admin/finance/accounting" },
+        { name: "Transactions", href: "/admin/finance/transactions" },
       ]
     },
     {
       name: "Marketing",
       icon: Megaphone,
       subItems: [
-        { name: "Coupons", href: "/admin/marketing?tab=coupons" },
-        { name: "Banners Slider", href: "/admin/marketing?tab=banners" },
+        { name: "Coupons", href: "/admin/marketing/coupons" },
+        { name: "Banners Slider", href: "/admin/marketing/banners" },
         { name: "Campaigns", href: "/admin/marketing" },
-        { name: "Newsletter", href: "/admin/marketing?tab=newsletter" },
-        { name: "Notifications", href: "/admin/marketing?tab=notifications" },
+        { name: "Newsletter", href: "/admin/marketing/newsletter" },
+        { name: "Notifications", href: "/admin/marketing/notifications" },
       ]
     },
     {
@@ -200,8 +223,8 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
       icon: FileText,
       subItems: [
         { name: "Blogs Management", href: "/admin/content" },
-        { name: "FAQ Matrix", href: "/admin/content?tab=faq" },
-        { name: "Media Library", href: "/admin/content?tab=media" },
+        { name: "FAQ Matrix", href: "/admin/content/faq" },
+        { name: "Media Library", href: "/admin/content/media" },
       ]
     },
     {
@@ -209,9 +232,9 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
       icon: BarChart3,
       subItems: [
         { name: "Sales Report", href: "/admin/reports" },
-        { name: "Inventory Report", href: "/admin/reports?tab=inventory" },
-        { name: "Finance Report", href: "/admin/reports?tab=finance" },
-        { name: "Customer Report", href: "/admin/reports?tab=customers" },
+        { name: "Inventory Report", href: "/admin/reports/inventory" },
+        { name: "Finance Report", href: "/admin/reports/finance" },
+        { name: "Customer Report", href: "/admin/reports/customers" },
       ]
     },
     {
@@ -219,8 +242,8 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
       icon: ShieldAlert,
       subItems: [
         { name: "Users Directory", href: "/admin/staff" },
-        { name: "Roles & RBAC", href: "/admin/staff?tab=roles" },
-        { name: "Activity Logs", href: "/admin/staff?tab=logs" },
+        { name: "Roles & RBAC", href: "/admin/staff/roles" },
+        { name: "Activity Logs", href: "/admin/staff/logs" },
       ]
     },
     {
@@ -228,9 +251,9 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
       icon: Settings,
       subItems: [
         { name: "Homepage Layout", href: "/admin/settings" },
-        { name: "Payment Gateway", href: "/admin/settings?tab=payment" },
-        { name: "Shipping Matrix", href: "/admin/settings?tab=shipping" },
-        { name: "SEO Optimizer", href: "/admin/settings?tab=seo" },
+        { name: "Payment Gateway", href: "/admin/settings/payment" },
+        { name: "Shipping Matrix", href: "/admin/settings/shipping" },
+        { name: "SEO Optimizer", href: "/admin/settings/seo" },
       ]
     }
   ];
@@ -241,14 +264,14 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
   };
 
   return (
-    <div className="admin-theme min-h-screen flex bg-[var(--background)] text-[var(--foreground)] font-sans antialiased selection:bg-[var(--primary)]/30">
+    <div className="admin-theme h-screen flex bg-[var(--background)] text-[var(--foreground)] font-sans antialiased selection:bg-[var(--primary)]/30 overflow-hidden">
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
       {/* Advanced Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-68 bg-[var(--card)] border-r border-[var(--border)] flex flex-col transform transition-transform duration-300 lg:translate-x-0 lg:static ${
+      <aside className={`fixed inset-y-0 left-0 z-50 w-68 bg-[var(--card)] border-r border-[var(--border)] flex flex-col transform transition-transform duration-300 lg:translate-x-0 ${
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       }`}>
         <div className="h-16 flex items-center justify-between px-5 border-b border-[var(--border)] bg-[var(--background)]/40 backdrop-blur-md">
@@ -278,7 +301,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
       </aside>
 
       {/* Workspace Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden lg:pl-68">
         <header className="h-16 bg-[var(--card)] border-b border-[var(--border)] flex items-center justify-between px-6 sticky top-0 z-30 shadow-xs">
           <button type="button" className="p-2 -ml-2 rounded-md lg:hidden hover:bg-[var(--accent)]" onClick={() => setSidebarOpen(true)}>
             <Menu className="h-5 w-5" />

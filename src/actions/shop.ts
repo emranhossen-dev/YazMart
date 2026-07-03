@@ -2,8 +2,58 @@
 
 import { prisma } from "../lib/prisma";
 
+function serializeProduct(p: any) {
+  if (!p) return p;
+
+  const toNum = (val: any) => {
+    if (val === null || val === undefined) return null;
+    if (typeof val === "object" && typeof val.toNumber === "function") {
+      return val.toNumber();
+    }
+    const num = Number(val);
+    return isNaN(num) ? null : num;
+  };
+
+  const serialized = {
+    ...p,
+    buying_price: toNum(p.buying_price),
+    selling_price: toNum(p.selling_price),
+    compare_price: toNum(p.compare_price),
+    discount_amount: toNum(p.discount_amount),
+    weight: toNum(p.weight),
+    length: toNum(p.length),
+    width: toNum(p.width),
+    height: toNum(p.height),
+    shipping_charge: toNum(p.shipping_charge),
+    current_stock: p.current_stock !== undefined && p.current_stock !== null ? Number(p.current_stock) : 0,
+  };
+
+  if (p.createdAt instanceof Date) {
+    serialized.createdAt = p.createdAt.toISOString();
+  } else if (p.createdAt) {
+    serialized.createdAt = String(p.createdAt);
+  }
+
+  if (p.updatedAt instanceof Date) {
+    serialized.updatedAt = p.updatedAt.toISOString();
+  } else if (p.updatedAt) {
+    serialized.updatedAt = String(p.updatedAt);
+  }
+
+  if (p.variants && Array.isArray(p.variants)) {
+    serialized.variants = p.variants.map((v: any) => ({
+      ...v,
+      price: toNum(v.price),
+      createdAt: v.createdAt instanceof Date ? v.createdAt.toISOString() : (v.createdAt ? String(v.createdAt) : undefined)
+    }));
+  }
+
+  return serialized;
+}
+
 // ১. ন্যাভিগেশন এবং হোম পেজ সেকশন ডেটা
 export async function getShopData(selectedCategorySlug?: string) {
+  "use cache";
   try {
     const categories = await prisma.categoryMatrix.findMany({
       where: { status: "ACTIVE", parent_id: null },
@@ -26,17 +76,7 @@ export async function getShopData(selectedCategorySlug?: string) {
       orderBy: { createdAt: "desc" },
     });
 
-    const formatProducts = (list: any[]) => list.map(p => ({
-      ...p,
-      buying_price: Number(p.buying_price),
-      selling_price: Number(p.selling_price),
-      compare_price: p.compare_price ? Number(p.compare_price) : null,
-      current_stock: Number(p.current_stock),
-      createdAt: p.createdAt.toISOString(),
-      updatedAt: p.updatedAt.toISOString(),
-    }));
-
-    const formattedAll = formatProducts(allProducts);
+    const formattedAll = allProducts.map(serializeProduct);
 
     const featured = formattedAll.filter(p => p.is_featured);
     const newArrivals = formattedAll.filter(p => p.is_new_arrival);
@@ -74,6 +114,7 @@ export async function getCategoryProducts(categorySlug: string, filters?: {
   maxPrice?: number;
   sortBy?: string;
 }) {
+  "use cache";
   try {
     // ১. মূল ক্যাটাগরি এবং তার সাব-ক্যাটাগরি রিলেশন আনা
     const category = await prisma.categoryMatrix.findUnique({
@@ -130,15 +171,7 @@ export async function getCategoryProducts(categorySlug: string, filters?: {
       orderBy
     });
 
-    const products = rawProducts.map(p => ({
-      ...p,
-      buying_price: Number(p.buying_price),
-      selling_price: Number(p.selling_price),
-      compare_price: p.compare_price ? Number(p.compare_price) : null,
-      current_stock: Number(p.current_stock),
-      createdAt: p.createdAt.toISOString(),
-      updatedAt: p.updatedAt.toISOString(),
-    }));
+    const products = rawProducts.map(serializeProduct);
 
     return { products, category, error: null };
   } catch (error: any) {
@@ -149,6 +182,7 @@ export async function getCategoryProducts(categorySlug: string, filters?: {
 
 // ৩. প্রোডাক্ট ডিটেল পেজ এবং রিলেটেড প্রোডাক্ট
 export async function getProductDetails(slug: string) {
+  "use cache";
   try {
     const rawProduct = await prisma.pimProducts.findUnique({
       where: { slug },
@@ -159,15 +193,7 @@ export async function getProductDetails(slug: string) {
       return { error: "Product not found." };
     }
 
-    const product = {
-      ...rawProduct,
-      buying_price: Number(rawProduct.buying_price),
-      selling_price: Number(rawProduct.selling_price),
-      compare_price: rawProduct.compare_price ? Number(rawProduct.compare_price) : null,
-      current_stock: Number(rawProduct.current_stock),
-      createdAt: rawProduct.createdAt.toISOString(),
-      updatedAt: rawProduct.updatedAt.toISOString(),
-    };
+    const product = serializeProduct(rawProduct);
 
     // রিলেটেড প্রোডাক্টসমূহ (সেম ক্যাটাগরি, ড্রাফট বা হিডেন বাদে)
     const rawRelated = await prisma.pimProducts.findMany({
@@ -180,15 +206,7 @@ export async function getProductDetails(slug: string) {
       include: { category: true }
     });
 
-    const relatedProducts = rawRelated.map(p => ({
-      ...p,
-      buying_price: Number(p.buying_price),
-      selling_price: Number(p.selling_price),
-      compare_price: p.compare_price ? Number(p.compare_price) : null,
-      current_stock: Number(p.current_stock),
-      createdAt: p.createdAt.toISOString(),
-      updatedAt: p.updatedAt.toISOString(),
-    }));
+    const relatedProducts = rawRelated.map(serializeProduct);
 
     return { product, relatedProducts };
   } catch (error: any) {
@@ -205,6 +223,7 @@ export async function getAllProducts(filters?: {
   sortBy?: string;
   categoryId?: string;
 }) {
+  "use cache";
   try {
     const categories = await prisma.categoryMatrix.findMany({
       where: { status: "ACTIVE" },
@@ -243,15 +262,7 @@ export async function getAllProducts(filters?: {
       orderBy
     });
 
-    const products = rawProducts.map(p => ({
-      ...p,
-      buying_price: Number(p.buying_price),
-      selling_price: Number(p.selling_price),
-      compare_price: p.compare_price ? Number(p.compare_price) : null,
-      current_stock: Number(p.current_stock),
-      createdAt: p.createdAt.toISOString(),
-      updatedAt: p.updatedAt.toISOString(),
-    }));
+    const products = rawProducts.map(serializeProduct);
 
     return { products, categories, error: null };
   } catch (error: any) {

@@ -84,6 +84,8 @@ export type PimProductsMinAggregateOutputType = {
   short_desc: string | null
   full_desc: string | null
   warranty: string | null
+  usability: string | null
+  package_includes: string | null
   meta_title: string | null
   meta_desc: string | null
   meta_keywords: string | null
@@ -129,6 +131,8 @@ export type PimProductsMaxAggregateOutputType = {
   short_desc: string | null
   full_desc: string | null
   warranty: string | null
+  usability: string | null
+  package_includes: string | null
   meta_title: string | null
   meta_desc: string | null
   meta_keywords: string | null
@@ -176,6 +180,8 @@ export type PimProductsCountAggregateOutputType = {
   full_desc: number
   specifications: number
   warranty: number
+  usability: number
+  package_includes: number
   meta_title: number
   meta_desc: number
   meta_keywords: number
@@ -251,6 +257,8 @@ export type PimProductsMinAggregateInputType = {
   short_desc?: true
   full_desc?: true
   warranty?: true
+  usability?: true
+  package_includes?: true
   meta_title?: true
   meta_desc?: true
   meta_keywords?: true
@@ -296,6 +304,8 @@ export type PimProductsMaxAggregateInputType = {
   short_desc?: true
   full_desc?: true
   warranty?: true
+  usability?: true
+  package_includes?: true
   meta_title?: true
   meta_desc?: true
   meta_keywords?: true
@@ -343,6 +353,8 @@ export type PimProductsCountAggregateInputType = {
   full_desc?: true
   specifications?: true
   warranty?: true
+  usability?: true
+  package_includes?: true
   meta_title?: true
   meta_desc?: true
   meta_keywords?: true
@@ -477,6 +489,8 @@ export type PimProductsGroupByOutputType = {
   full_desc: string | null
   specifications: runtime.JsonValue | null
   warranty: string | null
+  usability: string | null
+  package_includes: string | null
   meta_title: string | null
   meta_desc: string | null
   meta_keywords: string | null
@@ -547,6 +561,8 @@ export type PimProductsWhereInput = {
   full_desc?: Prisma.StringNullableFilter<"PimProducts"> | string | null
   specifications?: Prisma.JsonNullableFilter<"PimProducts">
   warranty?: Prisma.StringNullableFilter<"PimProducts"> | string | null
+  usability?: Prisma.StringNullableFilter<"PimProducts"> | string | null
+  package_includes?: Prisma.StringNullableFilter<"PimProducts"> | string | null
   meta_title?: Prisma.StringNullableFilter<"PimProducts"> | string | null
   meta_desc?: Prisma.StringNullableFilter<"PimProducts"> | string | null
   meta_keywords?: Prisma.StringNullableFilter<"PimProducts"> | string | null
@@ -597,6 +613,8 @@ export type PimProductsOrderByWithRelationInput = {
   full_desc?: Prisma.SortOrderInput | Prisma.SortOrder
   specifications?: Prisma.SortOrderInput | Prisma.SortOrder
   warranty?: Prisma.SortOrderInput | Prisma.SortOrder
+  usability?: Prisma.SortOrderInput | Prisma.SortOrder
+  package_includes?: Prisma.SortOrderInput | Prisma.SortOrder
   meta_title?: Prisma.SortOrderInput | Prisma.SortOrder
   meta_desc?: Prisma.SortOrderInput | Prisma.SortOrder
   meta_keywords?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -650,6 +668,8 @@ export type PimProductsWhereUniqueInput = Prisma.AtLeast<{
   full_desc?: Prisma.StringNullableFilter<"PimProducts"> | string | null
   specifications?: Prisma.JsonNullableFilter<"PimProducts">
   warranty?: Prisma.StringNullableFilter<"PimProducts"> | string | null
+  usability?: Prisma.StringNullableFilter<"PimProducts"> | string | null
+  package_includes?: Prisma.StringNullableFilter<"PimProducts"> | string | null
   meta_title?: Prisma.StringNullableFilter<"PimProducts"> | string | null
   meta_desc?: Prisma.StringNullableFilter<"PimProducts"> | string | null
   meta_keywords?: Prisma.StringNullableFilter<"PimProducts"> | string | null
@@ -700,6 +720,8 @@ export type PimProductsOrderByWithAggregationInput = {
   full_desc?: Prisma.SortOrderInput | Prisma.SortOrder
   specifications?: Prisma.SortOrderInput | Prisma.SortOrder
   warranty?: Prisma.SortOrderInput | Prisma.SortOrder
+  usability?: Prisma.SortOrderInput | Prisma.SortOrder
+  package_includes?: Prisma.SortOrderInput | Prisma.SortOrder
   meta_title?: Prisma.SortOrderInput | Prisma.SortOrder
   meta_desc?: Prisma.SortOrderInput | Prisma.SortOrder
   meta_keywords?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -755,6 +777,8 @@ export type PimProductsScalarWhereWithAggregatesInput = {
   full_desc?: Prisma.StringNullableWithAggregatesFilter<"PimProducts"> | string | null
   specifications?: Prisma.JsonNullableWithAggregatesFilter<"PimProducts">
   warranty?: Prisma.StringNullableWithAggregatesFilter<"PimProducts"> | string | null
+  usability?: Prisma.StringNullableWithAggregatesFilter<"PimProducts"> | string | null
+  package_includes?: Prisma.StringNullableWithAggregatesFilter<"PimProducts"> | string | null
   meta_title?: Prisma.StringNullableWithAggregatesFilter<"PimProducts"> | string | null
   meta_desc?: Prisma.StringNullableWithAggregatesFilter<"PimProducts"> | string | null
   meta_keywords?: Prisma.StringNullableWithAggregatesFilter<"PimProducts"> | string | null
@@ -802,6 +826,8 @@ export type PimProductsCreateInput = {
   full_desc?: string | null
   specifications?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   warranty?: string | null
+  usability?: string | null
+  package_includes?: string | null
   meta_title?: string | null
   meta_desc?: string | null
   meta_keywords?: string | null
@@ -850,6 +876,8 @@ export type PimProductsUncheckedCreateInput = {
   full_desc?: string | null
   specifications?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   warranty?: string | null
+  usability?: string | null
+  package_includes?: string | null
   meta_title?: string | null
   meta_desc?: string | null
   meta_keywords?: string | null
@@ -898,6 +926,8 @@ export type PimProductsUpdateInput = {
   full_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   specifications?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   warranty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usability?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  package_includes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_keywords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -946,6 +976,8 @@ export type PimProductsUncheckedUpdateInput = {
   full_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   specifications?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   warranty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usability?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  package_includes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_keywords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -994,6 +1026,8 @@ export type PimProductsCreateManyInput = {
   full_desc?: string | null
   specifications?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   warranty?: string | null
+  usability?: string | null
+  package_includes?: string | null
   meta_title?: string | null
   meta_desc?: string | null
   meta_keywords?: string | null
@@ -1041,6 +1075,8 @@ export type PimProductsUpdateManyMutationInput = {
   full_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   specifications?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   warranty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usability?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  package_includes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_keywords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1086,6 +1122,8 @@ export type PimProductsUncheckedUpdateManyInput = {
   full_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   specifications?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   warranty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usability?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  package_includes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_keywords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1143,6 +1181,8 @@ export type PimProductsCountOrderByAggregateInput = {
   full_desc?: Prisma.SortOrder
   specifications?: Prisma.SortOrder
   warranty?: Prisma.SortOrder
+  usability?: Prisma.SortOrder
+  package_includes?: Prisma.SortOrder
   meta_title?: Prisma.SortOrder
   meta_desc?: Prisma.SortOrder
   meta_keywords?: Prisma.SortOrder
@@ -1202,6 +1242,8 @@ export type PimProductsMaxOrderByAggregateInput = {
   short_desc?: Prisma.SortOrder
   full_desc?: Prisma.SortOrder
   warranty?: Prisma.SortOrder
+  usability?: Prisma.SortOrder
+  package_includes?: Prisma.SortOrder
   meta_title?: Prisma.SortOrder
   meta_desc?: Prisma.SortOrder
   meta_keywords?: Prisma.SortOrder
@@ -1247,6 +1289,8 @@ export type PimProductsMinOrderByAggregateInput = {
   short_desc?: Prisma.SortOrder
   full_desc?: Prisma.SortOrder
   warranty?: Prisma.SortOrder
+  usability?: Prisma.SortOrder
+  package_includes?: Prisma.SortOrder
   meta_title?: Prisma.SortOrder
   meta_desc?: Prisma.SortOrder
   meta_keywords?: Prisma.SortOrder
@@ -1428,6 +1472,8 @@ export type PimProductsCreateWithoutCategoryInput = {
   full_desc?: string | null
   specifications?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   warranty?: string | null
+  usability?: string | null
+  package_includes?: string | null
   meta_title?: string | null
   meta_desc?: string | null
   meta_keywords?: string | null
@@ -1475,6 +1521,8 @@ export type PimProductsUncheckedCreateWithoutCategoryInput = {
   full_desc?: string | null
   specifications?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   warranty?: string | null
+  usability?: string | null
+  package_includes?: string | null
   meta_title?: string | null
   meta_desc?: string | null
   meta_keywords?: string | null
@@ -1551,6 +1599,8 @@ export type PimProductsScalarWhereInput = {
   full_desc?: Prisma.StringNullableFilter<"PimProducts"> | string | null
   specifications?: Prisma.JsonNullableFilter<"PimProducts">
   warranty?: Prisma.StringNullableFilter<"PimProducts"> | string | null
+  usability?: Prisma.StringNullableFilter<"PimProducts"> | string | null
+  package_includes?: Prisma.StringNullableFilter<"PimProducts"> | string | null
   meta_title?: Prisma.StringNullableFilter<"PimProducts"> | string | null
   meta_desc?: Prisma.StringNullableFilter<"PimProducts"> | string | null
   meta_keywords?: Prisma.StringNullableFilter<"PimProducts"> | string | null
@@ -1598,6 +1648,8 @@ export type PimProductsCreateWithoutBrandInput = {
   full_desc?: string | null
   specifications?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   warranty?: string | null
+  usability?: string | null
+  package_includes?: string | null
   meta_title?: string | null
   meta_desc?: string | null
   meta_keywords?: string | null
@@ -1645,6 +1697,8 @@ export type PimProductsUncheckedCreateWithoutBrandInput = {
   full_desc?: string | null
   specifications?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   warranty?: string | null
+  usability?: string | null
+  package_includes?: string | null
   meta_title?: string | null
   meta_desc?: string | null
   meta_keywords?: string | null
@@ -1718,6 +1772,8 @@ export type PimProductsCreateWithoutVariantsInput = {
   full_desc?: string | null
   specifications?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   warranty?: string | null
+  usability?: string | null
+  package_includes?: string | null
   meta_title?: string | null
   meta_desc?: string | null
   meta_keywords?: string | null
@@ -1765,6 +1821,8 @@ export type PimProductsUncheckedCreateWithoutVariantsInput = {
   full_desc?: string | null
   specifications?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   warranty?: string | null
+  usability?: string | null
+  package_includes?: string | null
   meta_title?: string | null
   meta_desc?: string | null
   meta_keywords?: string | null
@@ -1828,6 +1886,8 @@ export type PimProductsUpdateWithoutVariantsInput = {
   full_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   specifications?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   warranty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usability?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  package_includes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_keywords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1875,6 +1935,8 @@ export type PimProductsUncheckedUpdateWithoutVariantsInput = {
   full_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   specifications?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   warranty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usability?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  package_includes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_keywords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1922,6 +1984,8 @@ export type PimProductsCreateManyCategoryInput = {
   full_desc?: string | null
   specifications?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   warranty?: string | null
+  usability?: string | null
+  package_includes?: string | null
   meta_title?: string | null
   meta_desc?: string | null
   meta_keywords?: string | null
@@ -1968,6 +2032,8 @@ export type PimProductsUpdateWithoutCategoryInput = {
   full_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   specifications?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   warranty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usability?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  package_includes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_keywords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2015,6 +2081,8 @@ export type PimProductsUncheckedUpdateWithoutCategoryInput = {
   full_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   specifications?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   warranty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usability?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  package_includes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_keywords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2062,6 +2130,8 @@ export type PimProductsUncheckedUpdateManyWithoutCategoryInput = {
   full_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   specifications?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   warranty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usability?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  package_includes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_keywords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2108,6 +2178,8 @@ export type PimProductsCreateManyBrandInput = {
   full_desc?: string | null
   specifications?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   warranty?: string | null
+  usability?: string | null
+  package_includes?: string | null
   meta_title?: string | null
   meta_desc?: string | null
   meta_keywords?: string | null
@@ -2154,6 +2226,8 @@ export type PimProductsUpdateWithoutBrandInput = {
   full_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   specifications?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   warranty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usability?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  package_includes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_keywords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2201,6 +2275,8 @@ export type PimProductsUncheckedUpdateWithoutBrandInput = {
   full_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   specifications?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   warranty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usability?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  package_includes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_keywords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2248,6 +2324,8 @@ export type PimProductsUncheckedUpdateManyWithoutBrandInput = {
   full_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   specifications?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   warranty?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  usability?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  package_includes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_keywords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2325,6 +2403,8 @@ export type PimProductsSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   full_desc?: boolean
   specifications?: boolean
   warranty?: boolean
+  usability?: boolean
+  package_includes?: boolean
   meta_title?: boolean
   meta_desc?: boolean
   meta_keywords?: boolean
@@ -2376,6 +2456,8 @@ export type PimProductsSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   full_desc?: boolean
   specifications?: boolean
   warranty?: boolean
+  usability?: boolean
+  package_includes?: boolean
   meta_title?: boolean
   meta_desc?: boolean
   meta_keywords?: boolean
@@ -2425,6 +2507,8 @@ export type PimProductsSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   full_desc?: boolean
   specifications?: boolean
   warranty?: boolean
+  usability?: boolean
+  package_includes?: boolean
   meta_title?: boolean
   meta_desc?: boolean
   meta_keywords?: boolean
@@ -2474,6 +2558,8 @@ export type PimProductsSelectScalar = {
   full_desc?: boolean
   specifications?: boolean
   warranty?: boolean
+  usability?: boolean
+  package_includes?: boolean
   meta_title?: boolean
   meta_desc?: boolean
   meta_keywords?: boolean
@@ -2489,7 +2575,7 @@ export type PimProductsSelectScalar = {
   updatedAt?: boolean
 }
 
-export type PimProductsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "sku" | "barcode" | "product_code" | "product_type" | "status" | "featured_image" | "gallery_images" | "video_url" | "buying_price" | "selling_price" | "compare_price" | "discount_type" | "discount_amount" | "discount_start" | "discount_end" | "current_stock" | "low_stock_alert" | "stock_status" | "weight" | "length" | "width" | "height" | "shipping_charge" | "cod_available" | "short_desc" | "full_desc" | "specifications" | "warranty" | "meta_title" | "meta_desc" | "meta_keywords" | "canonical_url" | "is_featured" | "is_trending" | "is_best_seller" | "is_flash_sale" | "is_new_arrival" | "category_id" | "brand_id" | "createdAt" | "updatedAt", ExtArgs["result"]["pimProducts"]>
+export type PimProductsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "sku" | "barcode" | "product_code" | "product_type" | "status" | "featured_image" | "gallery_images" | "video_url" | "buying_price" | "selling_price" | "compare_price" | "discount_type" | "discount_amount" | "discount_start" | "discount_end" | "current_stock" | "low_stock_alert" | "stock_status" | "weight" | "length" | "width" | "height" | "shipping_charge" | "cod_available" | "short_desc" | "full_desc" | "specifications" | "warranty" | "usability" | "package_includes" | "meta_title" | "meta_desc" | "meta_keywords" | "canonical_url" | "is_featured" | "is_trending" | "is_best_seller" | "is_flash_sale" | "is_new_arrival" | "category_id" | "brand_id" | "createdAt" | "updatedAt", ExtArgs["result"]["pimProducts"]>
 export type PimProductsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   category?: boolean | Prisma.CategoryMatrixDefaultArgs<ExtArgs>
   brand?: boolean | Prisma.PimProducts$brandArgs<ExtArgs>
@@ -2544,6 +2630,8 @@ export type $PimProductsPayload<ExtArgs extends runtime.Types.Extensions.Interna
     full_desc: string | null
     specifications: runtime.JsonValue | null
     warranty: string | null
+    usability: string | null
+    package_includes: string | null
     meta_title: string | null
     meta_desc: string | null
     meta_keywords: string | null
@@ -3014,6 +3102,8 @@ export interface PimProductsFieldRefs {
   readonly full_desc: Prisma.FieldRef<"PimProducts", 'String'>
   readonly specifications: Prisma.FieldRef<"PimProducts", 'Json'>
   readonly warranty: Prisma.FieldRef<"PimProducts", 'String'>
+  readonly usability: Prisma.FieldRef<"PimProducts", 'String'>
+  readonly package_includes: Prisma.FieldRef<"PimProducts", 'String'>
   readonly meta_title: Prisma.FieldRef<"PimProducts", 'String'>
   readonly meta_desc: Prisma.FieldRef<"PimProducts", 'String'>
   readonly meta_keywords: Prisma.FieldRef<"PimProducts", 'String'>

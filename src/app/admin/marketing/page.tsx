@@ -36,7 +36,7 @@ export default function MarketingPage() {
     if (tabName === "campaigns") {
       router.push("/admin/marketing");
     } else {
-      router.push(`/admin/marketing?tab=${tabName}`);
+      router.push(`/admin/marketing/${tabName}`);
     }
   };
 

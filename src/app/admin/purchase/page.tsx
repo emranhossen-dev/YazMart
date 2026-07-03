@@ -28,7 +28,7 @@ export default function PurchasePage() {
     if (tabName === "orders") {
       router.push("/admin/purchase");
     } else {
-      router.push(`/admin/purchase?tab=${tabName}`);
+      router.push(`/admin/purchase/${tabName}`);
     }
   };
 

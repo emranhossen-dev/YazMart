@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { createCategory, getCategories, deleteCategory, updateCategory, deleteMultipleCategories, bulkImportCategories } from "@/actions/categories";
+import { createCategory, getCategories, deleteCategory, updateCategory, deleteMultipleCategories, bulkImportCategories, getCategoryDeletionStats } from "@/actions/categories";
 import { uploadImage } from "@/actions/upload";
-import { Plus, Trash2, Edit3, FolderPlus, Search, Image as ImageIcon, CheckCircle, XCircle, Star, ChevronRight } from "lucide-react";
+import Swal from "sweetalert2";
+import { toast } from "react-hot-toast";
+import { Plus, Trash2, Edit3, FolderPlus, Search, Image as ImageIcon, CheckCircle, XCircle, Star, ChevronRight, ChevronLeft, AlertTriangle } from "lucide-react";
 
 interface Category {
   id: string;
@@ -27,9 +29,112 @@ export default function EnterpriseCategoriesPage() {
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
-  const [formTab, setFormTab] = useState<"manual" | "bulk">("manual");
+  const [formTab, setFormTab] = useState<"manual" | "json" | "csv">("manual");
   const [bulkJsonInput, setBulkJsonInput] = useState("");
+
+  // Category deletion warning modal states
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [deletionStats, setDeletionStats] = useState<{ productCount: number; subcategoryCount: number } | null>(null);
+  const [bulkCsvInput, setBulkCsvInput] = useState("");
+  const [csvPreview, setCsvPreview] = useState<any[]>([]);
   const [bulkErrorDetails, setBulkErrorDetails] = useState<string[]>([]);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter]);
+
+  const parseCSV = (csvText: string): any[] => {
+    const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== "");
+    if (lines.length < 2) return [];
+
+    const headers = lines[0].split(",").map(h => h.trim().replace(/^["']|["']$/g, ""));
+    const result: any[] = [];
+    
+    for (let i = 1; i < lines.length; i++) {
+      const currentLine = lines[i];
+      const values: string[] = [];
+      let insideQuote = false;
+      let entry = "";
+      
+      for (let charIdx = 0; charIdx < currentLine.length; charIdx++) {
+        const char = currentLine[charIdx];
+        if (char === '"' || char === "'") {
+          insideQuote = !insideQuote;
+        } else if (char === ',' && !insideQuote) {
+          values.push(entry.trim());
+          entry = "";
+        } else {
+          entry += char;
+        }
+      }
+      values.push(entry.trim());
+      
+      const obj: any = {};
+      headers.forEach((header, index) => {
+        let val: any = values[index] !== undefined ? values[index].replace(/^["']|["']$/g, "") : "";
+        if (val.toLowerCase() === "true") val = true;
+        else if (val.toLowerCase() === "false") val = false;
+        obj[header] = val;
+      });
+      result.push(obj);
+    }
+    return result;
+  };
+
+  const handleCategoryCsvFileLoad = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      setBulkCsvInput(text);
+      try {
+        const parsed = parseCSV(text);
+        setCsvPreview(parsed);
+        setMessage({ type: "success", text: `Loaded ${parsed.length} category records from CSV file!` });
+      } catch (err: any) {
+        setMessage({ type: "error", text: `CSV Parse Error: ${err.message}` });
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleCsvTextChange = (text: string) => {
+    setBulkCsvInput(text);
+    try {
+      const parsed = parseCSV(text);
+      setCsvPreview(parsed);
+    } catch {
+      // ignore dynamic syntax issues while typing
+    }
+  };
+
+  const handleLoadSampleCategoryCsv = () => {
+    const headers = ["name", "description", "status", "is_featured", "image_url", "parent_id"];
+    const row1 = ["Smart Electronics", "Smart watches and smart home gadgets.", "ACTIVE", "true", "https://images.unsplash.com/photo-1526738549149-8e07eca6c147?q=80&w=400&auto=format&fit=crop", ""];
+    const row2 = ["Mechanical Keyboards", "Tactile custom keyboards.", "ACTIVE", "false", "https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?q=80&w=400&auto=format&fit=crop", categories[0]?.id || "parent_category_uuid"];
+    
+    const sampleCsvData = headers.join(",") + "\n" + row1.join(",") + "\n" + row2.join(",");
+    setBulkCsvInput(sampleCsvData);
+    setCsvPreview(parseCSV(sampleCsvData));
+    setMessage({ type: "success", text: "Loaded sample categories CSV template!" });
+  };
+
+  const downloadCategoryCsvBlueprint = () => {
+    const headers = ["name", "description", "status", "is_featured", "image_url", "parent_id"];
+    const row = ["Smart Electronics", "Smart watches and smart home gadgets.", "ACTIVE", "true", "https://images.unsplash.com/photo-1526738549149-8e07eca6c147?q=80&w=400&auto=format&fit=crop", ""];
+    const csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n" + row.join(",");
+    const downloadAnchor = document.createElement("a");
+    downloadAnchor.setAttribute("href", encodeURI(csvContent));
+    downloadAnchor.setAttribute("download", "categories_bulk_blueprint.csv");
+    downloadAnchor.click();
+  };
 
   const handleLoadSampleCategoryJson = () => {
     const sample = [
@@ -112,36 +217,93 @@ export default function EnterpriseCategoriesPage() {
     setLoading(true);
     setMessage(null);
     setBulkErrorDetails([]);
-    try {
-      const parsed = JSON.parse(bulkJsonInput);
-      if (!Array.isArray(parsed)) {
-        setMessage({ type: "error", text: "Invalid JSON format. Expected an array of category objects." });
+    
+    let importList = [];
+    if (formTab === "json") {
+      try {
+        importList = JSON.parse(bulkJsonInput);
+        if (!Array.isArray(importList)) {
+          setMessage({ type: "error", text: "Invalid JSON format. Expected an array of category objects." });
+          setLoading(false);
+          return;
+        }
+      } catch (e: any) {
+        setMessage({ type: "error", text: `JSON Syntax Error: ${e.message}` });
         setLoading(false);
         return;
       }
-      const res = await bulkImportCategories(parsed);
+    } else {
+      if (csvPreview.length === 0) {
+        try {
+          importList = parseCSV(bulkCsvInput);
+        } catch (e: any) {
+          setMessage({ type: "error", text: `CSV Parse Error: ${e.message}` });
+          setLoading(false);
+          return;
+        }
+      } else {
+        importList = csvPreview;
+      }
+    }
+
+    try {
+      const res = await bulkImportCategories(importList);
       if (res.error) {
         setMessage({ type: "error", text: res.error });
         if (res.details) setBulkErrorDetails(res.details);
       } else {
         setMessage({ type: "success", text: res.success || "Categories bulk imported successfully!" });
         setBulkJsonInput("");
+        setBulkCsvInput("");
+        setCsvPreview([]);
         await loadCategories();
       }
     } catch (e: any) {
-      setMessage({ type: "error", text: `JSON Syntax Error: ${e.message}` });
+      setMessage({ type: "error", text: `Import Crash: ${e.message}` });
     }
     setLoading(false);
   };
 
   const handleBulkDelete = async () => {
-    if (!confirm(`Are you sure you want to delete ${selectedCategoryIds.length} categories? This cannot be undone.`)) return;
+    if (selectedCategoryIds.length === 0) return;
+
+    const result = await Swal.fire({
+      title: "Purge Categories?",
+      text: `Are you sure you want to delete ${selectedCategoryIds.length} selected categories? This cannot be undone. All linked products will become Uncategorized.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Purge Selected",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#e11d48",
+      cancelButtonColor: "#4b5563",
+      background: "var(--card)",
+      color: "var(--foreground)"
+    });
+
+    if (!result.isConfirmed) return;
+
     setLoading(true);
     const res = await deleteMultipleCategories(selectedCategoryIds);
     if (res.error) {
-      setMessage({ type: "error", text: res.error });
+      toast.error(res.error, {
+        style: {
+          background: "var(--card)",
+          color: "var(--foreground)",
+          border: "1px solid var(--border)",
+          fontSize: "12px",
+          fontWeight: "bold"
+        }
+      });
     } else {
-      setMessage({ type: "success", text: res.success || "Selected categories deleted." });
+      toast.success(res.success || "Selected categories deleted.", {
+        style: {
+          background: "var(--card)",
+          color: "var(--foreground)",
+          border: "1px solid var(--border)",
+          fontSize: "12px",
+          fontWeight: "bold"
+        }
+      });
       setSelectedCategoryIds([]);
       await loadCategories();
     }
@@ -239,15 +401,38 @@ export default function EnterpriseCategoriesPage() {
     setLoading(false);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this category node? This might break dependent child links.")) return;
-    const res = await deleteCategory(id);
+  const handleDeleteInit = async (cat: Category) => {
+    setCategoryToDelete(cat);
+    setDeleteConfirmOpen(true);
+    setStatsLoading(true);
+    setDeletionStats(null);
+    
+    const res = await getCategoryDeletionStats(cat.id);
+    if (res.success) {
+      setDeletionStats({
+        productCount: res.productCount || 0,
+        subcategoryCount: res.subcategoryCount || 0
+      });
+    } else {
+      setMessage({ type: "error", text: res.error || "Failed to load deletion statistics." });
+    }
+    setStatsLoading(false);
+  };
+
+  const handleExecuteDelete = async () => {
+    if (!categoryToDelete) return;
+    setLoading(true);
+    const res = await deleteCategory(categoryToDelete.id);
     if (res.error) {
       setMessage({ type: "error", text: res.error });
     } else {
-      setMessage({ type: "success", text: res.success || "Category deleted." });
+      setMessage({ type: "success", text: res.success || "Category deleted successfully." });
+      setDeleteConfirmOpen(false);
+      setCategoryToDelete(null);
+      setDeletionStats(null);
       await loadCategories();
     }
+    setLoading(false);
   };
 
   // Filter Logic
@@ -257,6 +442,9 @@ export default function EnterpriseCategoriesPage() {
     const matchesStatus = statusFilter === "all" || cat.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  const totalPages = Math.ceil(filteredCategories.length / itemsPerPage);
+  const paginatedCategories = filteredCategories.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="space-y-6 select-none font-sans max-w-[1700px] mx-auto p-1">
@@ -279,30 +467,38 @@ export default function EnterpriseCategoriesPage() {
           <div className="flex border-b border-[var(--border)] pb-2 text-[10px] uppercase font-bold text-[var(--muted-foreground)] gap-3">
             <button
               type="button"
-              onClick={() => setFormTab("manual")}
+              onClick={() => { setFormTab("manual"); setMessage(null); }}
               className={`pb-1 cursor-pointer hover:text-[var(--foreground)] ${formTab === "manual" ? "border-b-2 border-blue-500 text-blue-500" : ""}`}
             >
               Manual Form
             </button>
             <button
               type="button"
-              onClick={() => setFormTab("bulk")}
-              className={`pb-1 cursor-pointer hover:text-[var(--foreground)] ${formTab === "bulk" ? "border-b-2 border-blue-500 text-blue-500" : ""}`}
+              onClick={() => { setFormTab("json"); setMessage(null); }}
+              className={`pb-1 cursor-pointer hover:text-[var(--foreground)] ${formTab === "json" ? "border-b-2 border-blue-500 text-blue-500" : ""}`}
             >
-              Bulk JSON Upload
+              JSON Import
+            </button>
+            <button
+              type="button"
+              onClick={() => { setFormTab("csv"); setMessage(null); }}
+              className={`pb-1 cursor-pointer hover:text-[var(--foreground)] ${formTab === "csv" ? "border-b-2 border-blue-500 text-blue-500" : ""}`}
+            >
+              CSV Import
             </button>
           </div>
 
-          {formTab === "manual" ? (
+          {formTab === "manual" && (
             <>
               <h3 className="text-xs font-black uppercase text-[var(--muted-foreground)] flex items-center gap-2">
                 <FolderPlus className="h-4 w-4 text-blue-500" /> 
                 {editingCategory ? `Modify Node: ${editingCategory.name}` : "Establish Taxonomy"}
               </h3>
               
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-3 pt-1">
+                {/* Row 1: Name (Line 1) */}
                 <div>
-                  <label className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Category Name</label>
+                  <label className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Category Name *</label>
                   <input 
                     type="text" 
                     value={name} 
@@ -313,6 +509,7 @@ export default function EnterpriseCategoriesPage() {
                   />
                 </div>
 
+                {/* Row 1.5: Parent Category (Line 2) */}
                 <div>
                   <label className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Parent Category</label>
                   <select 
@@ -332,84 +529,85 @@ export default function EnterpriseCategoriesPage() {
                   </select>
                 </div>
 
-                {/* Category Image Selector */}
-                <div>
-                  <label className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Category Image</label>
-                  <div className="flex gap-3 items-center">
-                    {imageUrl ? (
-                      <div className="relative w-16 h-16 border border-[var(--border)] rounded bg-[var(--background)] overflow-hidden">
-                        <img src={imageUrl} className="w-full h-full object-contain" />
-                        <button 
-                          type="button" 
-                          onClick={() => setImageUrl("")} 
-                          className="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[10px] font-bold"
+                {/* Row 2: Category Image, Status, and Featured Checkbox */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+                  <div className="sm:col-span-1">
+                    <label className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Category Image</label>
+                    <div className="flex gap-2 items-center bg-[var(--background)] p-1.5 border border-[var(--border)] rounded-md h-9">
+                      {imageUrl ? (
+                        <div className="relative w-6 h-6 border border-[var(--border)] rounded bg-[var(--background)] overflow-hidden flex-shrink-0">
+                          <img src={imageUrl} className="w-full h-full object-contain" />
+                          <button 
+                            type="button" 
+                            onClick={() => setImageUrl("")} 
+                            className="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[8px] font-bold"
+                          >
+                            Del
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="w-6 h-6 border border-dashed border-[var(--border)] rounded flex items-center justify-center text-[var(--muted-foreground)] flex-shrink-0">
+                          <ImageIcon className="h-3 w-3" />
+                        </div>
+                      )}
+                      
+                      <div className="flex-1">
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={handleImageUpload} 
+                          className="hidden" 
+                          id="cat-image-file" 
+                        />
+                        <label 
+                          htmlFor="cat-image-file" 
+                          className="inline-block px-2 py-0.5 bg-[var(--background)] hover:bg-[var(--accent)] border border-[var(--border)] text-[9px] font-bold uppercase rounded cursor-pointer transition-colors"
                         >
-                          Remove
-                        </button>
+                          {uploading ? "..." : "Upload"}
+                        </label>
                       </div>
-                    ) : (
-                      <div className="w-16 h-16 border border-dashed border-[var(--border)] rounded flex items-center justify-center text-[var(--muted-foreground)]">
-                        <ImageIcon className="h-6 w-6" />
-                      </div>
-                    )}
-                    
-                    <div className="flex-1">
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        onChange={handleImageUpload} 
-                        className="hidden" 
-                        id="cat-image-file" 
-                      />
-                      <label 
-                        htmlFor="cat-image-file" 
-                        className="inline-block px-3 py-1.5 bg-[var(--background)] hover:bg-[var(--accent)] border border-[var(--border)] text-[10px] font-bold uppercase rounded cursor-pointer transition-colors"
-                      >
-                        {uploading ? "Uploading..." : "Upload Image"}
-                      </label>
-                      <p className="text-[9px] text-[var(--muted-foreground)] mt-1">PNG, JPG up to 2MB</p>
                     </div>
                   </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Status</label>
                     <select 
                       value={status} 
                       onChange={(e) => setStatus(e.target.value)}
-                      className="w-full px-3 py-2 text-xs rounded bg-[var(--background)] border border-[var(--border)] focus:outline-none font-bold"
+                      className="w-full px-3 py-2 text-xs rounded bg-[var(--background)] border border-[var(--border)] focus:outline-none font-bold h-9"
                     >
                       <option value="ACTIVE">ACTIVE</option>
                       <option value="INACTIVE">INACTIVE</option>
                     </select>
                   </div>
 
-                  <div className="flex flex-col justify-end pb-1">
-                    <label className="flex items-center gap-2 text-xs font-bold text-[var(--foreground)] cursor-pointer select-none">
+                  <div className="flex items-center pb-2 h-9">
+                    <label className="flex items-center gap-1.5 text-xs font-bold text-[var(--foreground)] cursor-pointer select-none">
                       <input 
                         type="checkbox" 
                         checked={isFeatured} 
                         onChange={(e) => setIsFeatured(e.target.checked)} 
-                        className="rounded bg-[var(--background)] border-[var(--border)] text-blue-500 h-4 w-4"
+                        className="rounded bg-[var(--background)] border-[var(--border)] text-blue-500 h-4 w-4 cursor-pointer"
                       />
                       <span>Featured Category</span>
                     </label>
                   </div>
                 </div>
 
+                {/* Row 3: Description */}
                 <div>
                   <label className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Description</label>
                   <textarea 
-                    value={description} 
+                    value={description || ""} 
                     onChange={(e) => setDescription(e.target.value)} 
-                    rows={3} 
+                    rows={2} 
                     className="w-full px-3 py-2 text-xs rounded bg-[var(--background)] border border-[var(--border)] focus:outline-none focus:border-blue-500" 
                     placeholder="Describe this category hierarchy..." 
                   />
                 </div>
 
-                <div className="flex gap-2">
+                {/* Row 4: Action Buttons */}
+                <div className="flex gap-2 pt-1">
                   <button 
                     type="submit" 
                     disabled={loading || uploading} 
@@ -429,11 +627,13 @@ export default function EnterpriseCategoriesPage() {
                 </div>
               </form>
             </>
-          ) : (
+          )}
+
+          {formTab === "json" && (
             <div className="space-y-4">
               <h3 className="text-xs font-black uppercase text-[var(--muted-foreground)] flex items-center gap-2">
                 <FolderPlus className="h-4 w-4 text-blue-500" /> 
-                Bulk Import Taxonomy
+                JSON Bulk Import Taxonomy
               </h3>
               
               <div className="flex gap-2 bg-[var(--background)] p-2 rounded border border-[var(--border)]">
@@ -449,7 +649,15 @@ export default function EnterpriseCategoriesPage() {
                     type="button" 
                     onClick={() => {
                       navigator.clipboard.writeText(bulkJsonInput);
-                      alert("Copied sample categories JSON to clipboard!");
+                      toast.success("Copied sample categories JSON to clipboard!", {
+                        style: {
+                          background: "var(--card)",
+                          color: "var(--foreground)",
+                          border: "1px solid var(--border)",
+                          fontSize: "12px",
+                          fontWeight: "bold"
+                        }
+                      });
                     }}
                     className="px-2.5 py-1 bg-zinc-700 hover:bg-zinc-800 text-white font-bold rounded text-[10px] cursor-pointer"
                   >
@@ -481,7 +689,88 @@ export default function EnterpriseCategoriesPage() {
                 disabled={loading || !bulkJsonInput}
                 className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider rounded transition-colors cursor-pointer text-center"
               >
-                {loading ? "Importing..." : "Import Categories"}
+                {loading ? "Importing..." : "Execute JSON Import"}
+              </button>
+            </div>
+          )}
+
+          {formTab === "csv" && (
+            <div className="space-y-4">
+              <h3 className="text-xs font-black uppercase text-[var(--muted-foreground)] flex items-center gap-2">
+                <FolderPlus className="h-4 w-4 text-blue-500" /> 
+                CSV Bulk Import Taxonomy
+              </h3>
+              
+              <div className="flex flex-wrap gap-2 bg-[var(--background)] p-2 rounded border border-[var(--border)]">
+                <button 
+                  type="button" 
+                  onClick={handleLoadSampleCategoryCsv} 
+                  className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded text-[10px] cursor-pointer"
+                >
+                  ⚡ Load Sample CSV
+                </button>
+                <button 
+                  type="button" 
+                  onClick={downloadCategoryCsvBlueprint} 
+                  className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded text-[10px] cursor-pointer"
+                >
+                  📋 Download Blueprint
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-[9px] font-bold uppercase text-[var(--muted-foreground)]">Upload CSV File</label>
+                <div className="border border-dashed border-[var(--border)] p-3 rounded text-center bg-[var(--background)]/30">
+                  <input 
+                    type="file" 
+                    accept=".csv" 
+                    onChange={handleCategoryCsvFileLoad} 
+                    className="text-xs" 
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-[9px] font-bold uppercase text-[var(--muted-foreground)]">Or Paste CSV Text</label>
+                <textarea 
+                  rows={6}
+                  value={bulkCsvInput}
+                  onChange={(e) => handleCsvTextChange(e.target.value)}
+                  placeholder="name,description,status,is_featured,image_url,parent_id&#10;Electronics,Gadget store description,ACTIVE,true,https://image.url,"
+                  className="w-full p-2.5 font-mono text-xs rounded bg-[var(--background)] border border-[var(--border)] focus:outline-none"
+                />
+              </div>
+
+              {csvPreview.length > 0 && (
+                <div className="p-2.5 bg-[var(--background)] border border-[var(--border)] rounded text-[9px] font-mono">
+                  <p className="font-bold text-[var(--muted-foreground)] mb-1">Preview Loaded Categories ({csvPreview.length} items)</p>
+                  <div className="max-h-24 overflow-y-auto space-y-1 divide-y divide-[var(--border)]/50">
+                    {csvPreview.slice(0, 3).map((item, idx) => (
+                      <div key={idx} className="pt-1 text-[var(--muted-foreground)]">
+                        <span className="text-[var(--foreground)] font-bold">{item.name}</span> ({item.status || "ACTIVE"})
+                      </div>
+                    ))}
+                    {csvPreview.length > 3 && <p className="text-[8px] pt-1">Showing first 3 items...</p>}
+                  </div>
+                </div>
+              )}
+
+              {bulkErrorDetails.length > 0 && (
+                <div className="p-2.5 bg-rose-500/10 border border-rose-500/10 rounded text-[10px] font-mono text-rose-500 space-y-1 max-h-32 overflow-y-auto">
+                  <p className="font-bold">Errors found:</p>
+                  {bulkErrorDetails.map((err, idx) => (
+                    <p key={idx}>• {err}</p>
+                  ))}
+                </div>
+              )}
+
+              <button 
+                type="button"
+                onClick={handleExecuteBulkImportCategories}
+                disabled={loading || !bulkCsvInput}
+                className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider rounded transition-colors cursor-pointer text-center"
+              >
+                {loading ? "Importing..." : "Execute CSV Import"}
               </button>
             </div>
           )}
@@ -507,7 +796,15 @@ export default function EnterpriseCategoriesPage() {
                   onClick={() => {
                     const text = categories.map(c => `${c.name}: ${c.id}`).join("\n");
                     navigator.clipboard.writeText(text);
-                    alert("Copied all Category name-ID pairs to clipboard!");
+                    toast.success("Copied all Category name-ID pairs to clipboard!", {
+                      style: {
+                        background: "var(--card)",
+                        color: "var(--foreground)",
+                        border: "1px solid var(--border)",
+                        fontSize: "12px",
+                        fontWeight: "bold"
+                      }
+                    });
                   }}
                   className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[10px] uppercase tracking-wider rounded transition-colors cursor-pointer flex items-center gap-1 shadow-xs"
                   title="Copy all active Category names and their corresponding IDs"
@@ -568,12 +865,12 @@ export default function EnterpriseCategoriesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border)] font-medium">
-                {filteredCategories.length === 0 ? (
+                {paginatedCategories.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="py-4 text-center text-[var(--muted-foreground)] font-normal">No operational nodes active in configuration stack.</td>
                   </tr>
                 ) : (
-                  filteredCategories.map((cat) => (
+                  paginatedCategories.map((cat) => (
                     <tr key={cat.id} className="hover:bg-[var(--background)]/40 transition-colors">
                       <td className="py-3">
                         <input 
@@ -606,7 +903,15 @@ export default function EnterpriseCategoriesPage() {
                             type="button"
                             onClick={() => {
                               navigator.clipboard.writeText(cat.id);
-                              alert("Category UUID copied to clipboard!");
+                              toast.success("Category UUID copied to clipboard!", {
+                                style: {
+                                  background: "var(--card)",
+                                  color: "var(--foreground)",
+                                  border: "1px solid var(--border)",
+                                  fontSize: "12px",
+                                  fontWeight: "bold"
+                                }
+                              });
                             }}
                             className="text-[9px] text-blue-500 hover:text-blue-600 hover:underline font-black uppercase cursor-pointer"
                           >
@@ -654,7 +959,7 @@ export default function EnterpriseCategoriesPage() {
                         </button>
                         <button 
                           type="button" 
-                          onClick={() => handleDelete(cat.id)} 
+                          onClick={() => handleDeleteInit(cat)} 
                           className="p-1.5 text-rose-500 hover:bg-rose-500/10 rounded cursor-pointer"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -666,8 +971,107 @@ export default function EnterpriseCategoriesPage() {
               </tbody>
             </table>
           </div>
+
+          {/* PAGINATION PANEL */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between pt-3 border-t border-[var(--border)] text-xs">
+              <span className="text-[var(--muted-foreground)]">Showing page {currentPage} of {totalPages}</span>
+              <div className="flex gap-1">
+                <button 
+                  type="button" 
+                  disabled={currentPage === 1} 
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  className="p-1.5 border border-[var(--border)] rounded hover:bg-[var(--accent)] disabled:opacity-50 cursor-pointer"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button 
+                  type="button" 
+                  disabled={currentPage === totalPages} 
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  className="p-1.5 border border-[var(--border)] rounded hover:bg-[var(--accent)] disabled:opacity-50 cursor-pointer"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Category Deletion Warning Modal */}
+      {deleteConfirmOpen && categoryToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+          <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="flex items-start gap-3.5">
+              <div className="p-2.5 bg-rose-500/10 text-rose-500 rounded-lg">
+                <AlertTriangle className="h-6 w-6" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm font-black uppercase text-rose-500 tracking-wider">Purge Category Node</h3>
+                <p className="text-xs text-[var(--muted-foreground)]">This action will modify linked catalog relationships.</p>
+              </div>
+            </div>
+
+            <div className="bg-[var(--background)]/50 p-4 rounded-lg border border-[var(--border)] space-y-3.5 text-xs">
+              <p className="font-bold text-[var(--foreground)]">
+                You are about to delete: <span className="text-blue-500 font-extrabold">{categoryToDelete.name}</span>
+              </p>
+              
+              {statsLoading ? (
+                <div className="text-[10px] text-[var(--muted-foreground)] animate-pulse flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-ping" />
+                  Calculating inventory and subcategory impacts...
+                </div>
+              ) : deletionStats ? (
+                <div className="space-y-2.5 text-[11px]">
+                  <p className="text-[var(--muted-foreground)] leading-relaxed">
+                    If you proceed, the following cascading reassignments will take place automatically:
+                  </p>
+                  <ul className="space-y-1.5 font-semibold text-[var(--foreground)]">
+                    <li className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                      <span>Products Affected: </span>
+                      <span className="text-blue-500 font-bold font-mono">{deletionStats.productCount} products</span>
+                      <span className="text-[10px] text-[var(--muted-foreground)] font-normal">(relocated to "Uncategorized" node)</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                      <span>Subcategories Affected: </span>
+                      <span className="text-blue-500 font-bold font-mono">{deletionStats.subcategoryCount} levels</span>
+                      <span className="text-[10px] text-[var(--muted-foreground)] font-normal">(uncoupled to top-level nodes)</span>
+                    </li>
+                  </ul>
+                </div>
+              ) : (
+                <p className="text-rose-500 font-bold">Failed to load deletion safety statistics ledger.</p>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setDeleteConfirmOpen(false);
+                  setCategoryToDelete(null);
+                  setDeletionStats(null);
+                }}
+                className="px-4 py-2 border border-[var(--border)] rounded text-xs font-bold hover:bg-[var(--accent)] transition-colors cursor-pointer"
+              >
+                Abort Operation
+              </button>
+              <button
+                type="button"
+                disabled={loading || statsLoading}
+                onClick={handleExecuteDelete}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded text-xs font-black uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {loading ? "Purging..." : "Confirm Purge"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

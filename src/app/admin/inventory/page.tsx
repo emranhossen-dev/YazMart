@@ -36,7 +36,7 @@ export default function InventoryPage() {
     if (tabName === "matrix") {
       router.push("/admin/inventory");
     } else {
-      router.push(`/admin/inventory?tab=${tabName}`);
+      router.push(`/admin/inventory/${tabName}`);
     }
   };
 

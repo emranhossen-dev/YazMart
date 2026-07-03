@@ -67,9 +67,9 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#faf8ff] text-[#191b23] font-sans">
+    <div className="min-h-screen flex flex-col bg-[var(--background)] text-[var(--foreground)] font-sans">
       {/* Premium Consistent Navbar */}
-      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-[#c3c6d7] shadow-sm">
+      <header className="sticky top-0 z-50 bg-[var(--card)]/90 backdrop-blur-md border-b border-[var(--border)] shadow-sm">
         <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between gap-4">
           <Link href="/" className="text-2xl font-black tracking-tight flex items-center gap-2 flex-shrink-0">
             <div className="p-1.5 bg-blue-600 rounded-lg text-white">
@@ -80,7 +80,7 @@ export default function CheckoutPage() {
 
           {/* Action Links */}
           <div className="flex items-center gap-4 flex-shrink-0">
-            <Link href="/wishlist" className="relative p-2 text-[#191b23] hover:text-blue-500 transition-colors">
+            <Link href="/wishlist" className="relative p-2 text-[var(--foreground)] hover:text-blue-500 transition-colors">
               <Heart className="h-5 w-5" />
               {wishlist.length > 0 && (
                 <span className="absolute top-0 right-0 bg-rose-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center">
@@ -89,7 +89,7 @@ export default function CheckoutPage() {
               )}
             </Link>
 
-            <Link href="/cart" className="relative p-2 text-[#191b23] hover:text-blue-500 transition-colors">
+            <Link href="/cart" className="relative p-2 text-[var(--foreground)] hover:text-blue-500 transition-colors">
               <ShoppingCart className="h-5 w-5" />
               {cart.length > 0 && (
                 <span className="absolute top-0 right-0 bg-blue-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center">
@@ -100,17 +100,17 @@ export default function CheckoutPage() {
 
             {user ? (
               <div className="relative group">
-                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#ededf9] hover:opacity-90 text-[#191b23] text-xs font-bold transition-all border border-[#c3c6d7]/30 cursor-pointer">
+                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--accent)] hover:opacity-90 text-[var(--foreground)] text-xs font-bold transition-all border border-[var(--outline-variant)]/30 cursor-pointer">
                   <div className="w-4.5 h-4.5 rounded-full bg-blue-500 text-white flex items-center justify-center font-black text-[9px] uppercase">
                     {user.fullName?.charAt(0) || "U"}
                   </div>
                   <span className="max-w-[70px] truncate hidden md:inline">{user.fullName || "Account"}</span>
                 </button>
-                <div className="absolute right-0 top-full mt-1 w-40 bg-white border border-[#c3c6d7] rounded-2xl shadow-xl p-1.5 hidden group-hover:block z-50 text-xs text-[#191b23] animate-fade-in">
+                <div className="absolute right-0 top-full mt-1 w-40 bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-xl p-1.5 hidden group-hover:block z-50 text-xs text-[var(--foreground)] animate-fade-in">
                   {user.role === "admin" && (
                     <Link 
                       href="/admin" 
-                      className="block w-full text-left px-3 py-2 hover:bg-[#ededf9] rounded-xl font-bold transition-colors"
+                      className="block w-full text-left px-3 py-2 hover:bg-[var(--accent)] rounded-xl font-bold transition-colors"
                     >
                       Admin Panel
                     </Link>
@@ -120,7 +120,7 @@ export default function CheckoutPage() {
                       await signOutAction();
                       window.location.reload();
                     }}
-                    className="w-full text-left px-3 py-2 hover:bg-[#ededf9] rounded-xl text-rose-500 font-bold transition-colors cursor-pointer"
+                    className="w-full text-left px-3 py-2 hover:bg-[var(--accent)] rounded-xl text-rose-500 font-bold transition-colors cursor-pointer"
                   >
                     Sign Out
                   </button>
@@ -159,16 +159,13 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-b border-[#c3c6d7]/40 pb-4">
+        <div className="flex items-center justify-between border-b border-[var(--border)]/40 pb-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight flex items-center gap-3">
               <CreditCard className="h-7 w-7 text-blue-500" /> Checkout Ledger
             </h1>
             <p className="text-xs text-zinc-500 mt-1">Provide delivery credentials and verify order breakdown to commit purchase.</p>
           </div>
-          <Link href="/cart" className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:underline">
-            <ArrowLeft className="h-3.5 w-3.5" /> Back to Bag
-          </Link>
         </div>
 
         {error && (
@@ -179,8 +176,8 @@ export default function CheckoutPage() {
 
         <div className="grid gap-8 lg:grid-cols-5 items-start">
           {/* Shipping Form Column */}
-          <div className="lg:col-span-3 p-6 rounded-2xl border border-[#c3c6d7]/50 bg-white shadow-xs space-y-6">
-            <h3 className="text-xs font-black uppercase text-[#191b23] tracking-wider border-b border-[#c3c6d7]/30 pb-3 flex items-center gap-2">
+          <div className="lg:col-span-3 p-6 rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-xs space-y-6">
+            <h3 className="text-xs font-black uppercase text-[var(--foreground)] tracking-wider border-b border-[var(--border)]/30 pb-3 flex items-center gap-2">
               <ShieldCheck className="h-5 w-5 text-blue-500" /> Shipping & Billing credentials
             </h3>
 
@@ -248,37 +245,37 @@ export default function CheckoutPage() {
 
           {/* Cart Preview Column */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="p-6 border border-[#c3c6d7]/60 bg-white rounded-2xl shadow-xs space-y-6">
-              <h3 className="text-xs font-black uppercase text-[#191b23] tracking-wider border-b border-[#c3c6d7]/30 pb-3">Checkout Items ledger</h3>
+            <div className="p-6 border border-[var(--border)] bg-[var(--card)] rounded-2xl shadow-xs space-y-6">
+              <h3 className="text-xs font-black uppercase text-[var(--foreground)] tracking-wider border-b border-[var(--border)]/30 pb-3">Checkout Items ledger</h3>
               
               <div className="max-h-56 overflow-y-auto space-y-3 text-xs pr-1 scrollbar-none">
                 {cart.map((item) => (
-                  <div key={item.id} className="flex justify-between items-center py-2 border-b border-[#c3c6d7]/15 last:border-b-0 pb-3">
+                  <div key={item.id} className="flex justify-between items-center py-2 border-b border-[var(--border)]/15 last:border-b-0 pb-3">
                     <div className="min-w-0 pr-3">
-                      <p className="font-bold text-zinc-800 line-clamp-1">{item.name}</p>
-                      <p className="text-[9px] text-zinc-400 font-mono mt-0.5">Qty: {item.quantity} x ৳{item.price.toFixed(2)}</p>
+                      <p className="font-bold text-[var(--foreground)] line-clamp-1">{item.name}</p>
+                      <p className="text-[9px] text-[var(--muted-foreground)] font-mono mt-0.5">Qty: {item.quantity} x ৳{item.price.toFixed(2)}</p>
                     </div>
                     <span className="font-bold text-blue-500 flex-shrink-0">৳{(item.price * item.quantity).toFixed(2)}</span>
                   </div>
                 ))}
               </div>
 
-              <div className="divide-y divide-[#c3c6d7]/30 text-xs font-medium border-t border-[#c3c6d7]/40 pt-1">
-                <div className="py-3 flex justify-between text-zinc-500">
+              <div className="divide-y divide-[var(--border)]/30 text-xs font-medium border-t border-[var(--border)]/40 pt-1">
+                <div className="py-3 flex justify-between text-[var(--muted-foreground)]">
                   <span>Subtotal</span>
-                  <span className="font-bold text-[#191b23]">৳{subtotal.toFixed(2)}</span>
+                  <span className="font-bold text-[var(--foreground)]">৳{subtotal.toFixed(2)}</span>
                 </div>
-                <div className="py-3 flex justify-between text-zinc-500">
+                <div className="py-3 flex justify-between text-[var(--muted-foreground)]">
                   <span>Shipping Fee</span>
-                  <span>{shipping === 0 ? <span className="text-emerald-500 font-bold">FREE</span> : <span className="font-bold text-[#191b23]">৳{shipping.toFixed(2)}</span>}</span>
+                  <span>{shipping === 0 ? <span className="text-emerald-500 font-bold">FREE</span> : <span className="font-bold text-[var(--foreground)]">৳{shipping.toFixed(2)}</span>}</span>
                 </div>
-                <div className="py-4 flex justify-between text-sm font-black border-t border-[#c3c6d7] text-[#191b23]">
+                <div className="py-4 flex justify-between text-sm font-black border-t border-[var(--border)] text-[var(--foreground)]">
                   <span>Net Due</span>
                   <span className="text-blue-500 text-base">৳{total.toFixed(2)}</span>
                 </div>
               </div>
 
-              <div className="flex items-center justify-center gap-2 text-[10px] text-zinc-400 bg-zinc-50 p-3 rounded-xl border border-[#c3c6d7]/30 font-medium">
+              <div className="flex items-center justify-center gap-2 text-[10px] text-[var(--muted-foreground)] bg-[var(--background)] p-3 rounded-xl border border-[var(--border)]/30 font-medium">
                 <ShieldCheck className="h-4.5 w-4.5 text-emerald-500 flex-shrink-0" />
                 <span>Encrypted secure socket layer payment tunnel.</span>
               </div>

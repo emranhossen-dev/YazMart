@@ -13,7 +13,7 @@ export default function ReportsPage() {
     if (tabName === "sales") {
       router.push("/admin/reports");
     } else {
-      router.push(`/admin/reports?tab=${tabName}`);
+      router.push(`/admin/reports/${tabName}`);
     }
   };
 

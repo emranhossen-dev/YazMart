@@ -99,8 +99,58 @@ export async function getCategories() {
   }
 }
 
+export async function getCategoryDeletionStats(id: string) {
+  try {
+    const productCount = await prisma.pimProducts.count({
+      where: { category_id: id }
+    });
+    const subcategoryCount = await prisma.categoryMatrix.count({
+      where: { parent_id: id }
+    });
+    return { success: true, productCount, subcategoryCount };
+  } catch (error: any) {
+    console.error("❌ GET DELETION STATS ERROR:", error);
+    return { error: `Failed to retrieve details: ${error.message}` };
+  }
+}
+
 export async function deleteCategory(id: string) {
   try {
+    // 1. Find or create the "Uncategorized" category MATRIX node
+    let uncategorized = await prisma.categoryMatrix.findFirst({
+      where: { slug: "uncategorized" }
+    });
+    
+    if (!uncategorized) {
+      uncategorized = await prisma.categoryMatrix.create({
+        data: {
+          name: "Uncategorized",
+          slug: "uncategorized",
+          description: "Default fallback category for products without category mapping.",
+          status: "ACTIVE",
+          is_featured: false,
+        }
+      });
+    }
+
+    // Prevent deleting "Uncategorized" category itself!
+    if (id === uncategorized.id) {
+      return { error: "The system-wide fallback 'Uncategorized' category cannot be deleted." };
+    }
+
+    // 2. Reassign linked products to "Uncategorized"
+    await prisma.pimProducts.updateMany({
+      where: { category_id: id },
+      data: { category_id: uncategorized.id }
+    });
+
+    // 3. Disconnect child categories (set parent_id = null)
+    await prisma.categoryMatrix.updateMany({
+      where: { parent_id: id },
+      data: { parent_id: null }
+    });
+
+    // 4. Delete the category itself
     await prisma.categoryMatrix.delete({
       where: { id },
     });
@@ -108,28 +158,62 @@ export async function deleteCategory(id: string) {
     revalidatePath("/admin/categories");
     revalidatePath("/admin/products");
     revalidatePath("/");
-    return { success: "Category purged successfully." };
-  } catch (error) {
-    console.error(error);
-    return { error: "Failed to delete category (it may be linked to products or subcategories)." };
+    return { success: "Category purged successfully. Products reassigned and children decoupled." };
+  } catch (error: any) {
+    console.error("❌ DELETE CATEGORY ERROR:", error);
+    return { error: `Database Error: ${error?.message || "Failed to delete category."}` };
   }
 }
 
 export async function deleteMultipleCategories(ids: string[]) {
   try {
+    // 1. Find or create the "Uncategorized" category MATRIX node
+    let uncategorized = await prisma.categoryMatrix.findFirst({
+      where: { slug: "uncategorized" }
+    });
+    
+    if (!uncategorized) {
+      uncategorized = await prisma.categoryMatrix.create({
+        data: {
+          name: "Uncategorized",
+          slug: "uncategorized",
+          description: "Default fallback category for products without category mapping.",
+          status: "ACTIVE",
+          is_featured: false,
+        }
+      });
+    }
+
+    // Filter out "Uncategorized" ID if it exists in the selection to prevent deletion
+    const finalIds = ids.filter(id => id !== uncategorized!.id);
+    if (finalIds.length === 0) {
+      return { error: "No deletable categories selected." };
+    }
+
+    // 2. Reassign linked products to "Uncategorized"
+    await prisma.pimProducts.updateMany({
+      where: { category_id: { in: finalIds } },
+      data: { category_id: uncategorized.id }
+    });
+
+    // 3. Disconnect child categories
+    await prisma.categoryMatrix.updateMany({
+      where: { parent_id: { in: finalIds } },
+      data: { parent_id: null }
+    });
+
+    // 4. Bulk delete the categories
     await prisma.categoryMatrix.deleteMany({
-      where: {
-        id: { in: ids }
-      }
+      where: { id: { in: finalIds } },
     });
 
     revalidatePath("/admin/categories");
     revalidatePath("/admin/products");
     revalidatePath("/");
-    return { success: `Successfully deleted ${ids.length} categories.` };
+    return { success: `Successfully purged ${finalIds.length} categories. Linked items reassigned.` };
   } catch (error: any) {
-    console.error(error);
-    return { error: `Failed to delete categories. Ensure none are linked to active products or child subcategories.` };
+    console.error("❌ DELETE MULTIPLE CATEGORIES ERROR:", error);
+    return { error: `Database Error: ${error?.message || "Failed to purge categories list."}` };
   }
 }
 

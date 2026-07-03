@@ -1,56 +1,110 @@
 "use client";
 
-import React, { useState } from "react";
-import { Sparkles, Plus, Search, Trash2, Edit } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Sparkles, Plus, Search, Trash2, Edit, ChevronLeft, ChevronRight } from "lucide-react";
+import { getBrands, createBrand, updateBrand, deleteBrand } from "@/actions/pim-products";
+import toast from "react-hot-toast";
+import Swal from "sweetalert2";
 
 interface Brand {
   id: string;
   name: string;
-  slug: string;
+  logo: string;
   productCount: number;
   featured: boolean;
-  logo: string;
 }
 
-const INITIAL_BRANDS: Brand[] = [
-  { id: "BRD-101", name: "Apple", slug: "apple", productCount: 42, featured: true, logo: "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=80&fit=crop&q=60" },
-  { id: "BRD-102", name: "Samsung", slug: "samsung", productCount: 38, featured: true, logo: "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=80&fit=crop&q=60" },
-  { id: "BRD-103", name: "Nike", slug: "nike", productCount: 29, featured: true, logo: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=80&fit=crop&q=60" },
-  { id: "BRD-104", name: "Adidas", slug: "adidas", productCount: 24, featured: false, logo: "https://images.unsplash.com/photo-1518002171953-a080ee81be25?w=80&fit=crop&q=60" },
-  { id: "BRD-105", name: "Sony", slug: "sony", productCount: 19, featured: false, logo: "https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=80&fit=crop&q=60" }
-];
-
 export default function BrandsPage() {
-  const [brands, setBrands] = useState<Brand[]>(INITIAL_BRANDS);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [name, setName] = useState("");
   const [featured, setFeatured] = useState(false);
 
-  const handleAdd = (e: React.FormEvent) => {
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const loadBrands = async () => {
+    setLoading(true);
+    const res = await getBrands();
+    if (res.brands) {
+      setBrands(res.brands.map((b: any) => ({
+        id: b.id,
+        name: b.name,
+        logo: b.logo_url,
+        productCount: b.productCount,
+        featured: b.featured
+      })));
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadBrands();
+  }, []);
+
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    const newBrand: Brand = {
-      id: `BRD-${Date.now().toString().slice(-3)}`,
-      name,
-      slug: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-      productCount: 0,
-      featured,
-      logo: "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=80&fit=crop&q=60"
-    };
-    setBrands([...brands, newBrand]);
-    setName("");
-    setFeatured(false);
+    setLoading(true);
+    const res = await createBrand({ name: name.trim(), status: featured ? "ACTIVE" : "INACTIVE" });
+    if (res.error) {
+      toast.error(res.error);
+    } else {
+      toast.success("Brand added successfully!");
+      setName("");
+      setFeatured(false);
+      await loadBrands();
+    }
+    setLoading(false);
   };
 
-  const toggleFeatured = (id: string) => {
-    setBrands(brands.map(b => b.id === id ? { ...b, featured: !b.featured } : b));
+  const toggleFeatured = async (id: string) => {
+    const brand = brands.find(b => b.id === id);
+    if (!brand) return;
+    const newStatus = brand.featured ? "INACTIVE" : "ACTIVE";
+    setLoading(true);
+    const res = await updateBrand(id, { name: brand.name, status: newStatus });
+    if (res.error) {
+      toast.error(res.error);
+    } else {
+      toast.success("Brand status updated.");
+      await loadBrands();
+    }
+    setLoading(false);
   };
 
-  const handleDelete = (id: string) => {
-    setBrands(brands.filter(b => b.id !== id));
+  const handleDelete = async (id: string) => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "Deleting this brand will make all its products unbranded, but products will not be lost.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "No, cancel",
+      background: "#121420",
+      color: "#f8fafc",
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33"
+    });
+
+    if (result.isConfirmed) {
+      setLoading(true);
+      const res = await deleteBrand(id);
+      if (res.error) {
+        toast.error(res.error);
+      } else {
+        toast.success("Brand deleted successfully!");
+        await loadBrands();
+      }
+      setLoading(false);
+    }
   };
 
   const filtered = brands.filter(b => b.name.toLowerCase().includes(search.toLowerCase()));
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginatedBrands = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="space-y-6 select-none font-sans">
@@ -88,8 +142,8 @@ export default function BrandsPage() {
               />
               <label htmlFor="featured" className="text-xs font-semibold text-[var(--foreground)] cursor-pointer">Featured on Storefront</label>
             </div>
-            <button type="submit" className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-black uppercase tracking-wider transition-colors cursor-pointer shadow-xs">
-              Save Brand Ledger
+            <button type="submit" disabled={loading} className="w-full py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-zinc-600 disabled:cursor-not-allowed text-white rounded-lg text-xs font-black uppercase tracking-wider transition-colors cursor-pointer shadow-xs">
+              {loading ? "Processing..." : "Save Brand Ledger"}
             </button>
           </form>
         </div>
@@ -105,7 +159,7 @@ export default function BrandsPage() {
               <input 
                 type="text" 
                 value={search} 
-                onChange={(e) => setSearch(e.target.value)} 
+                onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} 
                 placeholder="Search brands..." 
                 className="bg-transparent border-none text-xs focus:outline-none w-full text-[var(--foreground)]" 
               />
@@ -124,40 +178,79 @@ export default function BrandsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border)] font-medium">
-                {filtered.map((brand) => (
-                  <tr key={brand.id} className="hover:bg-[var(--background)]/50 transition-colors">
-                    <td className="py-3">
-                      <div className="w-8 h-8 rounded border border-[var(--border)] bg-[var(--background)] overflow-hidden p-1 flex items-center justify-center">
-                        <img src={brand.logo} className="w-full h-full object-contain" alt="" />
-                      </div>
-                    </td>
-                    <td className="py-3">
-                      <p className="font-bold text-[var(--foreground)]">{brand.name}</p>
-                      <p className="text-[10px] text-[var(--muted-foreground)] font-mono">{brand.id}</p>
-                    </td>
-                    <td className="py-3 text-[var(--muted-foreground)] font-semibold">{brand.productCount} Items</td>
-                    <td className="py-3">
-                      <button 
-                        onClick={() => toggleFeatured(brand.id)}
-                        className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase transition-colors cursor-pointer ${
-                          brand.featured ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/10" : "bg-zinc-500/10 text-zinc-400 border border-zinc-500/10"
-                        }`}
-                      >
-                        {brand.featured ? "Featured" : "Regular"}
-                      </button>
-                    </td>
-                    <td className="py-3 text-right">
-                      <div className="flex justify-end gap-1.5">
-                        <button onClick={() => handleDelete(brand.id)} className="p-1 hover:bg-rose-500/10 text-rose-500 rounded cursor-pointer transition-colors">
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
+                {loading && brands.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-8 text-center text-zinc-400">
+                      Loading brands registry...
                     </td>
                   </tr>
-                ))}
+                ) : filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-8 text-center text-zinc-400">
+                      No brands found.
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedBrands.map((brand) => (
+                    <tr key={brand.id} className="hover:bg-[var(--background)]/50 transition-colors">
+                      <td className="py-3">
+                        <div className="w-8 h-8 rounded border border-[var(--border)] bg-[var(--background)] overflow-hidden p-1 flex items-center justify-center">
+                          <img src={brand.logo} className="w-full h-full object-contain" alt="" />
+                        </div>
+                      </td>
+                      <td className="py-3">
+                        <p className="font-bold text-[var(--foreground)]">{brand.name}</p>
+                        <p className="text-[10px] text-[var(--muted-foreground)] font-mono">{brand.id}</p>
+                      </td>
+                      <td className="py-3 text-[var(--muted-foreground)] font-semibold">{brand.productCount} Items</td>
+                      <td className="py-3">
+                        <button 
+                          onClick={() => toggleFeatured(brand.id)}
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase transition-colors cursor-pointer ${
+                            brand.featured ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/10" : "bg-zinc-500/10 text-zinc-400 border border-zinc-500/10"
+                          }`}
+                        >
+                          {brand.featured ? "Featured" : "Regular"}
+                        </button>
+                      </td>
+                      <td className="py-3 text-right">
+                        <div className="flex justify-end gap-1.5">
+                          <button onClick={() => handleDelete(brand.id)} className="p-1 hover:bg-rose-500/10 text-rose-500 rounded cursor-pointer transition-colors">
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
+
+          {/* PAGINATION PANEL */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between pt-3 border-t border-[var(--border)] text-xs">
+              <span className="text-[var(--muted-foreground)]">Showing page {currentPage} of {totalPages}</span>
+              <div className="flex gap-1">
+                <button 
+                  type="button" 
+                  disabled={currentPage === 1} 
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  className="p-1.5 border border-[var(--border)] rounded hover:bg-[var(--accent)] disabled:opacity-50 cursor-pointer"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button 
+                  type="button" 
+                  disabled={currentPage === totalPages} 
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  className="p-1.5 border border-[var(--border)] rounded hover:bg-[var(--accent)] disabled:opacity-50 cursor-pointer"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

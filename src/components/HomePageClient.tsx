@@ -13,6 +13,7 @@ import { ThemeToggle } from "./ui/theme-toggle";
 import { useShopStore } from "../store/shop-store";
 import { useAuthStore } from "../store/auth-store";
 import { signOutAction } from "../actions/auth";
+import { toast } from "react-hot-toast";
 
 interface HomePageClientProps {
   initialShopData: any;
@@ -1163,7 +1164,18 @@ export default function HomePageClient({
 
                     <div className="z-10 w-full lg:w-auto">
                       <form 
-                        onSubmit={(e) => { e.preventDefault(); alert("Subscription registered successfully!"); }} 
+                        onSubmit={(e) => { 
+                          e.preventDefault(); 
+                          toast.success("Subscription registered successfully!", {
+                            style: {
+                              background: "var(--card)",
+                              color: "var(--foreground)",
+                              border: "1px solid var(--border)",
+                              fontSize: "12px",
+                              fontWeight: "bold"
+                            }
+                          });
+                        }} 
                         className="flex flex-col sm:flex-row gap-4 bg-[var(--card)] p-1.5 rounded-2xl border border-outline-variant/10 shadow-inner"
                       >
                         <input 
@@ -1312,7 +1324,7 @@ export default function HomePageClient({
         </div>
 
         <div className="max-w-7xl mx-auto border-t border-zinc-900 h-20 px-4 md:px-6 flex items-center justify-between text-[10px] text-zinc-500 font-semibold uppercase tracking-wider">
-          <p>&copy; {new Date().getFullYear()} YazMart. All rights reserved.</p>
+          <p>&copy; 2026 YazMart. All rights reserved.</p>
           <div className="flex gap-4">
             <span>Visa</span>
             <span>Mastercard</span>

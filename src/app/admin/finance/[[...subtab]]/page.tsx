@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAdminTab } from "@/hooks/use-admin-tab";
+import { useRouter, useParams } from "next/navigation";
 import { CircleDollarSign, TrendingUp, Wallet, BookOpen, ListTodo } from "lucide-react";
 
 const SALES_MATRIX = [
@@ -35,13 +34,15 @@ const TRANSACTIONS = [
 
 export default function FinancePage() {
   const router = useRouter();
-  const tab = useAdminTab("sales");
+  const params = useParams();
+  const subtab = params.subtab as string[] | undefined;
+  const tab = subtab?.[0] || "sales";
 
   const selectTab = (tabName: string) => {
     if (tabName === "sales") {
       router.push("/admin/finance");
     } else {
-      router.push(`/admin/finance?tab=${tabName}`);
+      router.push(`/admin/finance/${tabName}`);
     }
   };
 

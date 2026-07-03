@@ -31,7 +31,7 @@ export default function StaffPage() {
     if (tabName === "users") {
       router.push("/admin/staff");
     } else {
-      router.push(`/admin/staff?tab=${tabName}`);
+      router.push(`/admin/staff/${tabName}`);
     }
   };
 

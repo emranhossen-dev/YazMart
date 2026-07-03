@@ -3411,6 +3411,8 @@ export const PimProductsScalarFieldEnum = {
   full_desc: 'full_desc',
   specifications: 'specifications',
   warranty: 'warranty',
+  usability: 'usability',
+  package_includes: 'package_includes',
   meta_title: 'meta_title',
   meta_desc: 'meta_desc',
   meta_keywords: 'meta_keywords',

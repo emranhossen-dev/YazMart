@@ -706,6 +706,8 @@ model PimProducts {
   full_desc       String?           @db.Text
   specifications  Json?             // ডাইনামিক স্পেসিফিকেশন মেটাডাটা
   warranty        String?
+  usability       String?
+  package_includes String?
 
   // SEO
   meta_title      String?

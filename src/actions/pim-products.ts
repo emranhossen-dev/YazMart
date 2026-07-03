@@ -3,6 +3,33 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
+function serializePimProduct(p: any) {
+  if (!p) return p;
+  const toNum = (val: any) => {
+    if (val === null || val === undefined) return null;
+    if (typeof val === "object" && typeof val.toNumber === "function") {
+      return val.toNumber();
+    }
+    const num = Number(val);
+    return isNaN(num) ? null : num;
+  };
+  return {
+    ...p,
+    buying_price: toNum(p.buying_price),
+    selling_price: toNum(p.selling_price),
+    compare_price: toNum(p.compare_price),
+    discount_amount: toNum(p.discount_amount),
+    weight: toNum(p.weight),
+    length: toNum(p.length),
+    width: toNum(p.width),
+    height: toNum(p.height),
+    shipping_charge: toNum(p.shipping_charge),
+    current_stock: p.current_stock !== undefined && p.current_stock !== null ? Number(p.current_stock) : 0,
+    createdAt: p.createdAt instanceof Date ? p.createdAt.toISOString() : String(p.createdAt),
+    updatedAt: p.updatedAt instanceof Date ? p.updatedAt.toISOString() : String(p.updatedAt),
+  };
+}
+
 // ১. প্রোডাক্ট ক্রিয়েশন এবং এডিট (Upsert) ইঞ্জিন
 export async function createEnterpriseProduct(data: any) {
   try {
@@ -39,6 +66,8 @@ export async function createEnterpriseProduct(data: any) {
       is_new_arrival: data.is_new_arrival === true || data.is_new_arrival === "true",
       specifications: data.specifications || null,
       warranty: data.warranty || null,
+      usability: data.usability || null,
+      package_includes: data.package_includes || null,
     };
 
     if (data.id) {
@@ -197,15 +226,7 @@ export async function getEnterpriseProducts(filters?: {
       prisma.pimProducts.count({ where: whereClause })
     ]);
 
-    const products = rawProducts.map((p) => ({
-      ...p,
-      buying_price: Number(p.buying_price),
-      selling_price: Number(p.selling_price),
-      compare_price: p.compare_price ? Number(p.compare_price) : null,
-      current_stock: Number(p.current_stock),
-      createdAt: p.createdAt.toISOString(),
-      updatedAt: p.updatedAt.toISOString(),
-    }));
+    const products = rawProducts.map(serializePimProduct);
 
     return { products, totalCount, totalPages: Math.ceil(totalCount / limit) };
   } catch (error) {
@@ -344,6 +365,8 @@ export async function bulkImportEnterpriseProducts(productsList: any[]) {
           is_new_arrival: isNewArrival,
           specifications: specs,
           warranty: p.warranty || null,
+          usability: p.usability || null,
+          package_includes: p.package_includes || null,
           category_id: p.category_id,
           brand_id: p.brand_id || null,
         });
@@ -385,7 +408,28 @@ export async function getPimCategories() {
 // ৬. ব্র্যান্ড রিড
 export async function getBrands() {
   try {
-    const brands = await prisma.brandMatrix.findMany({ orderBy: { name: "asc" } });
+    const rawBrands = await prisma.brandMatrix.findMany({
+      orderBy: { name: "asc" },
+      include: {
+        _count: {
+          select: { products: true }
+        }
+      }
+    });
+    const brands = rawBrands.map(b => ({
+      id: b.id,
+      name: b.name,
+      logo_url: b.logo_url || "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=80&fit=crop&q=60",
+      banner_url: b.banner_url || null,
+      website: b.website || null,
+      description: b.description || null,
+      status: b.status,
+      meta_title: b.meta_title || null,
+      meta_desc: b.meta_desc || null,
+      productCount: b._count.products,
+      featured: b.status === "ACTIVE",
+      createdAt: b.createdAt.toISOString(),
+    }));
     return { brands };
   } catch (error) {
     console.error("❌ FETCH BRANDS ERROR:", error);
@@ -393,15 +437,51 @@ export async function getBrands() {
   }
 }
 
-// ৭. ব্র্যান্ড ক্রিয়েট
-export async function createBrand(name: string) {
+// ७. ব্র্যান্ড ক্রিয়েট
+export async function createBrand(nameOrData: any) {
   try {
+    const name = typeof nameOrData === "string" ? nameOrData : nameOrData.name;
+    const status = typeof nameOrData === "object" ? nameOrData.status : "ACTIVE";
     const brand = await prisma.brandMatrix.create({
-      data: { name, status: "ACTIVE" }
+      data: { name, status: status || "ACTIVE" }
     });
+    revalidatePath("/admin/products");
     return { success: true, brand };
   } catch (error: any) {
     return { error: `Failed to create brand: ${error?.message}` };
+  }
+}
+
+// ৭.১ ব্র্যান্ড আপডেট
+export async function updateBrand(id: string, nameOrData: any) {
+  try {
+    const name = typeof nameOrData === "string" ? nameOrData : nameOrData.name;
+    const status = typeof nameOrData === "object" ? nameOrData.status : "ACTIVE";
+    const brand = await prisma.brandMatrix.update({
+      where: { id },
+      data: { name, status }
+    });
+    revalidatePath("/admin/products");
+    return { success: true, brand };
+  } catch (error: any) {
+    return { error: `Failed to update brand: ${error?.message}` };
+  }
+}
+
+// ৭.২ ব্র্যান্ড ডিলিট
+export async function deleteBrand(id: string) {
+  try {
+    await prisma.pimProducts.updateMany({
+      where: { brand_id: id },
+      data: { brand_id: null }
+    });
+    await prisma.brandMatrix.delete({
+      where: { id }
+    });
+    revalidatePath("/admin/products");
+    return { success: true };
+  } catch (error: any) {
+    return { error: `Failed to delete brand: ${error?.message}` };
   }
 }
 
@@ -430,5 +510,23 @@ export async function deleteMultipleProducts(ids: string[]) {
   } catch (error: any) {
     console.error(error);
     return { error: `Failed to delete products: ${error?.message}` };
+  }
+}
+
+export async function getEnterpriseProduct(id: string) {
+  try {
+    const rawProduct = await prisma.pimProducts.findUnique({
+      where: { id },
+      include: {
+        category: true,
+        brand: true
+      }
+    });
+    if (!rawProduct) return { error: "Product not found." };
+    const product = serializePimProduct(rawProduct);
+    return { product };
+  } catch (error: any) {
+    console.error("❌ FETCH PRODUCT DETAIL ERROR:", error);
+    return { error: `Failed to load product details: ${error.message}` };
   }
 }

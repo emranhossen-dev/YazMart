@@ -48,7 +48,7 @@ export default function AdminOrdersPage() {
     if (tabName === "list") {
       router.push("/admin/orders");
     } else {
-      router.push(`/admin/orders?tab=${tabName}`);
+      router.push(`/admin/orders/${tabName}`);
     }
   };
 

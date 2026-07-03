@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { toast } from 'react-hot-toast';
 
 interface CartItem {
   id: string;
@@ -63,10 +64,31 @@ export const useShopStore = create<ShopState>()(
             ],
           });
         }
+        toast.success(`"${product.name}" added to cart!`, {
+          style: {
+            background: "var(--card)",
+            color: "var(--foreground)",
+            border: "1px solid var(--border)",
+            fontSize: "12px",
+            fontWeight: "bold",
+          }
+        });
       },
 
       removeFromCart: (id) => {
+        const item = get().cart.find(i => i.id === id);
         set({ cart: get().cart.filter((item) => item.id !== id) });
+        if (item) {
+          toast.error(`"${item.name}" removed from cart.`, {
+            style: {
+              background: "var(--card)",
+              color: "var(--foreground)",
+              border: "1px solid var(--border)",
+              fontSize: "12px",
+              fontWeight: "bold",
+            }
+          });
+        }
       },
 
       updateQuantity: (id, quantity) => {
@@ -81,7 +103,18 @@ export const useShopStore = create<ShopState>()(
         });
       },
 
-      clearCart: () => set({ cart: [] }),
+      clearCart: () => {
+        set({ cart: [] });
+        toast.success("Cart cleared", {
+          style: {
+            background: "var(--card)",
+            color: "var(--foreground)",
+            border: "1px solid var(--border)",
+            fontSize: "12px",
+            fontWeight: "bold",
+          }
+        });
+      },
 
       addToWishlist: (product) => {
         const wishlist = get().wishlist;
@@ -99,11 +132,32 @@ export const useShopStore = create<ShopState>()(
               },
             ],
           });
+          toast.success(`"${product.name}" added to wishlist!`, {
+            style: {
+              background: "var(--card)",
+              color: "var(--foreground)",
+              border: "1px solid var(--border)",
+              fontSize: "12px",
+              fontWeight: "bold",
+            }
+          });
         }
       },
 
       removeFromWishlist: (id) => {
+        const item = get().wishlist.find(i => i.id === id);
         set({ wishlist: get().wishlist.filter((item) => item.id !== id) });
+        if (item) {
+          toast.error(`"${item.name}" removed from wishlist.`, {
+            style: {
+              background: "var(--card)",
+              color: "var(--foreground)",
+              border: "1px solid var(--border)",
+              fontSize: "12px",
+              fontWeight: "bold",
+            }
+          });
+        }
       },
 
       toggleWishlist: (product) => {

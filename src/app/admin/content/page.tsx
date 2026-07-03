@@ -28,7 +28,7 @@ export default function ContentPage() {
     if (tabName === "blogs") {
       router.push("/admin/content");
     } else {
-      router.push(`/admin/content?tab=${tabName}`);
+      router.push(`/admin/content/${tabName}`);
     }
   };
 
