@@ -22,6 +22,7 @@ interface SubMenuItem {
 interface MenuItem {
   name: string;
   href?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   icon: React.ComponentType<any>;
   subItems?: SubMenuItem[];
 }
@@ -46,10 +47,12 @@ function AdminSidebarNav({
         if (item.href) {
           const isActive = pathname === item.href;
           return (
-            <Link key={item.name} href={item.href} className={`flex items-center gap-3 px-3 py-2 rounded-md text-xs font-semibold transition-all ${
-              isActive ? "bg-blue-600 text-white shadow-sm" : "text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
+            <Link key={item.name} href={item.href} className={`flex items-center gap-3 px-3.5 py-2.5 rounded-md text-xs font-semibold transition-all border-l-2 ${
+              isActive 
+                ? "bg-[var(--primary)]/10 text-[var(--primary)] border-[var(--primary)] shadow-[0_0_12px_rgba(0,210,255,0.12)]" 
+                : "text-[var(--muted-foreground)] border-transparent hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
             }`}>
-              <Icon className="h-4 w-4 shrink-0" />
+              <Icon className={`h-4 w-4 shrink-0 transition-colors ${isActive ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"}`} />
               <span>{item.name}</span>
             </Link>
           );
@@ -58,7 +61,7 @@ function AdminSidebarNav({
         const isMenuOpen = openMenus[item.name];
         return (
           <div key={item.name} className="space-y-1">
-            <button type="button" onClick={() => toggleMenu(item.name)} className="w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-semibold text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)] transition-all cursor-pointer">
+            <button type="button" onClick={() => toggleMenu(item.name)} className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-md text-xs font-semibold text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)] transition-all cursor-pointer">
               <div className="flex items-center gap-3">
                 <Icon className="h-4 w-4 shrink-0" />
                 <span>{item.name}</span>
@@ -66,14 +69,16 @@ function AdminSidebarNav({
               {isMenuOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
             </button>
             {isMenuOpen && item.subItems && (
-              <div className="pl-9 space-y-1 border-l border-[var(--border)] ml-5 mt-1">
+              <div className="pl-6 space-y-1 border-l border-[var(--border)] ml-5 mt-1">
                 {item.subItems.map((sub) => {
                   const isSubActive = sub.href.includes("?")
                     ? pathname === sub.href.split("?")[0] && currentTab === new URLSearchParams(sub.href.split("?")[1]).get("tab")
                     : pathname === sub.href && !currentTab;
                   return (
-                    <Link key={sub.name} href={sub.href} className={`block px-3 py-1.5 rounded text-[11px] font-medium transition-colors ${
-                      isSubActive ? "text-blue-500 font-bold bg-blue-500/5" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                    <Link key={sub.name} href={sub.href} className={`block px-3 py-2 rounded text-[11px] font-semibold transition-colors border-l-2 ${
+                      isSubActive 
+                        ? "text-[var(--primary)] bg-[var(--primary)]/5 border-[var(--primary)] font-bold" 
+                        : "text-[var(--muted-foreground)] border-transparent hover:text-[var(--foreground)] hover:bg-[var(--accent)]/30"
                     }`}>
                       {sub.name}
                     </Link>
@@ -236,7 +241,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
   };
 
   return (
-    <div className="min-h-screen flex bg-[var(--background)] text-[var(--foreground)] font-sans antialiased selection:bg-blue-500/30">
+    <div className="admin-theme min-h-screen flex bg-[var(--background)] text-[var(--foreground)] font-sans antialiased selection:bg-[var(--primary)]/30">
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />
@@ -247,8 +252,8 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       }`}>
         <div className="h-16 flex items-center justify-between px-5 border-b border-[var(--border)] bg-[var(--background)]/40 backdrop-blur-md">
-          <Link href="/admin" className="text-md font-extrabold tracking-wider uppercase bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">
-            Enterprise OS v1.0
+          <Link href="/admin" className="text-[15px] font-black tracking-widest uppercase bg-gradient-to-r from-[#00d2ff] to-[#0066ff] bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(0,210,255,0.35)]">
+            YazMart // OS
           </Link>
           <button type="button" className="lg:hidden p-1.5 rounded hover:bg-[var(--accent)]" onClick={() => setSidebarOpen(false)}>
             <X className="h-4 w-4" />
@@ -279,24 +284,24 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
             <Menu className="h-5 w-5" />
           </button>
 
-          <div className="hidden md:flex items-center gap-2 max-w-sm w-full bg-[var(--background)] border border-[var(--border)] px-3 py-1.5 rounded-md focus-within:border-blue-500 transition-colors">
+          <div className="hidden md:flex items-center gap-2 max-w-sm w-full bg-[var(--background)] border border-[var(--border)] px-3 py-1.5 rounded-md focus-within:border-[var(--primary)] transition-colors">
             <Search className="h-4 w-4 text-[var(--muted-foreground)]" />
-            <input type="text" placeholder="Global Search (Ctrl + K)..." className="bg-transparent border-none text-xs focus:outline-none w-full" />
+            <input type="text" placeholder="Global Search (Ctrl + K)..." className="bg-transparent border-none text-xs focus:outline-none w-full text-slate-200 placeholder-slate-500" />
           </div>
 
           <div className="flex items-center gap-4 ml-auto">
             <button type="button" className="p-2 rounded-md hover:bg-[var(--accent)] text-[var(--muted-foreground)] relative">
               <Bell className="h-4 w-4" />
-              <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-blue-500 rounded-full" />
+              <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-[var(--primary)] rounded-full shadow-[0_0_8px_rgba(0,210,255,0.6)]" />
             </button>
             <ThemeToggle />
             <div className="h-6 w-px bg-[var(--border)]" />
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-md bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-bold text-xs text-white shadow-sm">
-                E
+              <div className="w-8 h-8 rounded-md bg-gradient-to-br from-[#00d2ff] to-[#0066ff] flex items-center justify-center font-bold text-xs text-[#060813] shadow-[0_0_10px_rgba(0,210,255,0.4)]">
+                {userData.name.charAt(0).toUpperCase()}
               </div>
               <div className="hidden sm:block text-left">
-                <p className="text-xs font-bold leading-none">{userData.name}</p>
+                <p className="text-xs font-bold leading-none text-slate-200">{userData.name}</p>
                 <p className="text-[10px] text-[var(--muted-foreground)] mt-0.5">{userData.role}</p>
               </div>
             </div>

@@ -325,14 +325,93 @@ export default function UltimateShopifyPimDashboard() {
   };
 
   const handleLoadSampleCsv = () => {
-    const sampleCsvData = 
-`name,sku,buying_price,selling_price,current_stock,category_id
-"Ultra Premium Watch","SKU-ULTRA-WATCH",250,450,50,"${categories[0]?.id || "category_uuid_here"}"
-"Ergonomic Keyboard","SKU-ERGO-KEY",80,140,100,"${categories[0]?.id || "category_uuid_here"}"`;
+    if (categories.length === 0) {
+      setMessage({
+        type: "error",
+        text: "Please create at least one category in the Category Taxonomy Deck first, so we can link the sample products to a valid Category ID!"
+      });
+      return;
+    }
+
+    const headers = [
+      "name", "sku", "barcode", "product_code", "product_type", "status",
+      "featured_image", "gallery_images", "video_url", "buying_price", "selling_price",
+      "compare_price", "current_stock", "low_stock_alert", "weight", "shipping_charge",
+      "cod_available", "short_desc", "full_desc", "meta_title", "meta_desc",
+      "is_featured", "is_trending", "is_best_seller", "is_flash_sale", "is_new_arrival",
+      "specifications", "warranty", "category_id", "brand_id"
+    ];
+
+    const row1 = [
+      `"Luxury Smart Sunglasses"`,
+      `"SKU-GLASS-${Math.floor(1000 + Math.random() * 9000)}"`,
+      `"123456789012"`,
+      `"PC-GLASS-001"`,
+      `"PHYSICAL"`,
+      `"PUBLISHED"`,
+      `"https://images.unsplash.com/photo-1572635196237-14b3f281503f?q=80&w=400&auto=format&fit=crop"`,
+      `"https://images.unsplash.com/photo-1572635196237-14b3f281503f?q=80&w=400&auto=format&fit=crop,https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=400&auto=format&fit=crop"`,
+      `"https://www.youtube.com/watch?v=dQw4w9WgXcQ"`,
+      "90.00",
+      "180.00",
+      "220.00",
+      "40",
+      "5",
+      "0.25",
+      "15.00",
+      "true",
+      `"Premium smart polarized sunglasses with audio integration."`,
+      `"Experience the ultimate fusion of style and modern intelligence."`,
+      `"Luxury Smart Sunglasses - YazMart Elite"`,
+      `"Shop luxury smart sunglasses with audio integration at YazMart."`,
+      "true",
+      "false",
+      "true",
+      "false",
+      "true",
+      `"Lens Material: Polarized TAC, Connectivity: Bluetooth 5.2"`,
+      `"1 Year Brand Warranty"`,
+      `"${categories[0]?.id || "category_uuid_here"}"`,
+      `"${brands[0]?.id || "brand_uuid_here"}"`
+    ];
+
+    const row2 = [
+      `"Mechanical Gaming Keyboard"`,
+      `"SKU-KEY-${Math.floor(1000 + Math.random() * 9000)}"`,
+      `"987654321098"`,
+      `"PC-KEY-002"`,
+      `"PHYSICAL"`,
+      `"PUBLISHED"`,
+      `"https://images.unsplash.com/photo-1587829741301-dc798b83add3?q=80&w=400&auto=format&fit=crop"`,
+      `"https://images.unsplash.com/photo-1587829741301-dc798b83add3?q=80&w=400&auto=format&fit=crop"`,
+      `""`,
+      "45.00",
+      "85.00",
+      "110.00",
+      "75",
+      "8",
+      "0.95",
+      "20.00",
+      "true",
+      `"High performance mechanical keyboard with customizable RGB lights."`,
+      `"Engineered for durability and gaming responsiveness."`,
+      `"RGB Gaming Keyboard - YazMart Pro"`,
+      `"Buy custom mechanical gaming keyboards at YazMart."`,
+      "false",
+      "true",
+      "false",
+      "true",
+      "false",
+      `"Switch Type: Blue Switches, Layout: Tenkeyless"`,
+      `"6 Months Warranty"`,
+      `"${categories[0]?.id || "category_uuid_here"}"`,
+      `"${brands[0]?.id || "brand_uuid_here"}"`
+    ];
+
+    const sampleCsvData = headers.join(",") + "\n" + row1.join(",") + "\n" + row2.join(",");
     
     // Create preview
     const lines = sampleCsvData.split(/\r?\n/).filter(line => line.trim() !== "");
-    const headers = parseCSVLine(lines[0]).map(h => h.trim().replace(/^["']|["']$/g, ""));
     const parsedData = lines.slice(1).map(line => {
       const values = parseCSVLine(line).map(v => v.trim().replace(/^["']|["']$/g, ""));
       const rowObj: any = {};
@@ -343,12 +422,50 @@ export default function UltimateShopifyPimDashboard() {
     });
 
     setBulkPreview(parsedData);
-    setMessage({ type: "success", text: "Loaded sample CSV data! Click import to commit." });
+    setMessage({ type: "success", text: "Loaded sample CSV data containing all enterprise PIM properties! Click import to commit." });
   };
 
   const downloadSampleCsv = () => {
-    const headers = ["name", "sku", "buying_price", "selling_price", "current_stock", "category_id"];
-    const row = [`"Sample Leather Bag"`, `"SKU-BAG-101"`, "40", "75", "120", `"${categories[0]?.id || "category_uuid"}"`];
+    const headers = [
+      "name", "sku", "barcode", "product_code", "product_type", "status",
+      "featured_image", "gallery_images", "video_url", "buying_price", "selling_price",
+      "compare_price", "current_stock", "low_stock_alert", "weight", "shipping_charge",
+      "cod_available", "short_desc", "full_desc", "meta_title", "meta_desc",
+      "is_featured", "is_trending", "is_best_seller", "is_flash_sale", "is_new_arrival",
+      "specifications", "warranty", "category_id", "brand_id"
+    ];
+    const row = [
+      `"Luxury Smart Sunglasses"`,
+      `"SKU-GLASS-101"`,
+      `"123456789012"`,
+      `"PC-GLASS-001"`,
+      `"PHYSICAL"`,
+      `"PUBLISHED"`,
+      `"https://images.unsplash.com/photo-1572635196237-14b3f281503f?q=80&w=400&auto=format&fit=crop"`,
+      `"https://images.unsplash.com/photo-1572635196237-14b3f281503f?q=80&w=400&auto=format&fit=crop,https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=400&auto=format&fit=crop"`,
+      `"https://www.youtube.com/watch?v=dQw4w9WgXcQ"`,
+      "90.00",
+      "180.00",
+      "220.00",
+      "40",
+      "5",
+      "0.25",
+      "15.00",
+      "true",
+      `"Premium smart polarized sunglasses with audio integration."`,
+      `"Experience the ultimate fusion of style and modern intelligence."`,
+      `"Luxury Smart Sunglasses - YazMart Elite"`,
+      `"Shop luxury smart sunglasses with audio integration at YazMart."`,
+      "true",
+      "false",
+      "true",
+      "false",
+      "true",
+      `"Lens Material: Polarized TAC, Connectivity: Bluetooth 5.2"`,
+      `"1 Year Brand Warranty"`,
+      `"${categories[0]?.id || "category_uuid"}"`,
+      `"${brands[0]?.id || "brand_uuid"}"`
+    ];
     const csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n" + row.join(",");
     const downloadAnchor = document.createElement("a");
     downloadAnchor.setAttribute("href", encodeURI(csvContent));

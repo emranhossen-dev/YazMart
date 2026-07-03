@@ -107,3 +107,151 @@ body {
   -webkit-backdrop-filter: blur(var(--glass-blur));
   border: 1px solid var(--glass-border);
 }
+
+/* ==========================================
+   NEON DARK NAVY ADMIN THEME & FONT SCALING
+   ========================================== */
+
+/* Navy & Neon Cyber Theme Variables scoped to the Admin Panel */
+.admin-theme {
+  --background: #060813;        /* Deep midnight/navy background */
+  --foreground: #f1f5f9;        /* Cool white text */
+  --card: #0c1026;              /* Dark navy cards and panels */
+  --card-foreground: #f1f5f9;
+  --popover: #090c1c;
+  --popover-foreground: #f1f5f9;
+  
+  --primary: #00d2ff;           /* Neon Cyan Accent */
+  --primary-foreground: #060813;
+  
+  --secondary: #141a3d;         /* Navy secondary background */
+  --secondary-foreground: #f1f5f9;
+  
+  --muted: #1b2352;             /* Navy muted container background */
+  --muted-foreground: #899cd6;  /* Bluish slate muted text */
+  
+  --accent: #1e285a;            /* Cyber border hover focus */
+  --accent-foreground: #00d2ff;
+  
+  --border: #1a224c;            /* Tech-style navy border line */
+  --input: #111736;
+  --ring: #00d2ff;
+
+  --glass-bg: rgba(12, 16, 38, 0.75);
+  --glass-border: rgba(0, 210, 255, 0.12);
+  --glass-blur: 20px;
+
+  /* Custom System Scrollbars */
+  scrollbar-width: thin;
+  scrollbar-color: #1a224c #060813;
+}
+
+/* Global typography overrides to make the admin panel legible and beautiful */
+.admin-theme {
+  font-family: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: -0.01em;
+}
+
+.admin-theme h1,
+.admin-theme h2,
+.admin-theme h3,
+.admin-theme h4,
+.admin-theme h5,
+.admin-theme h6 {
+  letter-spacing: -0.02em;
+}
+
+/* Font Scaling: Automatically make small/tiny fonts look readable and comfortable */
+.admin-theme .text-\[9px\] {
+  font-size: 11.5px !important;
+}
+
+.admin-theme .text-\[10px\] {
+  font-size: 12.5px !important;
+}
+
+.admin-theme .text-\[11px\] {
+  font-size: 13.5px !important;
+}
+
+.admin-theme .text-xs {
+  font-size: 14.5px !important;
+}
+
+.admin-theme .text-sm {
+  font-size: 15.5px !important;
+}
+
+.admin-theme .text-md {
+  font-size: 17px !important;
+}
+
+/* Sidebar Panel Overrides */
+.admin-theme aside {
+  background-color: #080b1e !important; /* Slightly darker than card bg for high premium look */
+}
+
+/* Color Remappings: Redirect standard Blue utilities to Neon Cyan inside the Admin Panel */
+.admin-theme .bg-blue-600 {
+  background-color: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+}
+
+.admin-theme .bg-blue-500 {
+  background-color: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+}
+
+.admin-theme .bg-blue-500\/5 {
+  background-color: rgba(0, 210, 255, 0.06) !important;
+}
+
+.admin-theme .bg-blue-600\/10 {
+  background-color: rgba(0, 210, 255, 0.12) !important;
+}
+
+.admin-theme .text-blue-500 {
+  color: var(--primary) !important;
+}
+
+.admin-theme .text-blue-600 {
+  color: var(--primary) !important;
+}
+
+.admin-theme .hover\:text-blue-500:hover {
+  color: #4ce1ff !important;
+}
+
+.admin-theme .hover\:text-blue-600:hover {
+  color: #4ce1ff !important;
+}
+
+.admin-theme .border-blue-500 {
+  border-color: var(--primary) !important;
+}
+
+.admin-theme .border-blue-600 {
+  border-color: var(--primary) !important;
+}
+
+.admin-theme .focus-within\:border-blue-500:focus-within {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 1px var(--primary) !important;
+}
+
+/* Scrollbar styling for Webkit engines inside the admin panel */
+.admin-theme ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.admin-theme ::-webkit-scrollbar-track {
+  background: #060813;
+}
+.admin-theme ::-webkit-scrollbar-thumb {
+  background: #1a224c;
+  border-radius: 4px;
+}
+.admin-theme ::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+  box-shadow: 0 0 8px var(--primary);
+}
