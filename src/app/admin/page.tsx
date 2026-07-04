@@ -11,28 +11,33 @@ import {
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState({
-    totalSales: 24850,
-    totalOrders: 142,
+    totalSales: 0,
+    totalOrders: 0,
     productCount: 0,
     categoryCount: 0
   });
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
+  const [weeklyTrend, setWeeklyTrend] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      const prodRes = await getEnterpriseProducts();
-      const catRes = await getPimCategories();
-      const orderRes = await getOrders();
+      // Run API/DB calls in parallel to solve slow response and loading times
+      const [prodRes, catRes, orderRes] = await Promise.all([
+        getEnterpriseProducts(),
+        getPimCategories(),
+        getOrders()
+      ]);
 
-      const productsCount = prodRes.products?.length || 4;
-      const categoriesCount = catRes.categories?.length || 6;
+      const productsCount = prodRes.totalCount || 0;
+      const categoriesCount = catRes.categories?.length || 0;
       
       let dbOrders = orderRes.orders || [];
+      const hasRealOrders = dbOrders.length > 0;
       
       // If no orders exist in DB, create some beautiful fallback mock data
-      if (dbOrders.length === 0) {
+      if (!hasRealOrders) {
         dbOrders = [
           { id: "ORD-9801", customer_name: "Mahmud Hasan", customer_email: "mahmud@example.com", total_amount: 320, status: "PENDING", createdAt: new Date(Date.now() - 1000 * 60 * 30), phone: "+8801700000000", shipping_address: "Dhaka, Bangladesh", items: [], updatedAt: new Date() },
           { id: "ORD-9754", customer_name: "Farhana Yasmin", customer_email: "farhana@example.com", total_amount: 145, status: "PROCESSING", createdAt: new Date(Date.now() - 1000 * 60 * 120), phone: "+8801700000000", shipping_address: "Dhaka, Bangladesh", items: [], updatedAt: new Date() },
@@ -41,18 +46,54 @@ export default function AdminDashboardPage() {
         ];
       }
 
+      // Calculate total sales value logically (exclude CANCELLED orders)
       const totalSalesValue = dbOrders
         .filter((o: any) => o.status !== "CANCELLED")
-        .reduce((sum: number, o: any) => sum + Number(o.total_amount), 0) + 14850; // add mock offset
+        .reduce((sum: number, o: any) => sum + Number(o.total_amount), 0);
 
       setStats({
         totalSales: totalSalesValue,
-        totalOrders: dbOrders.length + 120, // add mock offset
+        totalOrders: dbOrders.length,
         productCount: productsCount,
         categoryCount: categoriesCount
       });
 
       setRecentOrders(dbOrders.slice(0, 5));
+
+      // Compute logical weekly trend based on actual orders
+      const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const trendMap: { [key: string]: number } = {};
+      const last7Days: string[] = [];
+      
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dayName = daysOfWeek[d.getDay()];
+        trendMap[dayName] = 0;
+        last7Days.push(dayName);
+      }
+      
+      dbOrders.forEach((o: any) => {
+        if (o.status === "CANCELLED") return;
+        const orderDate = new Date(o.createdAt);
+        const dayName = daysOfWeek[orderDate.getDay()];
+        if (trendMap[dayName] !== undefined) {
+          trendMap[dayName] += Number(o.total_amount);
+        }
+      });
+      
+      const maxSales = Math.max(...Object.values(trendMap), 1);
+      const trendData = last7Days.map((day) => {
+        const amt = trendMap[day];
+        const salesPct = amt > 0 ? Math.max(5, Math.min(100, (amt / maxSales) * 100)) : 0;
+        return {
+          day,
+          sales: salesPct,
+          amt: `৳${amt.toLocaleString()}`
+        };
+      });
+      
+      setWeeklyTrend(trendData);
     } catch (err) {
       console.error(err);
     } finally {
@@ -90,19 +131,19 @@ export default function AdminDashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         
         {/* Total Sales */}
-        <div className="p-5 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xs space-y-2">
+        <Link href="/admin/finance" className="block p-5 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xs space-y-2 hover:border-[var(--primary)]/50 hover:shadow-[0_0_15px_rgba(0,210,255,0.08)] hover:-translate-y-0.5 transition-all cursor-pointer">
           <div className="flex justify-between items-center text-[var(--muted-foreground)]">
             <span className="text-[10px] font-bold uppercase tracking-wider">Net Unit Revenue</span>
             <TrendingUp className="h-4 w-4 text-emerald-500" />
           </div>
           <div>
-            <h3 className="text-2xl font-black">${stats.totalSales.toLocaleString()}</h3>
+            <h3 className="text-2xl font-black">৳{stats.totalSales.toLocaleString()}</h3>
             <p className="text-[9px] text-emerald-500 font-bold mt-1">▲ +14% compared to last week</p>
           </div>
-        </div>
+        </Link>
 
         {/* Total Orders */}
-        <div className="p-5 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xs space-y-2">
+        <Link href="/admin/orders" className="block p-5 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xs space-y-2 hover:border-[var(--primary)]/50 hover:shadow-[0_0_15px_rgba(0,210,255,0.08)] hover:-translate-y-0.5 transition-all cursor-pointer">
           <div className="flex justify-between items-center text-[var(--muted-foreground)]">
             <span className="text-[10px] font-bold uppercase tracking-wider">Total Orders</span>
             <ShoppingCart className="h-4 w-4 text-blue-500" />
@@ -111,10 +152,10 @@ export default function AdminDashboardPage() {
             <h3 className="text-2xl font-black">{stats.totalOrders}</h3>
             <p className="text-[9px] text-blue-500 font-bold mt-1">▲ +8% transaction velocity</p>
           </div>
-        </div>
+        </Link>
 
         {/* Total Products */}
-        <div className="p-5 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xs space-y-2">
+        <Link href="/admin/products" className="block p-5 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xs space-y-2 hover:border-[var(--primary)]/50 hover:shadow-[0_0_15px_rgba(0,210,255,0.08)] hover:-translate-y-0.5 transition-all cursor-pointer">
           <div className="flex justify-between items-center text-[var(--muted-foreground)]">
             <span className="text-[10px] font-bold uppercase tracking-wider">Catalog Products</span>
             <Package className="h-4 w-4 text-amber-500" />
@@ -123,10 +164,10 @@ export default function AdminDashboardPage() {
             <h3 className="text-2xl font-black">{stats.productCount}</h3>
             <p className="text-[9px] text-[var(--muted-foreground)] mt-1">Active inventory master records</p>
           </div>
-        </div>
+        </Link>
 
         {/* Total Categories */}
-        <div className="p-5 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xs space-y-2">
+        <Link href="/admin/categories" className="block p-5 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xs space-y-2 hover:border-[var(--primary)]/50 hover:shadow-[0_0_15px_rgba(0,210,255,0.08)] hover:-translate-y-0.5 transition-all cursor-pointer">
           <div className="flex justify-between items-center text-[var(--muted-foreground)]">
             <span className="text-[10px] font-bold uppercase tracking-wider">Taxonomy Categories</span>
             <Layers className="h-4 w-4 text-purple-500" />
@@ -135,7 +176,7 @@ export default function AdminDashboardPage() {
             <h3 className="text-2xl font-black">{stats.categoryCount}</h3>
             <p className="text-[9px] text-[var(--muted-foreground)] mt-1">Multi-level hierarchy nodes</p>
           </div>
-        </div>
+        </Link>
 
       </div>
 
@@ -169,7 +210,7 @@ export default function AdminDashboardPage() {
                       <p className="font-bold">{o.customer_name}</p>
                       <p className="text-[9px] text-[var(--muted-foreground)] mt-0.5">{o.customer_email}</p>
                     </td>
-                    <td className="py-3 font-mono text-blue-500 font-bold">${Number(o.total_amount).toFixed(2)}</td>
+                    <td className="py-3 font-mono text-blue-500 font-bold">৳{Number(o.total_amount).toFixed(2)}</td>
                     <td className="py-3 text-right">{getStatusBadge(o.status)}</td>
                   </tr>
                 ))}
@@ -182,16 +223,9 @@ export default function AdminDashboardPage() {
         <div className="p-5 border border-[var(--border)] bg-[var(--card)] rounded-xl shadow-xs space-y-5">
           <h3 className="text-xs font-black uppercase text-[var(--muted-foreground)] tracking-wider">Weekly Transaction Trend</h3>
           
-          {/* Mock Visual Graph Bars */}
+          {/* Logical Dynamic Graph Bars */}
           <div className="space-y-3 font-medium text-xs">
-            {[
-              { day: "Mon", sales: 85, amt: "$1,250" },
-              { day: "Tue", sales: 60, amt: "$980" },
-              { day: "Wed", sales: 95, amt: "$1,850" },
-              { day: "Thu", sales: 40, amt: "$620" },
-              { day: "Fri", sales: 110, amt: "$2,240" },
-              { day: "Sat", sales: 75, amt: "$1,450" }
-            ].map((item, idx) => (
+            {weeklyTrend.map((item, idx) => (
               <div key={idx} className="space-y-1">
                 <div className="flex justify-between text-[10px]">
                   <span className="text-[var(--muted-foreground)]">{item.day}</span>

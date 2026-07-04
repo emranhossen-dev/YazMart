@@ -24,14 +24,14 @@ export default function AdminCatchAllPage() {
     if (primarySection === "finance") {
       return {
         metric: "Net Assets Ledger",
-        value: "$84,250",
+        value: "৳84,250",
         change: "+12.4% MoM",
         cols: ["Tx ID", "Description", "Value", "Billing Type"],
         rows: [
-          ["TXN-8742", "Stripe Checkout Deposit", "$4,520", "Credit"],
-          ["TXN-8699", "Amazon AWS Cloud Hosting", "-$480", "Debit"],
-          ["TXN-8622", "Premium Supplier Purchase", "-$2,100", "Debit"],
-          ["TXN-8511", "Customer Cart Checkout", "$850", "Credit"]
+          ["TXN-8742", "Stripe Checkout Deposit", "৳4,520", "Credit"],
+          ["TXN-8699", "Amazon AWS Cloud Hosting", "-৳480", "Debit"],
+          ["TXN-8622", "Premium Supplier Purchase", "-৳2,100", "Debit"],
+          ["TXN-8511", "Customer Cart Checkout", "৳850", "Credit"]
         ]
       };
     } else if (primarySection === "orders") {

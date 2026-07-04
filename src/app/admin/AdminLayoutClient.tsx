@@ -13,6 +13,17 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { signOutAction } from "@/actions/auth";
 import { getEnterpriseUserSession } from "@/actions/auth-enterprise";
 import { useQueryTab } from "@/hooks/use-admin-tab";
+import { supabase } from "@/lib/supabase";
+import { toast } from "react-hot-toast";
+
+interface NotificationItem {
+  id: string;
+  title: string;
+  message: string;
+  time: string;
+  read: boolean;
+  type: "order" | "stock" | "system";
+}
 
 interface SubMenuItem {
   name: string;
@@ -105,9 +116,213 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
     Settings: false,
   });
   const [userData, setUserData] = useState({ name: "Emran Hossen", role: "Super Admin" });
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [showNotifications, setShowNotifications] = useState(false);
   
   const pathname = usePathname();
   const router = useRouter();
+
+  const playNotificationSound = () => {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(ctx.destination);
+
+      gain.gain.setValueAtTime(0.0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
+
+      osc1.type = "sine";
+      osc1.frequency.setValueAtTime(659.25, ctx.currentTime); // E5
+      osc1.start(ctx.currentTime);
+      osc1.stop(ctx.currentTime + 0.3);
+
+      osc2.type = "sine";
+      osc2.frequency.setValueAtTime(880.00, ctx.currentTime + 0.12); // A5
+      osc2.start(ctx.currentTime + 0.12);
+      osc2.stop(ctx.currentTime + 0.6);
+    } catch (e) {
+      console.warn("Audio Context blocked:", e);
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("yazmart_notifications");
+      if (stored) {
+        setNotifications(JSON.parse(stored));
+      } else {
+        const initial: NotificationItem[] = [
+          {
+            id: "1",
+            title: "System Online",
+            message: "YazMart Operations console initialized successfully.",
+            time: new Date().toLocaleTimeString(),
+            read: false,
+            type: "system"
+          }
+        ];
+        setNotifications(initial);
+        localStorage.setItem("yazmart_notifications", JSON.stringify(initial));
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    // Supabase postgres replication listener for OrderMatrix and PimProducts
+    const channel = supabase
+      .channel("admin-realtime-notifications")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "OrderMatrix" },
+        (payload) => {
+          const newOrder = payload.new as any;
+          if (newOrder) {
+            playNotificationSound();
+            toast.success(`New order placed by ${newOrder.customer_name}!`, {
+              icon: "🛍️",
+              duration: 5000,
+            });
+
+            const notification: NotificationItem = {
+              id: newOrder.id || Math.random().toString(),
+              title: "New Order Received",
+              message: `Order #${newOrder.id?.slice(0, 8) || "REF"} from ${newOrder.customer_name} for ৳${Number(newOrder.total_amount).toLocaleString()}`,
+              time: new Date().toLocaleTimeString(),
+              read: false,
+              type: "order"
+            };
+
+            setNotifications((prev) => {
+              const updated = [notification, ...prev];
+              localStorage.setItem("yazmart_notifications", JSON.stringify(updated));
+              return updated;
+            });
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "PimProducts" },
+        (payload) => {
+          const newProduct = payload.new as any;
+          const oldProduct = payload.old as any;
+          if (newProduct) {
+            // Check if stock transitioned below alert limit
+            if (
+              newProduct.current_stock <= newProduct.low_stock_alert &&
+              (!oldProduct || oldProduct.current_stock > newProduct.low_stock_alert)
+            ) {
+              playNotificationSound();
+              toast.error(`Stock low: ${newProduct.name}!`, {
+                icon: "⚠️",
+                duration: 5000,
+              });
+
+              const notification: NotificationItem = {
+                id: Math.random().toString(),
+                title: "Low Stock Warning",
+                message: `${newProduct.name} has only ${newProduct.current_stock} items remaining.`,
+                time: new Date().toLocaleTimeString(),
+                read: false,
+                type: "stock"
+              };
+
+              setNotifications((prev) => {
+                const updated = [notification, ...prev];
+                localStorage.setItem("yazmart_notifications", JSON.stringify(updated));
+                return updated;
+              });
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const markAllAsRead = () => {
+    const updated = notifications.map(n => ({ ...n, read: true }));
+    setNotifications(updated);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("yazmart_notifications", JSON.stringify(updated));
+    }
+  };
+
+  const clearNotifications = () => {
+    setNotifications([]);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("yazmart_notifications");
+    }
+  };
+
+  // Demo simulation buttons for testing real-time notifications
+  const simulateOrderEvent = () => {
+    playNotificationSound();
+    const names = ["Anisur Rahman", "Sultana Chowdhury", "Kazi Imran", "Nusrat Jahan", "Kamrul Islam"];
+    const name = names[Math.floor(Math.random() * names.length)];
+    const id = Math.floor(100000 + Math.random() * 900000).toString();
+    const amount = Math.floor(500 + Math.random() * 15000);
+    
+    toast.success(`Simulation: New order from ${name}!`, {
+      icon: "🛍️",
+      duration: 4000,
+    });
+
+    const notification: NotificationItem = {
+      id,
+      title: "New Order (Simulated)",
+      message: `Order #${id.slice(0, 4)} from ${name} for ৳${amount.toLocaleString()}`,
+      time: new Date().toLocaleTimeString(),
+      read: false,
+      type: "order"
+    };
+
+    setNotifications((prev) => {
+      const updated = [notification, ...prev];
+      if (typeof window !== "undefined") {
+        localStorage.setItem("yazmart_notifications", JSON.stringify(updated));
+      }
+      return updated;
+    });
+  };
+
+  const simulateStockEvent = () => {
+    playNotificationSound();
+    const items = ["Premium Leather Wallet", "Wireless Optical Mouse", "RGB Mechanical Keyboard", "USB-C Fast Charger", "Noise Cancelling Earbuds"];
+    const product = items[Math.floor(Math.random() * items.length)];
+    const stock = Math.floor(1 + Math.random() * 4);
+    
+    toast.error(`Simulation: Low stock alert for ${product}!`, {
+      icon: "⚠️",
+      duration: 4000,
+    });
+
+    const notification: NotificationItem = {
+      id: Math.random().toString(),
+      title: "Low Stock (Simulated)",
+      message: `${product} has only ${stock} items remaining in warehouse.`,
+      time: new Date().toLocaleTimeString(),
+      read: false,
+      type: "stock"
+    };
+
+    setNotifications((prev) => {
+      const updated = [notification, ...prev];
+      if (typeof window !== "undefined") {
+        localStorage.setItem("yazmart_notifications", JSON.stringify(updated));
+      }
+      return updated;
+    });
+  };
 
   useEffect(() => {
     const syncSession = async () => {
@@ -313,10 +528,94 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
           </div>
 
           <div className="flex items-center gap-4 ml-auto">
-            <button type="button" className="p-2 rounded-md hover:bg-[var(--accent)] text-[var(--muted-foreground)] relative">
-              <Bell className="h-4 w-4" />
-              <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-[var(--primary)] rounded-full shadow-[0_0_8px_rgba(0,210,255,0.6)]" />
-            </button>
+            {/* Realtime Notification Panel */}
+            <div className="relative">
+              <button 
+                type="button" 
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="p-2 rounded-md hover:bg-[var(--accent)] text-[var(--muted-foreground)] relative cursor-pointer flex items-center justify-center animate-[pulse_3s_infinite]"
+                title="System Notifications"
+              >
+                <Bell className="h-4 w-4" />
+                {notifications.some(n => !n.read) && (
+                  <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-rose-500 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)] animate-pulse" />
+                )}
+              </button>
+
+              {showNotifications && (
+                <div className="absolute right-0 mt-2 w-80 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xl z-50 overflow-hidden text-xs text-[var(--foreground)]">
+                  {/* Dropdown Header */}
+                  <div className="p-3 border-b border-[var(--border)] flex justify-between items-center bg-[var(--background)]/60">
+                    <span className="font-black uppercase tracking-wider text-[10px]">Realtime Logs</span>
+                    {notifications.some(n => !n.read) && (
+                      <button 
+                        type="button"
+                        onClick={markAllAsRead}
+                        className="text-[10px] font-bold text-blue-500 hover:underline cursor-pointer"
+                      >
+                        Mark all read
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Dev Simulation Panel */}
+                  <div className="p-2 bg-[var(--background)]/40 border-b border-[var(--border)] flex gap-2 justify-center">
+                    <button
+                      type="button"
+                      onClick={simulateOrderEvent}
+                      className="px-2 py-1 rounded bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 transition-all font-bold text-[9px] uppercase cursor-pointer"
+                    >
+                      + Order
+                    </button>
+                    <button
+                      type="button"
+                      onClick={simulateStockEvent}
+                      className="px-2 py-1 rounded bg-amber-600/20 text-amber-400 hover:bg-amber-600/30 transition-all font-bold text-[9px] uppercase cursor-pointer"
+                    >
+                      + Stock Warning
+                    </button>
+                  </div>
+
+                  {/* Notification List */}
+                  <div className="max-h-72 overflow-y-auto divide-y divide-[var(--border)] custom-scrollbar">
+                    {notifications.length === 0 ? (
+                      <div className="p-8 text-center text-[var(--muted-foreground)]">
+                        No active logs.
+                      </div>
+                    ) : (
+                      notifications.map(n => (
+                        <div 
+                          key={n.id} 
+                          className={`p-3 transition-colors ${n.read ? "opacity-60 bg-transparent" : "bg-[var(--primary)]/5 border-l-2 border-[var(--primary)]"}`}
+                        >
+                          <div className="flex justify-between items-start gap-2">
+                            <div className="space-y-0.5">
+                              <p className="font-bold text-[11px] text-[var(--foreground)]">{n.title}</p>
+                              <p className="text-[10px] text-[var(--muted-foreground)] leading-normal">{n.message}</p>
+                            </div>
+                            <span className="text-[8px] text-[var(--muted-foreground)] font-mono whitespace-nowrap">{n.time}</span>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Footer Action */}
+                  {notifications.length > 0 && (
+                    <div className="p-2 border-t border-[var(--border)] text-center bg-[var(--background)]/30">
+                      <button 
+                        type="button"
+                        onClick={clearNotifications}
+                        className="text-[10px] text-rose-500 font-bold hover:underline cursor-pointer"
+                      >
+                        Clear All Logs
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             <ThemeToggle />
             <div className="h-6 w-px bg-[var(--border)]" />
             <div className="flex items-center gap-2">
