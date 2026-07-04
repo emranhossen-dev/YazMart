@@ -83,7 +83,8 @@ export const ModelName = {
   PimProducts: 'PimProducts',
   ProductVariants: 'ProductVariants',
   OrderMatrix: 'OrderMatrix',
-  HomepageConfig: 'HomepageConfig'
+  HomepageConfig: 'HomepageConfig',
+  StockItem: 'StockItem'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -661,6 +662,19 @@ export const HomepageConfigScalarFieldEnum = {
 } as const
 
 export type HomepageConfigScalarFieldEnum = (typeof HomepageConfigScalarFieldEnum)[keyof typeof HomepageConfigScalarFieldEnum]
+
+
+export const StockItemScalarFieldEnum = {
+  id: 'id',
+  product_id: 'product_id',
+  serial_number: 'serial_number',
+  status: 'status',
+  order_id: 'order_id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type StockItemScalarFieldEnum = (typeof StockItemScalarFieldEnum)[keyof typeof StockItemScalarFieldEnum]
 
 
 export const SortOrder = {

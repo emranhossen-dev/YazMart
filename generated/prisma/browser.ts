@@ -207,3 +207,8 @@ export type OrderMatrix = Prisma.OrderMatrixModel
  * 
  */
 export type HomepageConfig = Prisma.HomepageConfigModel
+/**
+ * Model StockItem
+ * 
+ */
+export type StockItem = Prisma.StockItemModel

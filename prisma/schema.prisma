@@ -728,6 +728,7 @@ model PimProducts {
   brand_id        String?
   brand           BrandMatrix?      @relation(fields: [brand_id], references: [id])
   variants        ProductVariants[]
+  stock_items     StockItem[]
 
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
@@ -780,6 +781,19 @@ model HomepageConfig {
   brand_logos       Json     // Popular brand items [{ name, logoUrl, brandId }]
   testimonials      Json     // Testimonial entries [{ name, text, rating, role }]
   updatedAt         DateTime @updatedAt
+
+  @@schema("public")
+}
+
+model StockItem {
+  id            String      @id @default(uuid())
+  product_id    String
+  product       PimProducts @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  serial_number String      @unique
+  status        String      @default("AVAILABLE") // AVAILABLE, SOLD, DAMAGED, RETURNED
+  order_id      String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
   @@schema("public")
 }

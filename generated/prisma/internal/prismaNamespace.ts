@@ -416,7 +416,8 @@ export const ModelName = {
   PimProducts: 'PimProducts',
   ProductVariants: 'ProductVariants',
   OrderMatrix: 'OrderMatrix',
-  HomepageConfig: 'HomepageConfig'
+  HomepageConfig: 'HomepageConfig',
+  StockItem: 'StockItem'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -432,7 +433,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "audit_log_entries" | "custom_oauth_providers" | "flow_state" | "identities" | "instances" | "mfa_amr_claims" | "mfa_challenges" | "mfa_factors" | "oauth_authorizations" | "oauth_client_states" | "oauth_clients" | "oauth_consents" | "one_time_tokens" | "refresh_tokens" | "saml_providers" | "saml_relay_states" | "schema_migrations" | "sessions" | "sso_domains" | "sso_providers" | "users" | "webauthn_challenges" | "webauthn_credentials" | "categories" | "products" | "profiles" | "roles" | "categoryMatrix" | "brandMatrix" | "pimProducts" | "productVariants" | "orderMatrix" | "homepageConfig"
+    modelProps: "audit_log_entries" | "custom_oauth_providers" | "flow_state" | "identities" | "instances" | "mfa_amr_claims" | "mfa_challenges" | "mfa_factors" | "oauth_authorizations" | "oauth_client_states" | "oauth_clients" | "oauth_consents" | "one_time_tokens" | "refresh_tokens" | "saml_providers" | "saml_relay_states" | "schema_migrations" | "sessions" | "sso_domains" | "sso_providers" | "users" | "webauthn_challenges" | "webauthn_credentials" | "categories" | "products" | "profiles" | "roles" | "categoryMatrix" | "brandMatrix" | "pimProducts" | "productVariants" | "orderMatrix" | "homepageConfig" | "stockItem"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2878,6 +2879,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    StockItem: {
+      payload: Prisma.$StockItemPayload<ExtArgs>
+      fields: Prisma.StockItemFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.StockItemFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StockItemPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.StockItemFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StockItemPayload>
+        }
+        findFirst: {
+          args: Prisma.StockItemFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StockItemPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.StockItemFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StockItemPayload>
+        }
+        findMany: {
+          args: Prisma.StockItemFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StockItemPayload>[]
+        }
+        create: {
+          args: Prisma.StockItemCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StockItemPayload>
+        }
+        createMany: {
+          args: Prisma.StockItemCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.StockItemCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StockItemPayload>[]
+        }
+        delete: {
+          args: Prisma.StockItemDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StockItemPayload>
+        }
+        update: {
+          args: Prisma.StockItemUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StockItemPayload>
+        }
+        deleteMany: {
+          args: Prisma.StockItemDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.StockItemUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.StockItemUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StockItemPayload>[]
+        }
+        upsert: {
+          args: Prisma.StockItemUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StockItemPayload>
+        }
+        aggregate: {
+          args: Prisma.StockItemAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateStockItem>
+        }
+        groupBy: {
+          args: Prisma.StockItemGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StockItemGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.StockItemCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StockItemCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -3478,6 +3553,19 @@ export const HomepageConfigScalarFieldEnum = {
 export type HomepageConfigScalarFieldEnum = (typeof HomepageConfigScalarFieldEnum)[keyof typeof HomepageConfigScalarFieldEnum]
 
 
+export const StockItemScalarFieldEnum = {
+  id: 'id',
+  product_id: 'product_id',
+  serial_number: 'serial_number',
+  status: 'status',
+  order_id: 'order_id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type StockItemScalarFieldEnum = (typeof StockItemScalarFieldEnum)[keyof typeof StockItemScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -3919,6 +4007,7 @@ export type GlobalOmitConfig = {
   productVariants?: Prisma.ProductVariantsOmit
   orderMatrix?: Prisma.OrderMatrixOmit
   homepageConfig?: Prisma.HomepageConfigOmit
+  stockItem?: Prisma.StockItemOmit
 }
 
 /* Types for Logging */

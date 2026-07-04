@@ -6,14 +6,18 @@ import {
   createEnterpriseProduct, 
   getEnterpriseProduct, 
   getPimCategories, 
-  getBrands
+  getBrands,
+  runSchemaMigration,
+  updateProductStockItems
 } from "@/actions/pim-products";
 import { uploadImage } from "@/actions/upload";
 import { 
-  Settings, ImageIcon, Tag, Package, Plus, Trash2, X, UploadCloud, Search
+  Settings, ImageIcon, Tag, Package, Plus, Trash2, X, UploadCloud, Search, CheckCircle
 } from "lucide-react";
 import Swal from "sweetalert2";
 import { toast } from "react-hot-toast";
+import BarcodeRenderer from "@/components/BarcodeRenderer";
+import { handlePrintMemo } from "@/utils/print-memo";
 
 interface Category {
   id: string;
@@ -74,6 +78,7 @@ function ProductAddFormContent() {
     warranty: "",
     meta_title: "",
     meta_desc: "",
+    meta_keywords: "",
     category_id: "",
     brand_id: "",
     is_featured: false,
@@ -83,8 +88,30 @@ function ProductAddFormContent() {
     is_new_arrival: false,
   });
 
+  const [isSkuManuallyEdited, setIsSkuManuallyEdited] = useState(false);
+  const [isBarcodeManuallyEdited, setIsBarcodeManuallyEdited] = useState(false);
+  const [successModalData, setSuccessModalData] = useState<any>(null);
+  const [serialMode, setSerialMode] = useState<"AUTO" | "MANUAL">("AUTO");
+  const [manualSerials, setManualSerials] = useState<string>("");
+
+  const convertSkuToNumericBarcode = (sku: string): string => {
+    if (!sku) return "";
+    let hash = 0;
+    for (let i = 0; i < sku.length; i++) {
+      hash = (hash * 31 + sku.charCodeAt(i)) >>> 0;
+    }
+    return String(hash).padStart(12, "0").substring(0, 12);
+  };
+
+  const handleManualSerialsChange = (value: string) => {
+    setManualSerials(value);
+    const count = value.split("\n").map(s => s.trim()).filter(Boolean).length;
+    setFormData((p: any) => ({ ...p, current_stock: count }));
+  };
+
   const loadData = async () => {
     setLoading(true);
+    await runSchemaMigration();
     const catRes = await getPimCategories();
     const brandRes = await getBrands();
     if (catRes.categories) setCategories(catRes.categories);
@@ -106,6 +133,8 @@ function ProductAddFormContent() {
     setLoading(true);
     const res = await getEnterpriseProduct(id);
     if (res.product) {
+      setIsSkuManuallyEdited(true);
+      setIsBarcodeManuallyEdited(true);
       const p = res.product;
       setFormData({
         id: p.id,
@@ -131,6 +160,7 @@ function ProductAddFormContent() {
         warranty: p.warranty || "",
         meta_title: p.meta_title || "",
         meta_desc: p.meta_desc || "",
+        meta_keywords: p.meta_keywords || "",
         category_id: p.category_id || "",
         brand_id: p.brand_id || "",
         is_featured: p.is_featured,
@@ -157,16 +187,46 @@ function ProductAddFormContent() {
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value;
-    setFormData((p: any) => ({
-      ...p,
-      name: v,
-      slug: v.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, ""),
-      sku: p.sku || `SKU-${v.substring(0, 3).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`
-    }));
+    const generatedSlug = v.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+    
+    setFormData((p: any) => {
+      let updatedSku = p.sku;
+      let updatedBarcode = p.barcode;
+
+      if (!isSkuManuallyEdited) {
+        updatedSku = v.toUpperCase().replace(/[^A-Z0-9]/g, "-").replace(/-+/g, "-").replace(/(^-|-$)/g, "");
+        if (!isBarcodeManuallyEdited) {
+          updatedBarcode = convertSkuToNumericBarcode(updatedSku);
+        }
+      }
+
+      return {
+        ...p,
+        name: v,
+        slug: generatedSlug,
+        sku: updatedSku,
+        barcode: updatedBarcode
+      };
+    });
   };
 
   const handleInputChange = (field: string, value: any) => {
-    setFormData((p: any) => ({ ...p, [field]: value }));
+    if (field === "sku") {
+      setIsSkuManuallyEdited(value.trim().length > 0);
+      setFormData((p: any) => {
+        const next = { ...p, sku: value };
+        if (!isBarcodeManuallyEdited) {
+          next.barcode = convertSkuToNumericBarcode(value);
+        }
+        return next;
+      });
+    } else if (field === "barcode") {
+      const numericVal = value.replace(/[^0-9]/g, "");
+      setIsBarcodeManuallyEdited(numericVal.trim().length > 0);
+      setFormData((p: any) => ({ ...p, barcode: numericVal }));
+    } else {
+      setFormData((p: any) => ({ ...p, [field]: value }));
+    }
   };
 
 
@@ -236,8 +296,30 @@ function ProductAddFormContent() {
     if (res.error) {
       toast.error(res.error);
     } else {
+      const productId = res.product?.id || formData.id || "";
+      let serials: string[] = [];
+
+      if (serialMode === "AUTO") {
+        const skuPrefix = payload.sku || "PROD";
+        for (let i = 1; i <= payload.current_stock; i++) {
+          serials.push(`${skuPrefix}-${String(i).padStart(3, "0")}`);
+        }
+      } else {
+        serials = manualSerials.split("\n").map(s => s.trim()).filter(Boolean);
+      }
+
+      if (serials.length > 0) {
+        const stockItemsRes = await updateProductStockItems(productId, serials);
+        if (stockItemsRes.error) {
+          toast.error(`Stock Item serial registration error: ${stockItemsRes.error}`);
+        }
+      }
+
       toast.success("Product successfully saved to master database!");
-      router.push("/admin/products");
+      setSuccessModalData({
+        ...payload,
+        id: productId
+      });
     }
     setLoading(false);
   };
@@ -328,12 +410,14 @@ function ProductAddFormContent() {
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Barcode</label>
+                  <label className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Barcode (Numeric Only)</label>
                   <input 
                     type="text" 
+                    pattern="[0-9]*"
+                    inputMode="numeric"
                     value={formData.barcode} 
                     onChange={(e) => handleInputChange("barcode", e.target.value)} 
-                    placeholder="UPC/EAN" 
+                    placeholder="e.g. 123456789012" 
                     className="w-full px-3 py-2 text-xs font-mono rounded bg-[var(--background)] border border-[var(--border)] focus:outline-none" 
                   />
                 </div>
@@ -443,7 +527,8 @@ function ProductAddFormContent() {
                     type="number" 
                     value={formData.current_stock} 
                     onChange={(e) => handleInputChange("current_stock", parseInt(e.target.value) || 0)} 
-                    className="w-full px-3 py-2 text-xs rounded bg-[var(--background)] border border-[var(--border)] focus:outline-none font-bold font-mono" 
+                    disabled={serialMode === "MANUAL"}
+                    className={`w-full px-3 py-2 text-xs rounded bg-[var(--background)] border border-[var(--border)] focus:outline-none font-bold font-mono ${serialMode === "MANUAL" ? "opacity-60 cursor-not-allowed" : ""}`} 
                   />
                 </div>
                 <div>
@@ -487,6 +572,54 @@ function ProductAddFormContent() {
                     </span>
                   </div>
                 </div>
+              </div>
+
+              {/* Serial Stock Settings Panel */}
+              <div className="p-4 border border-[var(--border)] bg-[var(--background)]/30 rounded-lg space-y-3">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div>
+                    <h4 className="text-xs font-black uppercase text-[var(--foreground)]">Inventory Serial Tracking</h4>
+                    <p className="text-[10px] text-[var(--muted-foreground)]">Choose how individual units are registered in stock.</p>
+                  </div>
+                  <div className="flex bg-[var(--background)] border border-[var(--border)] rounded p-0.5 text-[9px] font-bold">
+                    <button
+                      type="button"
+                      onClick={() => setSerialMode("AUTO")}
+                      className={`px-3 py-1.5 rounded transition-all cursor-pointer ${serialMode === "AUTO" ? "bg-blue-600 text-white font-black" : "text-[var(--muted-foreground)]"}`}
+                    >
+                      AUTO GENERATE (Model A)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSerialMode("MANUAL")}
+                      className={`px-3 py-1.5 rounded transition-all cursor-pointer ${serialMode === "MANUAL" ? "bg-blue-600 text-white font-black" : "text-[var(--muted-foreground)]"}`}
+                    >
+                      MANUAL SERIALS/IMEIs (Model B)
+                    </button>
+                  </div>
+                </div>
+
+                {serialMode === "MANUAL" ? (
+                  <div className="space-y-1.5">
+                    <label className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)]">
+                      Unique Serial Numbers / IMEIs (One serial per line)
+                    </label>
+                    <textarea
+                      rows={4}
+                      value={manualSerials}
+                      onChange={(e) => handleManualSerialsChange(e.target.value)}
+                      placeholder="e.g.&#10;IMEI-98273982713&#10;IMEI-98273982714&#10;IMEI-98273982715"
+                      className="w-full px-3 py-2 text-xs font-mono rounded bg-[var(--background)] border border-[var(--border)] focus:outline-none focus:border-blue-500"
+                    />
+                    <p className="text-[9px] text-[var(--muted-foreground)]">
+                      💡 Stock Count is automatically derived from the number of serials entered above.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="text-[10px] text-[var(--muted-foreground)] bg-[var(--background)]/40 p-2.5 rounded border border-[var(--border)]/50">
+                    ℹ️ Sequential serial barcodes will be automatically generated as <strong className="font-mono text-blue-500">{formData.sku || "SKU"}-001</strong>, <strong className="font-mono text-blue-500">{formData.sku || "SKU"}-002</strong>, etc., up to the Stock Vault Count ({formData.current_stock} units).
+                  </div>
+                )}
               </div>
 
               {/* Badges / Quick Flags */}
@@ -536,7 +669,7 @@ function ProductAddFormContent() {
                 </div>
 
                 {/* SEO specifications */}
-                <div className="grid gap-4 sm:grid-cols-2 bg-[var(--background)]/20 p-4 border border-[var(--border)] rounded-xl">
+                <div className="grid gap-4 sm:grid-cols-3 bg-[var(--background)]/20 p-4 border border-[var(--border)] rounded-xl">
                   <div>
                     <div className="flex justify-between items-center mb-1">
                       <label className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Meta Title (SEO Title)</label>
@@ -568,6 +701,19 @@ function ProductAddFormContent() {
                       value={formData.meta_desc} 
                       onChange={(e) => handleInputChange("meta_desc", e.target.value)} 
                       placeholder="SEO search snippet summary description" 
+                      className="w-full px-3 py-2 text-xs rounded bg-[var(--background)] border border-[var(--border)] focus:outline-none" 
+                    />
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Product Tags / Keywords</label>
+                      <span className="text-[9px] text-zinc-500 font-bold font-mono">Comma separated</span>
+                    </div>
+                    <input 
+                      type="text" 
+                      value={formData.meta_keywords} 
+                      onChange={(e) => handleInputChange("meta_keywords", e.target.value)} 
+                      placeholder="e.g. smart, watch, premium" 
                       className="w-full px-3 py-2 text-xs rounded bg-[var(--background)] border border-[var(--border)] focus:outline-none" 
                     />
                   </div>
@@ -756,6 +902,74 @@ function ProductAddFormContent() {
             </div>
           </form>
       </div>
+
+      {/* Success Modal */}
+      {successModalData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 select-none">
+          <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl w-full max-w-md p-6 shadow-xl space-y-6 animate-in fade-in zoom-in-95 duration-150">
+            <div className="text-center space-y-2">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-500 mb-2">
+                <CheckCircle className="h-6 w-6" />
+              </div>
+              <h3 className="text-base font-black uppercase tracking-tight text-[var(--foreground)]">Product Saved Successfully!</h3>
+              <p className="text-[11px] text-[var(--muted-foreground)]">
+                The product node has been committed. You can now print the barcode label / memo or return to list.
+              </p>
+            </div>
+
+            {/* Memo Preview Box */}
+            <div className="bg-white text-black p-4 rounded-lg border border-gray-300 space-y-3 font-sans max-w-sm mx-auto shadow-inner text-left">
+              <div className="text-center border-b-2 border-black pb-2">
+                <h4 className="text-xs font-black tracking-wider uppercase">YAZMART INVENTORY LABEL</h4>
+                <p className="text-[12px] font-bold mt-1 line-clamp-2">{successModalData.name}</p>
+              </div>
+              <div className="text-[10px] space-y-1 font-semibold">
+                <div className="flex justify-between border-b border-dashed border-gray-200 pb-1">
+                  <span>SKU:</span>
+                  <span className="font-mono">{successModalData.sku}</span>
+                </div>
+                <div className="flex justify-between border-b border-dashed border-gray-200 pb-1">
+                  <span>Barcode (Numeric):</span>
+                  <span className="font-mono">{successModalData.barcode}</span>
+                </div>
+                <div className="flex justify-between border-b border-dashed border-gray-200 pb-1">
+                  <span>Price:</span>
+                  <span>{successModalData.selling_price} BDT</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Initial Stock:</span>
+                  <span>{successModalData.current_stock || 0} Units</span>
+                </div>
+              </div>
+              {/* Display code 128 preview */}
+              <div className="mt-3">
+                <BarcodeRenderer value={successModalData.sku} displayValue={false} height={35} />
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 justify-stretch pt-2">
+              <button
+                type="button"
+                onClick={() => handlePrintMemo(successModalData)}
+                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-md text-xs uppercase tracking-wider transition-colors cursor-pointer"
+              >
+                Print Label / Memo
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSuccessModalData(null);
+                  router.push("/admin/products");
+                }}
+                className="flex-1 px-4 py-2 bg-[var(--background)] hover:bg-[var(--accent)] border border-[var(--border)] text-[var(--foreground)] font-bold rounded-md text-xs uppercase tracking-wider transition-colors cursor-pointer"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

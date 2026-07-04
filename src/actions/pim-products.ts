@@ -59,6 +59,7 @@ export async function createEnterpriseProduct(data: any) {
       full_desc: data.full_desc || "",
       meta_title: data.meta_title || data.name,
       meta_desc: data.meta_desc || data.short_desc || "",
+      meta_keywords: data.meta_keywords || "",
       is_featured: data.is_featured === true || data.is_featured === "true",
       is_trending: data.is_trending === true || data.is_trending === "true",
       is_best_seller: data.is_best_seller === true || data.is_best_seller === "true",
@@ -70,8 +71,9 @@ export async function createEnterpriseProduct(data: any) {
       package_includes: data.package_includes || null,
     };
 
+    let savedProduct;
     if (data.id) {
-      await prisma.pimProducts.update({
+      savedProduct = await prisma.pimProducts.update({
         where: { id: data.id },
         data: {
           ...productData,
@@ -81,7 +83,7 @@ export async function createEnterpriseProduct(data: any) {
         }
       });
     } else {
-      await prisma.pimProducts.create({
+      savedProduct = await prisma.pimProducts.create({
         data: {
           ...productData,
           slug: cleanSlug,
@@ -93,7 +95,7 @@ export async function createEnterpriseProduct(data: any) {
 
     revalidatePath("/admin/products");
     revalidatePath("/");
-    return { success: "Product database record saved successfully!" };
+    return { success: "Product database record saved successfully!", product: serializePimProduct(savedProduct) };
   } catch (error: any) {
     console.error("❌ PIM ENGINE ERROR:", error);
     return { error: `PIM Failure: ${error?.message || "DB Pipeline blocked."}` };
@@ -140,6 +142,7 @@ export async function duplicateEnterpriseProduct(id: string) {
         full_desc: original.full_desc,
         meta_title: original.meta_title,
         meta_desc: original.meta_desc,
+        meta_keywords: original.meta_keywords,
         is_featured: original.is_featured,
         is_trending: original.is_trending,
         is_best_seller: original.is_best_seller,
@@ -358,6 +361,7 @@ export async function bulkImportEnterpriseProducts(productsList: any[]) {
           full_desc: p.full_desc || "",
           meta_title: p.meta_title || p.name,
           meta_desc: p.meta_desc || p.short_desc || "",
+          meta_keywords: p.meta_keywords || "",
           is_featured: isFeatured,
           is_trending: isTrending,
           is_best_seller: isBestSeller,
@@ -528,5 +532,123 @@ export async function getEnterpriseProduct(id: string) {
   } catch (error: any) {
     console.error("❌ FETCH PRODUCT DETAIL ERROR:", error);
     return { error: `Failed to load product details: ${error.message}` };
+  }
+}
+
+// ৪. ইনভেন্টরি ডাটাবেজ সেলফ-হিলিং মাইগ্রেশন রানার
+export async function runSchemaMigration() {
+  try {
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "public"."StockItem" (
+        "id" TEXT NOT NULL,
+        "product_id" TEXT NOT NULL,
+        "serial_number" TEXT NOT NULL,
+        "status" TEXT NOT NULL DEFAULT 'AVAILABLE',
+        "order_id" TEXT,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "StockItem_pkey" PRIMARY KEY ("id"),
+        CONSTRAINT "StockItem_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "public"."PimProducts"("id") ON DELETE CASCADE ON UPDATE CASCADE
+      );
+    `);
+    await prisma.$executeRawUnsafe(`
+      CREATE UNIQUE INDEX IF NOT EXISTS "StockItem_serial_number_key" ON "public"."StockItem"("serial_number");
+    `);
+    return { success: true };
+  } catch (err: any) {
+    console.error("Migration pipeline error:", err);
+    return { error: err?.message || "SQL Error" };
+  }
+}
+
+// ৫. সিরিয়াল নম্বর ট্র্যাকিং এন্ট্রি জেনারেটর
+export async function updateProductStockItems(productId: string, serialNumbers: string[]) {
+  try {
+    await prisma.$transaction(async (tx) => {
+      // Create items if not exist
+      for (const sn of serialNumbers) {
+        if (!sn.trim()) continue;
+        await tx.stockItem.upsert({
+          where: { serial_number: sn.trim() },
+          update: { status: "AVAILABLE" },
+          create: {
+            product_id: productId,
+            serial_number: sn.trim(),
+            status: "AVAILABLE"
+          }
+        });
+      }
+
+      // Recalculate current active stock
+      const count = await tx.stockItem.count({
+        where: { product_id: productId, status: "AVAILABLE" }
+      });
+
+      await tx.pimProducts.update({
+        where: { id: productId },
+        data: {
+          current_stock: count,
+          stock_status: count > 0 ? "IN_STOCK" : "OUT_OF_STOCK"
+        }
+      });
+    });
+    return { success: true };
+  } catch (err: any) {
+    console.error("Stock item update error:", err);
+    return { error: err.message || "Failed to save serialized stock units" };
+  }
+}
+
+// ৬. সিরিয়াল স্ক্যান ভিত্তিক রি-স্টকিং এবং রিটার্ন
+export async function restockItemBySerial(serialNumber: string) {
+  try {
+    const cleanSn = serialNumber.trim();
+    if (!cleanSn) return { error: "Serial number cannot be blank." };
+
+    const item = await prisma.stockItem.findUnique({
+      where: { serial_number: cleanSn }
+    });
+
+    if (!item) {
+      return { error: `Serial/Barcode "${cleanSn}" is not registered in system ledger.` };
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // Mark as available
+      await tx.stockItem.update({
+        where: { serial_number: cleanSn },
+        data: { status: "AVAILABLE", order_id: null }
+      });
+
+      // Recalculate stock count
+      const count = await tx.stockItem.count({
+        where: { product_id: item.product_id, status: "AVAILABLE" }
+      });
+
+      await tx.pimProducts.update({
+        where: { id: item.product_id },
+        data: {
+          current_stock: count,
+          stock_status: count > 0 ? "IN_STOCK" : "OUT_OF_STOCK"
+        }
+      });
+    });
+
+    const prod = await prisma.pimProducts.findUnique({
+      where: { id: item.product_id }
+    });
+
+    return { 
+      success: true, 
+      item: { 
+        id: item.id,
+        serial_number: item.serial_number,
+        productName: prod?.name || "Product SKU Item",
+        status: "RESTOCKED"
+      } 
+    };
+  } catch (err: any) {
+    console.error("Restock error:", err);
+    return { error: err?.message || "Execution error" };
   }
 }

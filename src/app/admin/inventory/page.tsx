@@ -1,16 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAdminTab } from "@/hooks/use-admin-tab";
-import { Warehouse, ArrowLeftRight, Layers, FileText, CheckCircle, Search, AlertCircle } from "lucide-react";
-
-const STOCK_MATRIX = [
-  { sku: "SKU-PROD-A1", name: "Premium Leather Shoes", stock: 124, status: "IN_STOCK", location: "Dhaka Central WH" },
-  { sku: "SKU-PROD-B2", name: "Noise Cancelling Headphones", stock: 45, status: "IN_STOCK", location: "Dhaka Central WH" },
-  { sku: "SKU-PROD-C3", name: "Mechanical Keyboard RGB", stock: 12, status: "LOW_STOCK", location: "Chittagong Outlet" },
-  { sku: "SKU-PROD-D4", name: "Minimalist Chronograph Watch", stock: 0, status: "OUT_OF_STOCK", location: "Sylhet Hub" }
-];
+import { Warehouse, ArrowLeftRight, Layers, FileText, CheckCircle, Search, AlertCircle, Printer } from "lucide-react";
+import { getEnterpriseProducts, runSchemaMigration } from "@/actions/pim-products";
+import { handlePrintMemo } from "@/utils/print-memo";
 
 const WAREHOUSES = [
   { id: "WH-01", name: "Dhaka Central WH", manager: "Farhan Ahmed", capacity: "85% utilized", status: "ACTIVE" },
@@ -31,6 +26,21 @@ const LOGS = [
 export default function InventoryPage() {
   const router = useRouter();
   const tab = useAdminTab("matrix");
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchInventory = async () => {
+      setLoading(true);
+      await runSchemaMigration();
+      const res = await getEnterpriseProducts({ limit: 100 });
+      if (res.products) {
+        setProducts(res.products);
+      }
+      setLoading(false);
+    };
+    fetchInventory();
+  }, []);
 
   const selectTab = (tabName: string) => {
     if (tabName === "matrix") {
@@ -98,27 +108,53 @@ export default function InventoryPage() {
                     <th className="pb-3">Product Name</th>
                     <th className="pb-3">Current Stock</th>
                     <th className="pb-3">Warehouse Node</th>
-                    <th className="pb-3 text-right">Status Flag</th>
+                    <th className="pb-3">Status Flag</th>
+                    <th className="pb-3 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--border)] font-medium">
-                  {STOCK_MATRIX.map((item) => (
-                    <tr key={item.sku} className="hover:bg-[var(--background)]/50 transition-colors">
-                      <td className="py-3.5 font-mono text-[10px] text-[var(--muted-foreground)]">{item.sku}</td>
-                      <td className="py-3.5 font-bold text-[var(--foreground)]">{item.name}</td>
-                      <td className="py-3.5 text-[var(--foreground)] font-bold">{item.stock} Units</td>
-                      <td className="py-3.5 text-[var(--muted-foreground)]">{item.location}</td>
-                      <td className="py-3.5 text-right">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-bold uppercase ${
-                          item.status === "IN_STOCK" ? "bg-emerald-500/10 text-emerald-500" :
-                          item.status === "LOW_STOCK" ? "bg-amber-500/10 text-amber-500" :
-                          "bg-rose-500/10 text-rose-500"
-                        }`}>
-                          {item.status.replace("_", " ")}
-                        </span>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-[var(--muted-foreground)]">
+                        Loading stock inventory data...
                       </td>
                     </tr>
-                  ))}
+                  ) : products.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-[var(--muted-foreground)]">
+                        No product entries committed in database. Add products to populate inventory ledger.
+                      </td>
+                    </tr>
+                  ) : (
+                    products.map((item) => {
+                      const isLowStock = item.current_stock <= (item.low_stock_alert || 5);
+                      const isOut = item.current_stock <= 0;
+                      const statusLabel = isOut ? "OUT OF STOCK" : isLowStock ? "LOW STOCK" : "IN STOCK";
+                      const statusColor = isOut ? "bg-rose-500/10 text-rose-500" : isLowStock ? "bg-amber-500/10 text-amber-500" : "bg-emerald-500/10 text-emerald-500";
+
+                      return (
+                        <tr key={item.id} className="hover:bg-[var(--background)]/50 transition-colors">
+                          <td className="py-3.5 font-mono text-[10px] text-[var(--muted-foreground)]">{item.sku}</td>
+                          <td className="py-3.5 font-bold text-[var(--foreground)]">{item.name}</td>
+                          <td className="py-3.5 text-[var(--foreground)] font-bold">{item.current_stock} Units</td>
+                          <td className="py-3.5 text-[var(--muted-foreground)]">Dhaka Central WH</td>
+                          <td className="py-3.5">
+                            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-bold uppercase ${statusColor}`}>
+                              {statusLabel}
+                            </span>
+                          </td>
+                          <td className="py-3.5 text-right">
+                            <button
+                              onClick={() => handlePrintMemo(item)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-[10px] font-bold uppercase transition-colors cursor-pointer"
+                            >
+                              <Printer className="h-3.5 w-3.5" /> Print Memo
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
             </div>

@@ -84,3 +84,17 @@ export async function getOrderById(id: string) {
     return { error: "Failed to fetch order details." };
   }
 }
+
+export async function updateOrderStatus(id: string, status: string) {
+  try {
+    const order = await prisma.orderMatrix.update({
+      where: { id },
+      data: { status }
+    });
+    revalidatePath("/admin/orders");
+    return { success: true, order };
+  } catch (error: any) {
+    console.error("Update order status error:", error);
+    return { error: error?.message || "Failed to update order status." };
+  }
+}
