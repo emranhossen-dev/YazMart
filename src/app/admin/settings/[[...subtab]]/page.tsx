@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { startTransition, useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 import { getHomepageConfig, updateHomepageConfig } from "@/actions/homepage";
 import { uploadImage } from "@/actions/upload";
 import { seedDemoDatabaseAction } from "@/actions/seed";
@@ -9,7 +11,8 @@ import {
   Trash2, Plus, UploadCloud, CheckCircle, Image as ImageIcon, Sparkles, Star 
 } from "lucide-react";
 
-export default function SuperAdminSettingsPage() {
+export default function Page() {
+  const router = useRouter();
   const [config, setConfig] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [seeding, setSeeding] = useState(false);

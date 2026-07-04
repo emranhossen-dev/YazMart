@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { useShopStore } from "@/store/shop-store";
 import { useAuthStore } from "@/store/auth-store";
 import { signOutAction } from "@/actions/auth";
-import { ShoppingCart, Heart, ShieldCheck, Package, ArrowLeft, ShoppingBag, Star, HelpCircle, Frown, MapPin, Truck, RotateCcw, DollarSign, Share2, ChevronLeft, ChevronRight, Info } from "lucide-react";
+import toast from "react-hot-toast";
+import { ShoppingCart, Heart, ShieldCheck, Package, ArrowLeft, ShoppingBag, Star, HelpCircle, Frown, MapPin, Truck, RotateCcw, DollarSign, Share2, ChevronLeft, ChevronRight, Info, X, Layers } from "lucide-react";
 
 interface ProductDetailPageClientProps {
   initialProduct: any;
@@ -66,10 +67,30 @@ export default function ProductDetailPageClient({
   const { cart, wishlist, addToCart, toggleWishlist } = useShopStore();
   const { user } = useAuthStore();
 
+  // Side Cart state
+  const [showSideCart, setShowSideCart] = useState(false);
+
+  const handleAddToCart = () => {
+    if (!user) {
+      toast.error("Please login to add products to your cart.");
+      router.push("/auth");
+      return;
+    }
+    addToCart({ ...product, quantity: qty });
+    setShowSideCart(true); // Open side cart instead of toast
+  };
+
   const handleBuyNow = (p?: any) => {
+    if (!user) {
+      toast.error("Please login to buy products.");
+      router.push("/auth");
+      return;
+    }
     const targetProduct = p || product;
     if (!targetProduct) return;
-    addToCart(targetProduct);
+    
+    // Add to cart silently (suppressToast = true)
+    addToCart({ ...targetProduct, quantity: p && p.id !== product.id ? 1 : qty }, true);
     router.push("/checkout");
   };
 
@@ -325,10 +346,14 @@ export default function ProductDetailPageClient({
               </button>
               <button 
                 type="button"
-                onClick={() => {
-                  addToCart(product);
-                  for (let i = 1; i < qty; i++) addToCart(product);
-                }}
+                onClick={() => handleBuyNow()}
+                className="flex-1 py-3 bg-[#2abbe8] hover:bg-[#1a9fcb] text-white text-sm font-bold uppercase rounded-sm cursor-pointer transition-colors shadow-2xs text-center"
+              >
+                Buy Now
+              </button>
+              <button 
+                type="button"
+                onClick={() => handleAddToCart()}
                 className="flex-1 py-3 bg-[#f57224] hover:bg-[#d65f1a] text-white text-sm font-bold uppercase rounded-sm cursor-pointer transition-colors shadow-2xs text-center"
               >
                 Add to Cart
@@ -851,7 +876,141 @@ export default function ProductDetailPageClient({
             </div>
           </div>
         )}
+
+      {/* Footer */}
+      <footer className="bg-zinc-950 text-zinc-400 border-t border-zinc-900 transition-colors mt-12 w-full max-w-[100vw]">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-16 grid gap-12 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 text-xs font-medium text-left">
+          
+          <div className="lg:col-span-2 space-y-6">
+            <Link href="/" className="font-display text-2xl font-black text-white tracking-tight uppercase">YazMart</Link>
+            <p className="leading-relaxed font-normal text-zinc-500 max-w-xs">Elevating the digital shopping experience through curated luxury and technological excellence.</p>
+            <div className="flex gap-4">
+              <span className="w-8 h-8 rounded-full border border-zinc-800 flex items-center justify-center hover:bg-white hover:text-zinc-950 transition-colors cursor-pointer"><Layers className="h-4 w-4" /></span>
+              <span className="w-8 h-8 rounded-full border border-zinc-800 flex items-center justify-center hover:bg-white hover:text-zinc-950 transition-colors cursor-pointer"><Star className="h-4 w-4" /></span>
+              <span className="w-8 h-8 rounded-full border border-zinc-800 flex items-center justify-center hover:bg-white hover:text-zinc-950 transition-colors cursor-pointer"><ShoppingCart className="h-4 w-4" /></span>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="font-black text-white uppercase tracking-wider mb-6 text-[10px]">Company</h4>
+            <ul className="space-y-4 font-normal text-zinc-500">
+              <li><Link href="#" className="hover:text-white transition-colors">About Us</Link></li>
+              <li><Link href="#" className="hover:text-white transition-colors">Sustainability</Link></li>
+              <li><Link href="#" className="hover:text-white transition-colors">Careers</Link></li>
+              <li><Link href="#" className="hover:text-white transition-colors">Press Room</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-black text-white uppercase tracking-wider mb-6 text-[10px]">Support Desk</h4>
+            <ul className="space-y-4 font-normal text-zinc-500">
+              <li><Link href="#" className="hover:text-white transition-colors">Help Center</Link></li>
+              <li><Link href="#" className="hover:text-white transition-colors">Contact Us</Link></li>
+              <li><Link href="#" className="hover:text-white transition-colors">Shipping &amp; Returns</Link></li>
+              <li><Link href="#" className="hover:text-white transition-colors">Sizing Guides</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-black text-white uppercase tracking-wider mb-6 text-[10px]">Legal Terms</h4>
+            <ul className="space-y-4 font-normal text-zinc-500">
+              <li><Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+              <li><Link href="#" className="hover:text-white transition-colors">Terms of Service</Link></li>
+              <li><Link href="#" className="hover:text-white transition-colors">Cookie Policy</Link></li>
+              <li><Link href="#" className="hover:text-white transition-colors">Security Audit</Link></li>
+            </ul>
+          </div>
+
+          <div className="space-y-4">
+            <h4 className="font-black text-white uppercase tracking-wider mb-6 text-[10px]">Mobile Experience</h4>
+            <div className="flex flex-col gap-3">
+              <span className="bg-zinc-900 border border-zinc-800 text-white px-4 py-2.5 rounded-xl flex items-center gap-3 hover:bg-zinc-800 transition-colors cursor-pointer select-none">
+                <Layers className="h-5 w-5 shrink-0" />
+                <div className="text-[8px] leading-tight font-black uppercase text-left">Download on the <br/><span className="text-[11px] font-bold">App Store</span></div>
+              </span>
+              <span className="bg-zinc-900 border border-zinc-800 text-white px-4 py-2.5 rounded-xl flex items-center gap-3 hover:bg-zinc-800 transition-colors cursor-pointer select-none">
+                <ShoppingCart className="h-5 w-5 shrink-0" />
+                <div className="text-[8px] leading-tight font-black uppercase text-left">Get it on <br/><span className="text-[11px] font-bold">Google Play</span></div>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto border-t border-zinc-900 h-20 px-4 md:px-6 flex items-center justify-between text-[10px] text-zinc-500 font-semibold uppercase tracking-wider">
+          <p>&copy; 2026 YazMart. All rights reserved.</p>
+          <div className="flex gap-4">
+            <span>Visa</span>
+            <span>Mastercard</span>
+            <span>bKash</span>
+            <span>NAGAD</span>
+          </div>
+        </div>
+      </footer>
       </main>
+      {/* Side Cart Overlay */}
+      {showSideCart && (
+        <div className="fixed inset-0 z-[100] flex justify-end">
+          <div 
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity cursor-pointer" 
+            onClick={() => setShowSideCart(false)}
+          />
+          <div className="relative w-full max-w-sm bg-white h-full flex flex-col shadow-2xl animate-fade-in text-zinc-900 border-l border-zinc-200">
+            {/* Cart Header */}
+            <div className="p-4 border-b border-zinc-200 flex items-center justify-between bg-zinc-50">
+              <div className="flex items-center gap-2">
+                <ShoppingCart className="h-5 w-5 text-[#f57224]" />
+                <h3 className="font-bold text-lg">Your Cart</h3>
+                <span className="bg-[#f57224] text-white text-[10px] font-black px-2 py-0.5 rounded-full">{cart.reduce((s, i) => s + i.quantity, 0)} items</span>
+              </div>
+              <button onClick={() => setShowSideCart(false)} className="p-1.5 hover:bg-zinc-200 rounded-full text-zinc-500 cursor-pointer">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Cart Items Scrollable */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {cart.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-zinc-400 space-y-4">
+                  <ShoppingBag className="h-16 w-16 opacity-20" />
+                  <p className="font-medium">Your cart is currently empty.</p>
+                </div>
+              ) : (
+                cart.map((item, idx) => (
+                  <div key={idx} className="flex gap-3 border border-zinc-200 rounded-lg p-3 bg-zinc-50">
+                    <img src={item.image || "https://placehold.co/200x200/png"} alt={item.name} className="w-16 h-16 object-cover rounded-md border border-zinc-200 bg-white" />
+                    <div className="flex-1 flex flex-col justify-between">
+                      <div>
+                        <h4 className="text-[12px] font-bold line-clamp-2 leading-tight text-zinc-800">{item.name}</h4>
+                        <div className="text-[#f57224] font-black text-sm mt-1">৳{item.price}</div>
+                      </div>
+                      <div className="text-[11px] text-zinc-500 font-medium">Qty: {item.quantity}</div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Cart Footer */}
+            <div className="p-4 border-t border-zinc-200 bg-zinc-50 space-y-4">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-zinc-500 font-bold uppercase">Subtotal</span>
+                <span className="text-lg font-black text-[#f57224]">
+                  ৳{cart.reduce((sum, item) => sum + (item.price * item.quantity), 0).toLocaleString()}
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => setShowSideCart(false)} className="flex-1 py-3 text-zinc-600 bg-zinc-200 hover:bg-zinc-300 font-bold text-xs uppercase rounded cursor-pointer transition-colors">
+                  Continue Shopping
+                </button>
+                <button onClick={() => router.push("/checkout")} className="flex-1 py-3 bg-[#f57224] hover:bg-[#d65f1a] text-white font-bold text-xs uppercase rounded cursor-pointer transition-colors shadow-md">
+                  Checkout
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

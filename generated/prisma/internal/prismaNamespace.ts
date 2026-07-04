@@ -417,7 +417,8 @@ export const ModelName = {
   ProductVariants: 'ProductVariants',
   OrderMatrix: 'OrderMatrix',
   HomepageConfig: 'HomepageConfig',
-  StockItem: 'StockItem'
+  StockItem: 'StockItem',
+  coupons: 'coupons'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -433,7 +434,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "audit_log_entries" | "custom_oauth_providers" | "flow_state" | "identities" | "instances" | "mfa_amr_claims" | "mfa_challenges" | "mfa_factors" | "oauth_authorizations" | "oauth_client_states" | "oauth_clients" | "oauth_consents" | "one_time_tokens" | "refresh_tokens" | "saml_providers" | "saml_relay_states" | "schema_migrations" | "sessions" | "sso_domains" | "sso_providers" | "users" | "webauthn_challenges" | "webauthn_credentials" | "categories" | "products" | "profiles" | "roles" | "categoryMatrix" | "brandMatrix" | "pimProducts" | "productVariants" | "orderMatrix" | "homepageConfig" | "stockItem"
+    modelProps: "audit_log_entries" | "custom_oauth_providers" | "flow_state" | "identities" | "instances" | "mfa_amr_claims" | "mfa_challenges" | "mfa_factors" | "oauth_authorizations" | "oauth_client_states" | "oauth_clients" | "oauth_consents" | "one_time_tokens" | "refresh_tokens" | "saml_providers" | "saml_relay_states" | "schema_migrations" | "sessions" | "sso_domains" | "sso_providers" | "users" | "webauthn_challenges" | "webauthn_credentials" | "categories" | "products" | "profiles" | "roles" | "categoryMatrix" | "brandMatrix" | "pimProducts" | "productVariants" | "orderMatrix" | "homepageConfig" | "stockItem" | "coupons"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2953,6 +2954,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    coupons: {
+      payload: Prisma.$couponsPayload<ExtArgs>
+      fields: Prisma.couponsFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.couponsFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$couponsPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.couponsFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$couponsPayload>
+        }
+        findFirst: {
+          args: Prisma.couponsFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$couponsPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.couponsFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$couponsPayload>
+        }
+        findMany: {
+          args: Prisma.couponsFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$couponsPayload>[]
+        }
+        create: {
+          args: Prisma.couponsCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$couponsPayload>
+        }
+        createMany: {
+          args: Prisma.couponsCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.couponsCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$couponsPayload>[]
+        }
+        delete: {
+          args: Prisma.couponsDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$couponsPayload>
+        }
+        update: {
+          args: Prisma.couponsUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$couponsPayload>
+        }
+        deleteMany: {
+          args: Prisma.couponsDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.couponsUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.couponsUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$couponsPayload>[]
+        }
+        upsert: {
+          args: Prisma.couponsUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$couponsPayload>
+        }
+        aggregate: {
+          args: Prisma.CouponsAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCoupons>
+        }
+        groupBy: {
+          args: Prisma.couponsGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CouponsGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.couponsCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CouponsCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -3409,7 +3484,8 @@ export type ProfilesScalarFieldEnum = (typeof ProfilesScalarFieldEnum)[keyof typ
 
 export const RolesScalarFieldEnum = {
   id: 'id',
-  name: 'name'
+  name: 'name',
+  permissions: 'permissions'
 } as const
 
 export type RolesScalarFieldEnum = (typeof RolesScalarFieldEnum)[keyof typeof RolesScalarFieldEnum]
@@ -3564,6 +3640,21 @@ export const StockItemScalarFieldEnum = {
 } as const
 
 export type StockItemScalarFieldEnum = (typeof StockItemScalarFieldEnum)[keyof typeof StockItemScalarFieldEnum]
+
+
+export const CouponsScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  discount_type: 'discount_type',
+  discount_value: 'discount_value',
+  min_order_amount: 'min_order_amount',
+  valid_until: 'valid_until',
+  is_active: 'is_active',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type CouponsScalarFieldEnum = (typeof CouponsScalarFieldEnum)[keyof typeof CouponsScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -4008,6 +4099,7 @@ export type GlobalOmitConfig = {
   orderMatrix?: Prisma.OrderMatrixOmit
   homepageConfig?: Prisma.HomepageConfigOmit
   stockItem?: Prisma.StockItemOmit
+  coupons?: Prisma.couponsOmit
 }
 
 /* Types for Logging */

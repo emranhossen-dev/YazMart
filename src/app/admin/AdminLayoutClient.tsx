@@ -25,6 +25,59 @@ interface NotificationItem {
   type: "order" | "stock" | "system";
 }
 
+const PATH_PERMISSION_MAP: Record<string, string> = {
+  "/admin/products": "products",
+  "/admin/categories": "categories",
+  "/admin/brands": "brands",
+  "/admin/attributes": "attributes",
+  "/admin/tags": "tags",
+  "/admin/orders": "orders",
+  "/admin/inventory": "inventory",
+  "/admin/purchase": "purchase",
+  "/admin/customers": "customers",
+  "/admin/reviews": "customers",
+  "/admin/finance": "finance",
+  "/admin/marketing": "marketing",
+  "/admin/content": "content",
+  "/admin/reports": "reports",
+  "/admin/staff": "staff",
+  "/admin/settings": "settings",
+};
+
+function filterMenuItems(items: MenuItem[], permissions: string[], role: string) {
+  if (role === "admin" || role === "Super Admin" || role === "Admin") return items;
+
+  return items
+    .map((item) => {
+      if (item.href) {
+        const permKey = PATH_PERMISSION_MAP[item.href];
+        if (!permKey || permissions.includes(permKey)) return item;
+        return null;
+      }
+
+      if (item.subItems) {
+        const filteredSubs = item.subItems.filter((sub) => {
+          for (const [routePrefix, permKey] of Object.entries(PATH_PERMISSION_MAP)) {
+            if (sub.href.startsWith(routePrefix)) {
+              return permissions.includes(permKey);
+            }
+          }
+          return true;
+        });
+
+        if (filteredSubs.length > 0) {
+          return {
+            ...item,
+            subItems: filteredSubs,
+          };
+        }
+      }
+
+      return null;
+    })
+    .filter(Boolean) as MenuItem[];
+}
+
 interface SubMenuItem {
   name: string;
   href: string;
@@ -115,12 +168,26 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
     "Staff Control": false,
     Settings: false,
   });
-  const [userData, setUserData] = useState({ name: "Emran Hossen", role: "Super Admin" });
+  const [userData, setUserData] = useState({ name: "Emran Hossen", role: "Super Admin", permissions: [] as string[] });
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   
   const pathname = usePathname();
   const router = useRouter();
+
+  const isAuthorized = () => {
+    const role = userData.role;
+    if (role === "Super Admin" || role === "admin" || role === "Admin") return true;
+    if (pathname === "/admin") return true; // dashboard open to all staff members
+    
+    // Match prefix in PATH_PERMISSION_MAP
+    for (const [routePrefix, permKey] of Object.entries(PATH_PERMISSION_MAP)) {
+      if (pathname.startsWith(routePrefix)) {
+        return userData.permissions.includes(permKey);
+      }
+    }
+    return true; // default to true for unlisted routes
+  };
 
   const playNotificationSound = () => {
     try {
@@ -184,15 +251,36 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
           const newOrder = payload.new as any;
           if (newOrder) {
             playNotificationSound();
+
+            let itemsSummary = "";
+            try {
+              const itemsList = typeof newOrder.items === "string" 
+                ? JSON.parse(newOrder.items) 
+                : newOrder.items;
+              if (Array.isArray(itemsList) && itemsList.length > 0) {
+                itemsSummary = itemsList
+                  .map((item: any) => `${item.name || item.productName || "Product"} (x${item.quantity})`)
+                  .join(", ");
+              }
+            } catch (e) {
+              console.warn("Failed to parse order items:", e);
+            }
+
+            const customerInfo = newOrder.customer_email 
+              ? `(${newOrder.customer_email})` 
+              : newOrder.phone 
+                ? `(${newOrder.phone})` 
+                : "";
+
             toast.success(`New order placed by ${newOrder.customer_name}!`, {
               icon: "🛍️",
-              duration: 5000,
+              duration: 6000,
             });
 
             const notification: NotificationItem = {
               id: newOrder.id || Math.random().toString(),
               title: "New Order Received",
-              message: `Order #${newOrder.id?.slice(0, 8) || "REF"} from ${newOrder.customer_name} for ৳${Number(newOrder.total_amount).toLocaleString()}`,
+              message: `Order #${newOrder.id?.slice(0, 8) || "REF"} by ${newOrder.customer_name} ${customerInfo} for ৳${Number(newOrder.total_amount).toLocaleString()}${itemsSummary ? `. Items: ${itemsSummary}` : ""}`,
               time: new Date().toLocaleTimeString(),
               read: false,
               type: "order"
@@ -213,21 +301,28 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
           const newProduct = payload.new as any;
           const oldProduct = payload.old as any;
           if (newProduct) {
-            // Check if stock transitioned below alert limit
-            if (
-              newProduct.current_stock <= newProduct.low_stock_alert &&
-              (!oldProduct || oldProduct.current_stock > newProduct.low_stock_alert)
-            ) {
+            const isStockOut = newProduct.current_stock === 0;
+            const wasNotStockOut = !oldProduct || oldProduct.current_stock > 0;
+            const isLowStock = newProduct.current_stock <= newProduct.low_stock_alert;
+            const wasNotLowStock = !oldProduct || oldProduct.current_stock > newProduct.low_stock_alert;
+
+            if ((isStockOut && wasNotStockOut) || (isLowStock && wasNotLowStock)) {
               playNotificationSound();
-              toast.error(`Stock low: ${newProduct.name}!`, {
-                icon: "⚠️",
-                duration: 5000,
-              });
+              const title = isStockOut ? "Stock Depleted Alert!" : "Low Stock Warning";
+              const message = isStockOut 
+                ? `${newProduct.name} is completely out of stock!` 
+                : `${newProduct.name} is running low (Only ${newProduct.current_stock} items remaining).`;
+
+              if (isStockOut) {
+                toast.error(`Out of stock: ${newProduct.name}!`, { icon: "🚨", duration: 6000 });
+              } else {
+                toast.error(`Stock low: ${newProduct.name}!`, { icon: "⚠️", duration: 5000 });
+              }
 
               const notification: NotificationItem = {
                 id: Math.random().toString(),
-                title: "Low Stock Warning",
-                message: `${newProduct.name} has only ${newProduct.current_stock} items remaining.`,
+                title,
+                message,
                 time: new Date().toLocaleTimeString(),
                 read: false,
                 type: "stock"
@@ -264,64 +359,25 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
     }
   };
 
-  // Demo simulation buttons for testing real-time notifications
-  const simulateOrderEvent = () => {
-    playNotificationSound();
-    const names = ["Anisur Rahman", "Sultana Chowdhury", "Kazi Imran", "Nusrat Jahan", "Kamrul Islam"];
-    const name = names[Math.floor(Math.random() * names.length)];
-    const id = Math.floor(100000 + Math.random() * 900000).toString();
-    const amount = Math.floor(500 + Math.random() * 15000);
+
+
+  const handleNotificationClick = (n: NotificationItem) => {
+    // 1. Mark as read
+    const updated = notifications.map(item => item.id === n.id ? { ...item, read: true } : item);
+    setNotifications(updated);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("yazmart_notifications", JSON.stringify(updated));
+    }
+
+    // 2. Navigate based on type
+    if (n.type === "order") {
+      router.push("/admin/orders");
+    } else if (n.type === "stock") {
+      router.push("/admin/products");
+    }
     
-    toast.success(`Simulation: New order from ${name}!`, {
-      icon: "🛍️",
-      duration: 4000,
-    });
-
-    const notification: NotificationItem = {
-      id,
-      title: "New Order (Simulated)",
-      message: `Order #${id.slice(0, 4)} from ${name} for ৳${amount.toLocaleString()}`,
-      time: new Date().toLocaleTimeString(),
-      read: false,
-      type: "order"
-    };
-
-    setNotifications((prev) => {
-      const updated = [notification, ...prev];
-      if (typeof window !== "undefined") {
-        localStorage.setItem("yazmart_notifications", JSON.stringify(updated));
-      }
-      return updated;
-    });
-  };
-
-  const simulateStockEvent = () => {
-    playNotificationSound();
-    const items = ["Premium Leather Wallet", "Wireless Optical Mouse", "RGB Mechanical Keyboard", "USB-C Fast Charger", "Noise Cancelling Earbuds"];
-    const product = items[Math.floor(Math.random() * items.length)];
-    const stock = Math.floor(1 + Math.random() * 4);
-    
-    toast.error(`Simulation: Low stock alert for ${product}!`, {
-      icon: "⚠️",
-      duration: 4000,
-    });
-
-    const notification: NotificationItem = {
-      id: Math.random().toString(),
-      title: "Low Stock (Simulated)",
-      message: `${product} has only ${stock} items remaining in warehouse.`,
-      time: new Date().toLocaleTimeString(),
-      read: false,
-      type: "stock"
-    };
-
-    setNotifications((prev) => {
-      const updated = [notification, ...prev];
-      if (typeof window !== "undefined") {
-        localStorage.setItem("yazmart_notifications", JSON.stringify(updated));
-      }
-      return updated;
-    });
+    // 3. Close panel
+    setShowNotifications(false);
   };
 
   useEffect(() => {
@@ -330,7 +386,8 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
       if (session.authenticated && session.user) {
         setUserData({
           name: session.user.name,
-          role: session.role === "admin" ? "Super Admin" : "Staff Member"
+          role: session.role === "admin" ? "Super Admin" : session.role || "Staff Member",
+          permissions: (session as any).permissions || []
         });
       }
     };
@@ -386,7 +443,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
       name: "Inventory",
       icon: Warehouse,
       subItems: [
-        { name: "Stock Matrix", href: "/admin/inventory" },
+        { name: "Stock Matrix", href: "/admin/inventory/matrix" },
         { name: "Warehouses", href: "/admin/inventory/warehouses" },
         { name: "Stock Transfer", href: "/admin/inventory/transfer" },
         { name: "Stock History", href: "/admin/inventory/history" },
@@ -397,7 +454,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
       icon: Factory,
       subItems: [
         { name: "Suppliers", href: "/admin/purchase/suppliers" },
-        { name: "Purchase Orders", href: "/admin/purchase" },
+        { name: "Purchase Orders", href: "/admin/purchase/orders" },
         { name: "Purchase Returns", href: "/admin/purchase/returns" },
       ]
     },
@@ -405,7 +462,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
       name: "Customers",
       icon: Users,
       subItems: [
-        { name: "Customers Directory", href: "/admin/customers" },
+        { name: "Customers Directory", href: "/admin/customers/directory" },
         { name: "Customer Groups", href: "/admin/customers/groups" },
         { name: "Support Tickets", href: "/admin/customers/tickets" },
         { name: "Product Reviews", href: "/admin/reviews" },
@@ -415,7 +472,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
       name: "Finance",
       icon: CircleDollarSign,
       subItems: [
-        { name: "Sales Matrix", href: "/admin/finance" },
+        { name: "Sales Matrix", href: "/admin/finance/sales" },
         { name: "Expenses Tracker", href: "/admin/finance/expenses" },
         { name: "Profit & Loss", href: "/admin/finance/profit-loss" },
         { name: "Accounting Ledger", href: "/admin/finance/accounting" },
@@ -428,7 +485,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
       subItems: [
         { name: "Coupons", href: "/admin/marketing/coupons" },
         { name: "Banners Slider", href: "/admin/marketing/banners" },
-        { name: "Campaigns", href: "/admin/marketing" },
+        { name: "Campaigns", href: "/admin/marketing/campaigns" },
         { name: "Newsletter", href: "/admin/marketing/newsletter" },
         { name: "Notifications", href: "/admin/marketing/notifications" },
       ]
@@ -478,6 +535,71 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
     if (!res.error) router.push("/auth");
   };
 
+  const filteredMenus = filterMenuItems(menuItems, userData.permissions, userData.role);
+
+  if (!isAuthorized()) {
+    return (
+      <div className="admin-theme h-screen flex bg-[var(--background)] text-[var(--foreground)] font-sans antialiased overflow-hidden">
+        {/* Advanced Sidebar */}
+        <aside className="fixed inset-y-0 left-0 z-50 w-68 bg-[var(--card)] border-r border-[var(--border)] flex flex-col transform translate-x-0 lg:translate-x-0">
+          <div className="h-16 flex items-center justify-between px-5 border-b border-[var(--border)] bg-[var(--background)]/40 backdrop-blur-md">
+            <Link href="/admin" className="text-[15px] font-black tracking-widest uppercase bg-gradient-to-r from-[#00d2ff] to-[#0066ff] bg-clip-text text-transparent">
+              YazMart // OS
+            </Link>
+          </div>
+
+          <nav className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto custom-scrollbar select-none">
+            <AdminSidebarNav
+              menuItems={filteredMenus}
+              openMenus={openMenus}
+              toggleMenu={toggleMenu}
+              pathname={pathname}
+            />
+          </nav>
+
+          <div className="p-3 border-t border-[var(--border)] bg-[var(--background)]/30">
+            <button type="button" onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-xs font-semibold text-rose-500 hover:bg-rose-500/10 transition-all cursor-pointer">
+              <LogOut className="h-4 w-4" />
+              <span>Terminate Session</span>
+            </button>
+          </div>
+        </aside>
+
+        {/* Workspace Area */}
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden lg:pl-68">
+          <header className="h-16 bg-[var(--card)] border-b border-[var(--border)] flex items-center justify-between px-6 sticky top-0 z-30 shadow-xs">
+            <div className="flex items-center gap-4 ml-auto">
+              <ThemeToggle />
+              <div className="h-6 w-px bg-[var(--border)]" />
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-md bg-gradient-to-br from-[#00d2ff] to-[#0066ff] flex items-center justify-center font-bold text-xs text-[#060813]">
+                  {userData.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="hidden sm:block text-left">
+                  <p className="text-xs font-bold leading-none text-slate-200">{userData.name}</p>
+                  <p className="text-[10px] text-[var(--muted-foreground)] mt-0.5">{userData.role}</p>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <main className="flex-1 overflow-y-auto p-5 md:p-8 bg-[var(--background)] flex flex-col items-center justify-center space-y-4">
+            <div className="text-center space-y-2 select-none">
+              <h1 className="text-5xl font-black tracking-widest uppercase bg-gradient-to-r from-[#ff3b30] to-[#ff9500] bg-clip-text text-transparent animate-pulse">404</h1>
+              <p className="text-sm font-bold uppercase tracking-wider text-slate-200">Access Restricted</p>
+              <p className="text-[11px] text-[var(--muted-foreground)] max-w-xs leading-normal mx-auto">
+                Your assigned security policy does not grant clearance to access this console node path.
+              </p>
+            </div>
+            <Link href="/admin" className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-bold text-[10px] uppercase transition-all shadow-md">
+              Return to Deck
+            </Link>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="admin-theme h-screen flex bg-[var(--background)] text-[var(--foreground)] font-sans antialiased selection:bg-[var(--primary)]/30 overflow-hidden">
       {/* Mobile Sidebar Overlay */}
@@ -500,7 +622,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
 
         <nav className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto custom-scrollbar select-none">
           <AdminSidebarNav
-            menuItems={menuItems}
+            menuItems={filteredMenus}
             openMenus={openMenus}
             toggleMenu={toggleMenu}
             pathname={pathname}
@@ -558,23 +680,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
                     )}
                   </div>
 
-                  {/* Dev Simulation Panel */}
-                  <div className="p-2 bg-[var(--background)]/40 border-b border-[var(--border)] flex gap-2 justify-center">
-                    <button
-                      type="button"
-                      onClick={simulateOrderEvent}
-                      className="px-2 py-1 rounded bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 transition-all font-bold text-[9px] uppercase cursor-pointer"
-                    >
-                      + Order
-                    </button>
-                    <button
-                      type="button"
-                      onClick={simulateStockEvent}
-                      className="px-2 py-1 rounded bg-amber-600/20 text-amber-400 hover:bg-amber-600/30 transition-all font-bold text-[9px] uppercase cursor-pointer"
-                    >
-                      + Stock Warning
-                    </button>
-                  </div>
+
 
                   {/* Notification List */}
                   <div className="max-h-72 overflow-y-auto divide-y divide-[var(--border)] custom-scrollbar">
@@ -586,7 +692,8 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
                       notifications.map(n => (
                         <div 
                           key={n.id} 
-                          className={`p-3 transition-colors ${n.read ? "opacity-60 bg-transparent" : "bg-[var(--primary)]/5 border-l-2 border-[var(--primary)]"}`}
+                          onClick={() => handleNotificationClick(n)}
+                          className={`p-3 transition-colors cursor-pointer hover:bg-[var(--accent)]/40 ${n.read ? "opacity-60 bg-transparent" : "bg-[var(--primary)]/5 border-l-2 border-[var(--primary)]"}`}
                         >
                           <div className="flex justify-between items-start gap-2">
                             <div className="space-y-0.5">

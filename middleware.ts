@@ -8,8 +8,8 @@ export async function middleware(request: NextRequest) {
   // ১. প্রটেক্টেড অ্যাডমিন রাউট সিকিউরিটি
   if (pathname.startsWith("/admin")) {
     if (!sessionToken) {
-      const loginUrl = new URL("/auth", request.url);
-      return NextResponse.redirect(loginUrl);
+      // Direct 404 rewrite instead of redirecting to /auth
+      return NextResponse.rewrite(new URL("/_not-found", request.url));
     }
   }
 

@@ -22,7 +22,7 @@ interface WishlistItem {
 interface ShopState {
   cart: CartItem[];
   wishlist: WishlistItem[];
-  addToCart: (product: any) => void;
+  addToCart: (product: any, suppressToast?: boolean) => void;
   removeFromCart: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
@@ -37,7 +37,7 @@ export const useShopStore = create<ShopState>()(
       cart: [],
       wishlist: [],
 
-      addToCart: (product) => {
+      addToCart: (product, suppressToast = false) => {
         const cart = get().cart;
         const existing = cart.find((item) => item.id === product.id);
 
@@ -64,15 +64,17 @@ export const useShopStore = create<ShopState>()(
             ],
           });
         }
-        toast.success(`"${product.name}" added to cart!`, {
-          style: {
-            background: "var(--card)",
-            color: "var(--foreground)",
-            border: "1px solid var(--border)",
-            fontSize: "12px",
-            fontWeight: "bold",
-          }
-        });
+        if (!suppressToast) {
+          toast.success(`"${product.name}" added to cart!`, {
+            style: {
+              background: "var(--card)",
+              color: "var(--foreground)",
+              border: "1px solid var(--border)",
+              fontSize: "12px",
+              fontWeight: "bold",
+            }
+          });
+        }
       },
 
       removeFromCart: (id) => {

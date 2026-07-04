@@ -539,9 +539,10 @@ model profiles {
 }
 
 model roles {
-  id       String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  name     String     @unique
-  profiles profiles[]
+  id          String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name        String     @unique
+  permissions Json?
+  profiles    profiles[]
 
   @@schema("public")
 }
@@ -794,6 +795,20 @@ model StockItem {
   order_id      String?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+
+  @@schema("public")
+}
+
+model coupons {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code             String    @unique @db.VarChar(255)
+  discount_type    String    @default("percentage") @db.VarChar(50)
+  discount_value   Float
+  min_order_amount Float     @default(0)
+  valid_until      DateTime? @db.Timestamptz(6)
+  is_active        Boolean   @default(true)
+  created_at       DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime? @default(now()) @db.Timestamptz(6)
 
   @@schema("public")
 }

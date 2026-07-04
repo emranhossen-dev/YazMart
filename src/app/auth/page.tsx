@@ -24,13 +24,12 @@ export default function AuthPage() {
         if (res.error) {
           setMessage({ type: "error", text: res.error });
         } else {
-          const isAdmin =
-            res.role === "admin" || res.role === "Super Admin";
-          const destination = isAdmin ? "/admin" : "/";
+          const isStaff = res.role && res.role !== "customer";
+          const destination = isStaff ? "/admin" : "/";
 
           setMessage({
             type: "success",
-            text: `Login successful! Redirecting to ${isAdmin ? "admin dashboard" : "storefront"}...`,
+            text: `Login successful! Redirecting to ${isStaff ? "admin dashboard" : "storefront"}...`,
           });
 
           window.location.href = destination;

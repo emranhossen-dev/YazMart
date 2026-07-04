@@ -5,6 +5,8 @@ interface UserProfile {
   fullName: string | null;
   avatarUrl: string | null;
   role: string | null;
+  email?: string | null;
+  phone?: string | null;
 }
 
 interface AuthState {

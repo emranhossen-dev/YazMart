@@ -17,6 +17,14 @@ export default function CartPage() {
   const shipping = subtotal > 100 || subtotal === 0 ? 0 : 15;
   const total = subtotal + shipping;
 
+  React.useEffect(() => {
+    if (!user) {
+      router.push("/auth");
+    }
+  }, [user, router]);
+
+  if (!user) return null; // Avoid flashing content before redirect
+
   return (
     <div className="min-h-screen flex flex-col bg-[var(--background)] text-[var(--foreground)] font-sans">
       {/* Premium Consistent Navbar */}

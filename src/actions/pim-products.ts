@@ -652,3 +652,20 @@ export async function restockItemBySerial(serialNumber: string) {
     return { error: err?.message || "Execution error" };
   }
 }
+
+// 8. Adjust stock for a product manually
+export async function updateProductStock(productId: string, newStock: number) {
+  try {
+    const updated = await prisma.pimProducts.update({
+      where: { id: productId },
+      data: {
+        current_stock: newStock,
+        stock_status: newStock > 0 ? "IN_STOCK" : "OUT_OF_STOCK"
+      }
+    });
+    return { success: true, product: updated };
+  } catch (error: any) {
+    console.error("❌ UPDATE PRODUCT STOCK ERROR:", error);
+    return { error: error?.message || "Failed to update product stock." };
+  }
+}

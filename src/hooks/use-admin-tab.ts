@@ -3,25 +3,28 @@
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 
-function readTab(defaultTab: string) {
-  if (typeof window === "undefined") return defaultTab;
+function readTab(defaultTab: string, currentPathname: string | null) {
+  if (!currentPathname) {
+    if (typeof window === "undefined") return defaultTab;
+    currentPathname = window.location.pathname;
+  }
   
-  // Try parsing tab from pathname first: e.g. /admin/orders/returns -> 'returns'
-  const pathname = window.location.pathname;
-  const parts = pathname.split("/").filter(Boolean);
+  const parts = currentPathname.split("/").filter(Boolean);
   if (parts.length > 2 && parts[0] === "admin") {
     const knownPages = [
       "products", "categories", "brands", "attributes", "tags", 
       "reviews", "orders", "inventory", "purchase", "customers", 
       "finance", "marketing", "content", "reports", "staff", "settings"
     ];
-    const lastPart = parts[parts.length - 1];
-    if (!knownPages.includes(lastPart)) {
-      return lastPart;
+    // parts[0] = admin
+    // parts[1] = module (e.g. inventory)
+    // parts[2] = subtab (e.g. warehouses)
+    if (knownPages.includes(parts[1]) && parts[2]) {
+      return parts[2];
     }
   }
 
-  return new URLSearchParams(window.location.search).get("tab") || defaultTab;
+  return defaultTab;
 }
 
 function readQueryParam(key: string) {
@@ -31,7 +34,7 @@ function readQueryParam(key: string) {
 
 export function useAdminTab(defaultTab: string) {
   const pathname = usePathname();
-  return useMemo(() => readTab(defaultTab), [pathname, defaultTab]);
+  return useMemo(() => readTab(defaultTab, pathname), [pathname, defaultTab]);
 }
 
 export function useQueryTab() {

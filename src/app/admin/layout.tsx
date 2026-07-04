@@ -1,5 +1,5 @@
 import React from "react";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getEnterpriseUserSession } from "@/actions/auth-enterprise";
 import AdminLayoutClient from "./AdminLayoutClient";
 
@@ -9,11 +9,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const session = await getEnterpriseUserSession();
 
   if (!session.authenticated || !session.user) {
-    redirect("/auth");
+    notFound();
   }
 
-  if (session.role !== "admin" && session.role !== "Super Admin") {
-    redirect("/");
+  if (session.role === "customer" || !session.role) {
+    notFound();
   }
 
   return <AdminLayoutClient>{children}</AdminLayoutClient>;

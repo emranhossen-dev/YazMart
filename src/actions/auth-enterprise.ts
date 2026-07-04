@@ -57,6 +57,15 @@ export async function getEnterpriseUserSession() {
     }
 
     const roleName = profile.roles ? profile.roles.name : "customer";
+    const rawPerms = profile.roles ? (profile.roles.permissions as any) : null;
+    let permissions: string[] = [];
+    if (Array.isArray(rawPerms)) {
+      permissions = rawPerms as string[];
+    } else if (rawPerms && typeof rawPerms === 'string') {
+      try {
+        permissions = JSON.parse(rawPerms);
+      } catch (_) {}
+    }
 
     return {
       user: {
@@ -64,6 +73,7 @@ export async function getEnterpriseUserSession() {
         name: profile.full_name || "Enterprise User",
       },
       role: roleName,
+      permissions,
       authenticated: true
     };
   } catch (error) {

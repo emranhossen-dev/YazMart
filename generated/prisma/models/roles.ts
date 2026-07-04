@@ -37,6 +37,7 @@ export type RolesMaxAggregateOutputType = {
 export type RolesCountAggregateOutputType = {
   id: number
   name: number
+  permissions: number
   _all: number
 }
 
@@ -54,6 +55,7 @@ export type RolesMaxAggregateInputType = {
 export type RolesCountAggregateInputType = {
   id?: true
   name?: true
+  permissions?: true
   _all?: true
 }
 
@@ -132,6 +134,7 @@ export type rolesGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
 export type RolesGroupByOutputType = {
   id: string
   name: string
+  permissions: runtime.JsonValue | null
   _count: RolesCountAggregateOutputType | null
   _min: RolesMinAggregateOutputType | null
   _max: RolesMaxAggregateOutputType | null
@@ -158,12 +161,14 @@ export type rolesWhereInput = {
   NOT?: Prisma.rolesWhereInput | Prisma.rolesWhereInput[]
   id?: Prisma.UuidFilter<"roles"> | string
   name?: Prisma.StringFilter<"roles"> | string
+  permissions?: Prisma.JsonNullableFilter<"roles">
   profiles?: Prisma.ProfilesListRelationFilter
 }
 
 export type rolesOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  permissions?: Prisma.SortOrderInput | Prisma.SortOrder
   profiles?: Prisma.profilesOrderByRelationAggregateInput
 }
 
@@ -173,12 +178,14 @@ export type rolesWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.rolesWhereInput | Prisma.rolesWhereInput[]
   OR?: Prisma.rolesWhereInput[]
   NOT?: Prisma.rolesWhereInput | Prisma.rolesWhereInput[]
+  permissions?: Prisma.JsonNullableFilter<"roles">
   profiles?: Prisma.ProfilesListRelationFilter
 }, "id" | "name">
 
 export type rolesOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  permissions?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.rolesCountOrderByAggregateInput
   _max?: Prisma.rolesMaxOrderByAggregateInput
   _min?: Prisma.rolesMinOrderByAggregateInput
@@ -190,45 +197,53 @@ export type rolesScalarWhereWithAggregatesInput = {
   NOT?: Prisma.rolesScalarWhereWithAggregatesInput | Prisma.rolesScalarWhereWithAggregatesInput[]
   id?: Prisma.UuidWithAggregatesFilter<"roles"> | string
   name?: Prisma.StringWithAggregatesFilter<"roles"> | string
+  permissions?: Prisma.JsonNullableWithAggregatesFilter<"roles">
 }
 
 export type rolesCreateInput = {
   id?: string
   name: string
+  permissions?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profiles?: Prisma.profilesCreateNestedManyWithoutRolesInput
 }
 
 export type rolesUncheckedCreateInput = {
   id?: string
   name: string
+  permissions?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profiles?: Prisma.profilesUncheckedCreateNestedManyWithoutRolesInput
 }
 
 export type rolesUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  permissions?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profiles?: Prisma.profilesUpdateManyWithoutRolesNestedInput
 }
 
 export type rolesUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  permissions?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   profiles?: Prisma.profilesUncheckedUpdateManyWithoutRolesNestedInput
 }
 
 export type rolesCreateManyInput = {
   id?: string
   name: string
+  permissions?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type rolesUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  permissions?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type rolesUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  permissions?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type RolesNullableScalarRelationFilter = {
@@ -239,6 +254,7 @@ export type RolesNullableScalarRelationFilter = {
 export type rolesCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  permissions?: Prisma.SortOrder
 }
 
 export type rolesMaxOrderByAggregateInput = {
@@ -270,11 +286,13 @@ export type rolesUpdateOneWithoutProfilesNestedInput = {
 export type rolesCreateWithoutProfilesInput = {
   id?: string
   name: string
+  permissions?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type rolesUncheckedCreateWithoutProfilesInput = {
   id?: string
   name: string
+  permissions?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type rolesCreateOrConnectWithoutProfilesInput = {
@@ -296,11 +314,13 @@ export type rolesUpdateToOneWithWhereWithoutProfilesInput = {
 export type rolesUpdateWithoutProfilesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  permissions?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type rolesUncheckedUpdateWithoutProfilesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  permissions?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 
@@ -337,6 +357,7 @@ export type RolesCountOutputTypeCountProfilesArgs<ExtArgs extends runtime.Types.
 export type rolesSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  permissions?: boolean
   profiles?: boolean | Prisma.roles$profilesArgs<ExtArgs>
   _count?: boolean | Prisma.RolesCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["roles"]>
@@ -344,19 +365,22 @@ export type rolesSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
 export type rolesSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  permissions?: boolean
 }, ExtArgs["result"]["roles"]>
 
 export type rolesSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  permissions?: boolean
 }, ExtArgs["result"]["roles"]>
 
 export type rolesSelectScalar = {
   id?: boolean
   name?: boolean
+  permissions?: boolean
 }
 
-export type rolesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name", ExtArgs["result"]["roles"]>
+export type rolesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "permissions", ExtArgs["result"]["roles"]>
 export type rolesInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profiles?: boolean | Prisma.roles$profilesArgs<ExtArgs>
   _count?: boolean | Prisma.RolesCountOutputTypeDefaultArgs<ExtArgs>
@@ -372,6 +396,7 @@ export type $rolesPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     name: string
+    permissions: runtime.JsonValue | null
   }, ExtArgs["result"]["roles"]>
   composites: {}
 }
@@ -798,6 +823,7 @@ export interface Prisma__rolesClient<T, Null = never, ExtArgs extends runtime.Ty
 export interface rolesFieldRefs {
   readonly id: Prisma.FieldRef<"roles", 'String'>
   readonly name: Prisma.FieldRef<"roles", 'String'>
+  readonly permissions: Prisma.FieldRef<"roles", 'Json'>
 }
     
 

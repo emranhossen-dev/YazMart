@@ -84,7 +84,8 @@ export const ModelName = {
   ProductVariants: 'ProductVariants',
   OrderMatrix: 'OrderMatrix',
   HomepageConfig: 'HomepageConfig',
-  StockItem: 'StockItem'
+  StockItem: 'StockItem',
+  coupons: 'coupons'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -520,7 +521,8 @@ export type ProfilesScalarFieldEnum = (typeof ProfilesScalarFieldEnum)[keyof typ
 
 export const RolesScalarFieldEnum = {
   id: 'id',
-  name: 'name'
+  name: 'name',
+  permissions: 'permissions'
 } as const
 
 export type RolesScalarFieldEnum = (typeof RolesScalarFieldEnum)[keyof typeof RolesScalarFieldEnum]
@@ -675,6 +677,21 @@ export const StockItemScalarFieldEnum = {
 } as const
 
 export type StockItemScalarFieldEnum = (typeof StockItemScalarFieldEnum)[keyof typeof StockItemScalarFieldEnum]
+
+
+export const CouponsScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  discount_type: 'discount_type',
+  discount_value: 'discount_value',
+  min_order_amount: 'min_order_amount',
+  valid_until: 'valid_until',
+  is_active: 'is_active',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type CouponsScalarFieldEnum = (typeof CouponsScalarFieldEnum)[keyof typeof CouponsScalarFieldEnum]
 
 
 export const SortOrder = {

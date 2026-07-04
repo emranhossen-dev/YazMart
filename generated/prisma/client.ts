@@ -236,3 +236,8 @@ export type HomepageConfig = Prisma.HomepageConfigModel
  * 
  */
 export type StockItem = Prisma.StockItemModel
+/**
+ * Model coupons
+ * 
+ */
+export type coupons = Prisma.couponsModel

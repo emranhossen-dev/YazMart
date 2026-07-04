@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAdminTab } from "@/hooks/use-admin-tab";
+import React, { startTransition, useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 import { getOrders, updateOrderStatus } from "@/actions/orders";
 import { restockItemBySerial } from "@/actions/pim-products";
 import { ShoppingBag, ArrowLeftRight, CreditCard, Eye, ShieldAlert, Sparkles, Printer, X, Scan, AlertCircle, CheckCircle2, RotateCcw, Trash2, Phone, MessageSquare } from "lucide-react";
@@ -31,7 +31,7 @@ const FALLBACK_REFUNDS = [
   { id: "REF-302", customerName: "Tanvir Ahmed", amount: "$2,100", method: "Visa Card", status: "PROCESSING" }
 ];
 
-export default function AdminOrdersPage() {
+export default function Page() {
   const router = useRouter();
   const [tab, setTab] = useState<string>("list");
 
@@ -163,30 +163,27 @@ export default function AdminOrdersPage() {
 
       {/* Tabs */}
       <div className="flex gap-2 border-b border-[var(--border)] pb-px">
-        <button 
-          onClick={() => selectTab("list")}
+        <Link href={`/admin/orders/list`}
           className={`px-4 py-2 text-xs font-bold uppercase border-b-2 transition-colors cursor-pointer ${
             tab === "list" ? "border-blue-500 text-blue-500" : "border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
           }`}
         >
           Orders List
-        </button>
-        <button 
-          onClick={() => selectTab("returns")}
+        </Link>
+        <Link href={`/admin/orders/returns`}
           className={`px-4 py-2 text-xs font-bold uppercase border-b-2 transition-colors cursor-pointer ${
             tab === "returns" ? "border-blue-500 text-blue-500" : "border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
           }`}
         >
           Returns Ledger
-        </button>
-        <button 
-          onClick={() => selectTab("refunds")}
+        </Link>
+        <Link href={`/admin/orders/refunds`}
           className={`px-4 py-2 text-xs font-bold uppercase border-b-2 transition-colors cursor-pointer ${
             tab === "refunds" ? "border-blue-500 text-blue-500" : "border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
           }`}
         >
           Refunds Tracker
-        </button>
+        </Link>
       </div>
 
       {/* Content */}
