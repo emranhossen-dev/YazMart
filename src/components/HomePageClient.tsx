@@ -3,11 +3,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { 
-  ShoppingCart, Heart, Eye, ArrowRight, Layers, Sparkles, 
-  Flame, ShoppingBag, ShieldCheck, Star, Clock, ChevronLeft, 
-  ChevronRight, Search, ChevronDown, CheckCircle, Mail, MapPin, 
-  Phone, Shield, Award, Trash2 
+import {
+  ShoppingCart, Heart, ArrowRight, Layers, ShoppingBag,
+  Star, ChevronLeft, ChevronRight, Search, ChevronDown, Mail,
+  Trash2, X, Plus, Minus, Truck
 } from "lucide-react";
 import { ThemeToggle } from "./ui/theme-toggle";
 import { useShopStore } from "../store/shop-store";
@@ -20,6 +19,101 @@ interface HomePageClientProps {
   initialConfig: any;
 }
 
+/* Site-wide product card — rounded, soft-shadow, matching the confirmed
+   reference: discount badge top-left, wishlist heart top-right, rating,
+   price + compare price, free-shipping line, outline "Add to Cart" +
+   solid "Buy Now" side by side. Shared visual language with the product
+   detail page's related-products card. */
+function ProductCard({
+  product,
+  wishlist,
+  onToggleWishlist,
+  onAddToCart,
+  onBuyNow,
+}: any) {
+  const discount = product.compare_price && product.compare_price > product.selling_price
+    ? Math.round(((product.compare_price - product.selling_price) / product.compare_price) * 100)
+    : null;
+  const inWishlist = wishlist.some((item: any) => item.id === product.id);
+
+  return (
+    <div className="group flex w-full shrink-0 flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-sm transition-shadow duration-300 hover:shadow-lg">
+      <div className="relative">
+        {discount && (
+          <span className="absolute top-3 left-3 z-10 rounded-full bg-rose-500 px-2.5 py-1 text-[10px] font-bold text-white">
+            -{discount}%
+          </span>
+        )}
+
+        <button
+          onClick={() => onToggleWishlist(product)}
+          aria-label="Toggle wishlist"
+          className="absolute top-3 right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 shadow-sm transition-colors hover:text-rose-500 cursor-pointer"
+        >
+          <Heart className={`h-4 w-4 ${inWishlist ? "fill-rose-500 text-rose-500" : "text-zinc-500"}`} />
+        </button>
+
+        <Link
+          href={`/products/${product.slug}`}
+          className="flex h-56 items-center justify-center overflow-hidden bg-[var(--surface-container-low)] p-6"
+        >
+          <img
+            src={product.featured_image}
+            className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105"
+          />
+        </Link>
+      </div>
+
+      <div className="flex flex-1 flex-col gap-2.5 p-4">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+          {product.brand?.name || "General"}
+        </p>
+        <h4 className="-mt-1 line-clamp-1 text-sm font-semibold text-zinc-900">
+          <Link href={`/products/${product.slug}`}>{product.name}</Link>
+        </h4>
+
+        <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
+          <div className="flex text-amber-400">
+            {[1, 2, 3, 4].map((s) => <Star key={s} className="h-3 w-3 fill-current" />)}
+            <Star className="h-3 w-3 fill-current opacity-40" />
+          </div>
+          <span>4.6</span>
+        </div>
+
+        <div className="flex items-baseline gap-2">
+          <span className="text-base font-bold text-zinc-900">
+            ৳{product.selling_price.toFixed(2)}
+          </span>
+          {product.compare_price && (
+            <span className="text-xs text-zinc-400 line-through">
+              ৳{product.compare_price.toFixed(2)}
+            </span>
+          )}
+        </div>
+
+        <p className="flex items-center gap-1 text-[11px] font-medium text-emerald-600">
+          <Truck className="h-3.5 w-3.5" /> Free shipping
+        </p>
+
+        <div className="mt-1 flex gap-2">
+          <button
+            onClick={() => onAddToCart(product)}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-zinc-200 py-2 text-[11px] font-semibold text-zinc-700 transition-colors hover:border-zinc-400 cursor-pointer"
+          >
+            <ShoppingCart className="h-3.5 w-3.5" /> Add to Cart
+          </button>
+          <button
+            onClick={() => onBuyNow(product)}
+            className="flex-1 rounded-full bg-zinc-900 py-2 text-[11px] font-semibold text-white transition-colors hover:bg-zinc-700 cursor-pointer"
+          >
+            Buy Now
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function HomePageClient({
   initialShopData,
   initialConfig,
@@ -30,61 +124,49 @@ export default function HomePageClient({
     featured: [], newArrivals: [], bestSelling: [], trending: [], flashSale: []
   });
 
-  // Homepage Config States (Super Admin Controlled)
   const [config] = useState<any>(initialConfig);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeQuickDealTab, setActiveQuickDealTab] = useState("sale"); // sale, best, trending, new
+  const [activeQuickDealTab, setActiveQuickDealTab] = useState("sale");
+  const [quickDealPage, setQuickDealPage] = useState(1);
   const [activeSlide, setActiveSlide] = useState(0);
   const [featuredPage, setFeaturedPage] = useState(1);
   const [categoryPageMap, setCategoryPageMap] = useState<Record<string, number>>({});
 
-  // Active mega menu hover
   const [activeMegaMenu, setActiveMegaMenu] = useState<string | null>(null);
   const [megaMenuLeftOffset, setMegaMenuLeftOffset] = useState<number | null>(null);
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
 
-  // Slide interval ref
   const slideInterval = useRef<NodeJS.Timeout | null>(null);
 
-  // Horizontal scroll ref for category cards
   const categoryScrollRef = useRef<HTMLDivElement>(null);
   const headerCategoryScrollRef = useRef<HTMLDivElement>(null);
-  const flashSaleScrollRef = useRef<HTMLDivElement>(null);
 
-  // Testimonial slider index
-  const [activeReviewIndex, setActiveReviewIndex] = useState(0);
-
-  // All Categories Dropdown open state
   const [categoryMenuOpen, setCategoryMenuOpen] = useState(false);
   const [headerCategoryMenuOpen, setHeaderCategoryMenuOpen] = useState(false);
 
-  // Right sidebar state ("cart", "wishlist", or null)
   const [rightSidebar, setRightSidebar] = useState<"cart" | "wishlist" | null>(null);
 
-  // Countdown timer state
   const [timeLeft, setTimeLeft] = useState({ hours: 8, minutes: 42, seconds: 15 });
 
   const router = useRouter();
 
-  // Zustand Store hooks
-  const { 
-    cart, 
-    wishlist, 
-    addToCart, 
-    toggleWishlist, 
-    removeFromCart, 
-    updateQuantity, 
-    removeFromWishlist 
+  const {
+    cart,
+    wishlist,
+    addToCart,
+    toggleWishlist,
+    removeFromCart,
+    updateQuantity,
+    removeFromWishlist
   } = useShopStore();
   const { user } = useAuthStore();
 
-  // Countdown clock ticking logic
   useEffect(() => {
     const calculateTimeLeft = () => {
       const now = new Date();
       const target = new Date();
       target.setHours(23, 59, 59, 999);
-      
+
       let diff = target.getTime() - now.getTime();
       if (diff <= 0) {
         target.setDate(target.getDate() + 1);
@@ -106,7 +188,6 @@ export default function HomePageClient({
     return () => clearInterval(timer);
   }, []);
 
-  // Auto Slider Timer
   useEffect(() => {
     if (config?.slider_images && config.slider_images.length > 0) {
       slideInterval.current = setInterval(() => {
@@ -117,6 +198,11 @@ export default function HomePageClient({
       if (slideInterval.current) clearInterval(slideInterval.current);
     };
   }, [config]);
+
+  // Reset quick-deal pagination whenever the active tab changes
+  useEffect(() => {
+    setQuickDealPage(1);
+  }, [activeQuickDealTab]);
 
   const handleNextSlide = () => {
     if (!config) return;
@@ -131,30 +217,14 @@ export default function HomePageClient({
   const scrollCategories = (direction: "left" | "right") => {
     if (categoryScrollRef.current) {
       const scrollAmt = 250;
-      categoryScrollRef.current.scrollBy({
-        left: direction === "left" ? -scrollAmt : scrollAmt,
-        behavior: "smooth"
-      });
+      categoryScrollRef.current.scrollBy({ left: direction === "left" ? -scrollAmt : scrollAmt, behavior: "smooth" });
     }
   };
 
   const scrollHeaderCategories = (direction: "left" | "right") => {
     if (headerCategoryScrollRef.current) {
       const scrollAmt = 200;
-      headerCategoryScrollRef.current.scrollBy({
-        left: direction === "left" ? -scrollAmt : scrollAmt,
-        behavior: "smooth"
-      });
-    }
-  };
-
-  const scrollFlashSale = (direction: "left" | "right") => {
-    if (flashSaleScrollRef.current) {
-      const scrollAmt = 300;
-      flashSaleScrollRef.current.scrollBy({
-        left: direction === "left" ? -scrollAmt : scrollAmt,
-        behavior: "smooth"
-      });
+      headerCategoryScrollRef.current.scrollBy({ left: direction === "left" ? -scrollAmt : scrollAmt, behavior: "smooth" });
     }
   };
 
@@ -166,9 +236,7 @@ export default function HomePageClient({
   const handleToggleWishlist = (product: any) => {
     const wasInWishlist = wishlist.some(item => item.id === product.id);
     toggleWishlist(product);
-    if (!wasInWishlist) {
-      setRightSidebar("wishlist");
-    }
+    if (!wasInWishlist) setRightSidebar("wishlist");
   };
 
   const handleBuyNow = (product: any) => {
@@ -187,58 +255,67 @@ export default function HomePageClient({
   };
 
   const quickDealProducts = getQuickDealProducts();
+  const quickDealTotalPages = Math.max(1, Math.ceil(quickDealProducts.length / 4));
 
   const searchedProducts = searchQuery
     ? products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
     : [];
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--background)] text-[var(--foreground)] font-sans antialiased transition-colors duration-300">
-      
-      {/* 1. STICKY HEADER */}
-      <header className="sticky top-0 z-50 bg-[var(--card)]/80 backdrop-blur-md border-b border-outline-variant/30 shadow-xs transition-colors duration-300">
-        <div className="max-w-7xl mx-auto h-20 px-4 md:px-6 flex items-center justify-between gap-4">
-          
-          {/* Logo */}
-          <Link href="/" className="text-2xl font-display font-black tracking-tight flex items-center gap-2 flex-shrink-0 text-[var(--foreground)]">
-            <div className="p-1.5 bg-blue-600 rounded-lg text-white" style={{ backgroundColor: config?.colors?.primary || undefined }}>
-              <ShoppingBag className="h-5.5 w-5.5" />
-            </div>
-            Yaz<span className="text-blue-500" style={{ color: config?.colors?.primary || undefined }}>Mart</span>
+    <div className="flex min-h-screen flex-col bg-[var(--background)] text-[var(--foreground)] font-sans antialiased">
+      <style jsx global>{`
+        @keyframes paginationFadeIn {
+          0% { opacity: 0; transform: translateY(8px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        .pagination-fade {
+          animation: paginationFadeIn 0.35s ease;
+        }
+      `}</style>
+
+      {/* ============ HEADER ============ */}
+      <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]">
+        <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-4 px-4 md:px-6">
+
+          <Link href="/" className="flex shrink-0 items-center gap-2 font-display text-xl font-bold uppercase tracking-tight text-[var(--foreground)]">
+            <span className="flex h-8 w-8 items-center justify-center bg-[var(--foreground)] text-[var(--background)]">
+              <ShoppingBag className="h-4 w-4" />
+            </span>
+            Yaz<span style={{ color: config?.colors?.primary || "var(--primary)" }}>Mart</span>
           </Link>
 
-          {/* Large Search Bar */}
-          <div className="flex-1 max-w-xl relative hidden md:block">
-            <div className="flex items-center gap-2 bg-surface-container border border-outline-variant/20 px-4 py-2 rounded-full focus-within:border-blue-500/50 transition-colors">
+          <div className="relative hidden max-w-xl flex-1 md:block">
+            <div className="flex items-center gap-2 border border-[var(--border)] px-4 py-2.5 focus-within:border-[var(--foreground)]">
               <Search className="h-4 w-4 text-[var(--muted-foreground)]" />
-              <input 
-                type="text" 
-                placeholder="Search premium products..." 
+              <input
+                type="text"
+                placeholder="Search products…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-transparent border-none text-xs focus:outline-none w-full font-medium text-[var(--foreground)] placeholder-[var(--muted-foreground)] focus:ring-0"
+                className="w-full border-none bg-transparent text-xs font-medium text-[var(--foreground)] placeholder-[var(--muted-foreground)] focus:outline-none focus:ring-0"
               />
               {searchQuery && (
-                <button onClick={() => setSearchQuery("")} className="text-[10px] uppercase font-black text-[var(--muted-foreground)] hover:text-[var(--foreground)]">Clear</button>
+                <button onClick={() => setSearchQuery("")} className="font-mono text-[10px] uppercase text-[var(--muted-foreground)] hover:text-[var(--foreground)] cursor-pointer">
+                  Clear
+                </button>
               )}
             </div>
 
-            {/* Quick search dropdown */}
             {searchQuery && searchedProducts.length > 0 && (
-              <div className="absolute top-12 left-0 right-0 bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-xl p-2.5 max-h-72 overflow-y-auto z-50 text-xs">
+              <div className="absolute top-[46px] left-0 right-0 z-50 max-h-72 overflow-y-auto border border-[var(--border)] bg-[var(--card)] p-2 text-xs">
                 {searchedProducts.map((p: any) => (
-                  <Link 
-                    key={p.id} 
+                  <Link
+                    key={p.id}
                     href={`/products/${p.slug}`}
                     onClick={() => setSearchQuery("")}
-                    className="flex items-center gap-3 p-2 hover:bg-[var(--accent)] rounded-xl transition-colors text-[var(--foreground)]"
+                    className="flex items-center gap-3 p-2 text-[var(--foreground)] transition-colors hover:bg-[var(--accent)]"
                   >
-                    <div className="w-8 h-8 rounded border border-[var(--border)] overflow-hidden flex items-center justify-center p-0.5 bg-white">
+                    <div className="flex h-9 w-9 items-center justify-center border border-[var(--border)] bg-white p-1">
                       <img src={p.featured_image} className="h-full object-contain" />
                     </div>
                     <div>
-                      <p className="font-bold">{p.name}</p>
-                      <p className="text-[10px] text-blue-500 font-bold" style={{ color: config?.colors?.primary || undefined }}>৳{p.selling_price.toFixed(2)}</p>
+                      <p className="font-medium">{p.name}</p>
+                      <p className="font-mono text-[10px] font-semibold" style={{ color: config?.colors?.primary || "var(--primary)" }}>৳{p.selling_price.toFixed(2)}</p>
                     </div>
                   </Link>
                 ))}
@@ -246,61 +323,53 @@ export default function HomePageClient({
             )}
           </div>
 
-          {/* Header Action Controls */}
-          <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="flex shrink-0 items-center gap-1">
             <ThemeToggle />
-            
-            <Link href="/wishlist" className="relative p-2 text-[var(--foreground)] hover:text-blue-500 transition-colors">
-              <Heart className="h-5 w-5" />
+
+            <Link href="/wishlist" className="relative flex h-9 w-9 items-center justify-center text-[var(--foreground)] transition-colors hover:text-[var(--primary)]">
+              <Heart className="h-[18px] w-[18px]" />
               {wishlist.length > 0 && (
-                <span className="absolute top-0 right-0 bg-rose-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center">
+                <span className="absolute top-1 right-1 flex h-3.5 w-3.5 items-center justify-center bg-[var(--primary)] font-mono text-[8px] font-bold text-white">
                   {wishlist.length}
                 </span>
               )}
             </Link>
 
-            <Link href="/cart" className="relative p-2 text-[var(--foreground)] hover:text-blue-500 transition-colors">
-              <ShoppingCart className="h-5 w-5" />
+            <Link href="/cart" className="relative flex h-9 w-9 items-center justify-center text-[var(--foreground)] transition-colors hover:text-[var(--primary)]">
+              <ShoppingCart className="h-[18px] w-[18px]" />
               {cart.length > 0 && (
-                <span className="absolute top-0 right-0 bg-blue-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center" style={{ backgroundColor: config?.colors?.primary || undefined }}>
+                <span className="absolute top-1 right-1 flex h-3.5 w-3.5 items-center justify-center bg-[var(--primary)] font-mono text-[8px] font-bold text-white">
                   {cart.reduce((sum, item) => sum + item.quantity, 0)}
                 </span>
               )}
             </Link>
 
             {user ? (
-              <div className="relative group">
-                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--accent)] hover:opacity-90 text-[var(--foreground)] text-xs font-bold transition-all border border-outline-variant/20 cursor-pointer">
-                  <div className="w-4.5 h-4.5 rounded-full bg-blue-500 text-white flex items-center justify-center font-black text-[9px] uppercase" style={{ backgroundColor: config?.colors?.primary || undefined }}>
+              <div className="group relative ml-1">
+                <button className="flex cursor-pointer items-center gap-2 border border-[var(--border)] px-3 py-1.5 text-xs font-semibold text-[var(--foreground)] transition-colors hover:border-[var(--foreground)]">
+                  <span className="flex h-5 w-5 items-center justify-center bg-[var(--foreground)] font-mono text-[9px] font-bold uppercase text-[var(--background)]">
                     {user.fullName?.charAt(0) || "U"}
-                  </div>
-                  <span className="max-w-[70px] truncate hidden md:inline">{user.fullName || "Account"}</span>
+                  </span>
+                  <span className="hidden max-w-[70px] truncate md:inline">{user.fullName || "Account"}</span>
                 </button>
-                <div className="absolute right-0 top-full mt-1 w-40 bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-xl p-1.5 hidden group-hover:block z-50 text-xs text-[var(--foreground)] animate-fade-in">
+                <div className="absolute right-0 top-full z-50 hidden w-40 border border-[var(--border)] bg-[var(--card)] p-1 text-xs text-[var(--foreground)] group-hover:block">
                   {user.role === "admin" && (
-                    <Link 
-                      href="/admin" 
-                      className="block w-full text-left px-3 py-2 hover:bg-[var(--accent)] rounded-xl font-bold transition-colors"
-                    >
+                    <Link href="/admin" className="block w-full px-3 py-2 text-left font-semibold transition-colors hover:bg-[var(--accent)]">
                       Admin Panel
                     </Link>
                   )}
-                  <button 
-                    onClick={async () => {
-                      await signOutAction();
-                      window.location.reload();
-                    }}
-                    className="w-full text-left px-3 py-2 hover:bg-[var(--accent)] rounded-xl text-rose-500 font-bold transition-colors cursor-pointer"
+                  <button
+                    onClick={async () => { await signOutAction(); window.location.reload(); }}
+                    className="w-full cursor-pointer px-3 py-2 text-left font-semibold text-[var(--primary)] transition-colors hover:bg-[var(--accent)]"
                   >
                     Sign Out
                   </button>
                 </div>
               </div>
             ) : (
-              <Link 
-                href="/auth" 
-                className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all"
-                style={{ backgroundColor: config?.colors?.primary || undefined }}
+              <Link
+                href="/auth"
+                className="ml-1 flex items-center gap-1.5 border border-[var(--foreground)] px-4 py-2 text-xs font-semibold text-[var(--foreground)] transition-colors hover:bg-[var(--foreground)] hover:text-[var(--background)]"
               >
                 Sign In
               </Link>
@@ -308,78 +377,49 @@ export default function HomePageClient({
           </div>
         </div>
 
-        {/* 2. CATEGORY NAVIGATION BAR */}
-        <div className="border-t border-outline-variant/10 bg-[var(--card)]/95 backdrop-blur-sm relative z-40 hidden sm:block overflow-visible">
-          <div className="max-w-7xl mx-auto px-4 md:px-6 flex items-center h-12 gap-4 overflow-visible relative relative-subbar">
-            <div 
-              className="relative shrink-0 z-50 overflow-visible h-full flex items-center"
+        {/* CATEGORY BAR */}
+        <div className="relative z-40 hidden border-t border-[var(--border)] sm:block">
+          <div className="relative-subbar mx-auto flex h-11 max-w-7xl items-center gap-4 px-4 md:px-6">
+            <div
+              className="relative z-50 flex h-full shrink-0 items-center"
               onMouseEnter={() => setHeaderCategoryMenuOpen(true)}
               onMouseLeave={() => setHeaderCategoryMenuOpen(false)}
             >
               <button
                 type="button"
                 onClick={() => setHeaderCategoryMenuOpen(!headerCategoryMenuOpen)}
-                className="flex items-center gap-2 text-blue-500 hover:opacity-85 font-black text-xs uppercase tracking-wider transition-opacity whitespace-nowrap cursor-pointer h-full"
-                style={{ color: config?.colors?.primary || undefined }}
+                className="flex h-full cursor-pointer items-center gap-2 whitespace-nowrap text-[11px] font-semibold uppercase tracking-wider text-[var(--foreground)] transition-opacity hover:opacity-70"
               >
-                <Layers className="h-4 w-4" /> ALL CATEGORIES
+                <Layers className="h-3.5 w-3.5" /> All Categories
               </button>
 
               {headerCategoryMenuOpen && (
-                <div className="absolute top-full left-0 w-60 bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-xl p-2.5 z-50 grid gap-1 text-xs text-[var(--foreground)] animate-fade-in text-left">
-                  <p className="font-black text-[9px] uppercase text-[var(--muted-foreground)] tracking-wider px-2 py-1">Select Category</p>
-                  <Link 
-                    href="/products" 
-                    className="flex items-center gap-2 p-2 hover:bg-[var(--accent)] rounded-lg font-bold text-blue-500 transition-colors"
-                    style={{ color: config?.colors?.primary || undefined }}
-                    onMouseEnter={() => setHoveredCategory(null)}
-                  >
+                <div className="absolute top-full left-0 z-50 grid w-60 gap-0.5 border border-[var(--border)] bg-[var(--card)] p-2 text-xs text-[var(--foreground)]">
+                  <Link href="/products" className="p-2 font-semibold transition-colors hover:bg-[var(--accent)]" style={{ color: config?.colors?.primary || undefined }} onMouseEnter={() => setHoveredCategory(null)}>
                     All Products
                   </Link>
-                  <div className="h-px bg-[var(--border)] my-0.5" />
-                  
-                  <div className="grid gap-1 relative" onMouseLeave={() => setHoveredCategory(null)}>
+                  <div className="my-0.5 h-px bg-[var(--border)]" />
+                  <div className="relative grid gap-0.5" onMouseLeave={() => setHoveredCategory(null)}>
                     {categories.map((cat: any) => (
-                      <div
-                        key={cat.id}
-                        onMouseEnter={() => setHoveredCategory(cat.id)}
-                        className="relative"
-                      >
-                        <Link 
-                          href={`/categories/${cat.slug}`}
-                          className="flex items-center justify-between gap-2 p-2 hover:bg-[var(--accent)] rounded-lg font-semibold text-[var(--foreground)] transition-colors"
-                        >
+                      <div key={cat.id} onMouseEnter={() => setHoveredCategory(cat.id)} className="relative">
+                        <Link href={`/categories/${cat.slug}`} className="flex items-center justify-between gap-2 p-2 font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--accent)]">
                           <span>{cat.name}</span>
-                          {cat.sub_categories && cat.sub_categories.length > 0 && (
-                            <ChevronRight className="h-3 w-3 text-[var(--muted-foreground)]" />
-                          )}
+                          {cat.sub_categories?.length > 0 && <ChevronRight className="h-3 w-3 text-[var(--muted-foreground)]" />}
                         </Link>
                       </div>
                     ))}
 
-                    {/* Side Flyout for Subcategories */}
                     {hoveredCategory && (() => {
                       const cat = categories.find((c: any) => c.id === hoveredCategory);
-                      if (!cat || !cat.sub_categories || cat.sub_categories.length === 0) return null;
+                      if (!cat?.sub_categories?.length) return null;
                       return (
-                        <div 
-                          className="absolute left-full top-0 ml-1.5 w-60 bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-xl p-3 grid gap-1 text-xs text-[var(--foreground)] animate-fade-in z-[60]"
-                        >
-                          <p className="font-black text-[9px] uppercase text-[var(--muted-foreground)] tracking-wider px-2 py-1">Browse {cat.name}</p>
-                          <Link 
-                            href={`/categories/${cat.slug}`}
-                            className="flex items-center gap-2 p-2 hover:bg-[var(--accent)] rounded-lg font-bold text-blue-500 transition-colors"
-                            style={{ color: config?.colors?.primary || undefined }}
-                          >
+                        <div className="absolute left-full top-0 z-[60] ml-0.5 grid w-56 gap-0.5 border border-[var(--border)] bg-[var(--card)] p-2 text-xs text-[var(--foreground)]">
+                          <Link href={`/categories/${cat.slug}`} className="p-2 font-semibold transition-colors hover:bg-[var(--accent)]" style={{ color: config?.colors?.primary || undefined }}>
                             All Products
                           </Link>
-                          <div className="h-px bg-[var(--border)] my-0.5" />
+                          <div className="my-0.5 h-px bg-[var(--border)]" />
                           {cat.sub_categories.map((sub: any) => (
-                            <Link 
-                              key={sub.id} 
-                              href={`/categories/${sub.slug}`}
-                              className="flex items-center gap-2 p-2 hover:bg-[var(--accent)] rounded-lg font-semibold text-[var(--foreground)] transition-colors"
-                            >
+                            <Link key={sub.id} href={`/categories/${sub.slug}`} className="p-2 font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--accent)]">
                               — {sub.name}
                             </Link>
                           ))}
@@ -391,15 +431,12 @@ export default function HomePageClient({
               )}
             </div>
 
-            <div className="h-4 w-px bg-[var(--border)] shrink-0 mx-1" />
+            <div className="mx-1 h-4 w-px shrink-0 bg-[var(--border)]" />
 
-            <div className="flex-1 flex items-center overflow-hidden h-full">
-              <nav 
-                ref={headerCategoryScrollRef}
-                className="flex items-center gap-6 overflow-x-auto scrollbar-none py-1 overflow-y-visible flex-1 h-full"
-              >
+            <div className="flex h-full flex-1 items-center overflow-hidden">
+              <nav ref={headerCategoryScrollRef} className="scrollbar-none flex h-full flex-1 items-center gap-6 overflow-x-auto overflow-y-visible py-1">
                 {categories.map((cat: any) => (
-                  <div 
+                  <div
                     key={cat.id}
                     onMouseEnter={(e) => {
                       setActiveMegaMenu(cat.id);
@@ -412,57 +449,39 @@ export default function HomePageClient({
                       }
                     }}
                     onMouseLeave={() => setActiveMegaMenu(null)}
-                    className="relative shrink-0 h-full flex items-center"
+                    className="relative flex h-full shrink-0 items-center"
                   >
-                    <button 
-                      type="button"
-                      className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)] rounded-lg transition-colors whitespace-nowrap flex items-center gap-1 cursor-pointer"
-                    >
+                    <button type="button" className="flex cursor-pointer items-center gap-1 whitespace-nowrap px-1 text-[11px] font-medium uppercase tracking-wider text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)]">
                       {cat.name} <ChevronDown className="h-3 w-3" />
                     </button>
                   </div>
                 ))}
               </nav>
 
-              <div className="flex items-center gap-1 shrink-0 ml-2">
-                <button 
-                  type="button"
-                  onClick={() => scrollHeaderCategories("left")}
-                  className="p-1 border border-outline-variant/20 rounded-md hover:bg-[var(--accent)] text-[var(--foreground)] cursor-pointer"
-                >
+              <div className="ml-2 flex shrink-0 items-center gap-1">
+                <button type="button" onClick={() => scrollHeaderCategories("left")} className="cursor-pointer border border-[var(--border)] p-1 text-[var(--foreground)] hover:bg-[var(--accent)]">
                   <ChevronLeft className="h-3 w-3" />
                 </button>
-                <button 
-                  type="button"
-                  onClick={() => scrollHeaderCategories("right")}
-                  className="p-1 border border-outline-variant/20 rounded-md hover:bg-[var(--accent)] text-[var(--foreground)] cursor-pointer"
-                >
+                <button type="button" onClick={() => scrollHeaderCategories("right")} className="cursor-pointer border border-[var(--border)] p-1 text-[var(--foreground)] hover:bg-[var(--accent)]">
                   <ChevronRight className="h-3 w-3" />
                 </button>
               </div>
             </div>
 
-            {/* Hover mega menu list rendered outside scroll container to avoid layout clipping */}
             {activeMegaMenu && (() => {
               const cat = categories.find((c: any) => c.id === activeMegaMenu);
               if (!cat) return null;
               return (
-                <div 
+                <div
                   onMouseEnter={() => setActiveMegaMenu(cat.id)}
                   onMouseLeave={() => setActiveMegaMenu(null)}
-                  className="absolute top-full bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-lg p-4 z-50 grid gap-2 text-xs text-[var(--foreground)] w-64 animate-fade-in"
-                  style={{ 
-                    left: megaMenuLeftOffset !== null ? `${megaMenuLeftOffset}px` : '16px',
-                  }}
+                  className="absolute top-full z-50 grid w-64 gap-2 border border-[var(--border)] bg-[var(--card)] p-4 text-xs text-[var(--foreground)]"
+                  style={{ left: megaMenuLeftOffset !== null ? `${megaMenuLeftOffset}px` : '16px' }}
                 >
-                  <p className="font-black text-[10px] uppercase text-[var(--muted-foreground)] tracking-wider">Browse {cat.name}</p>
-                  <Link href={`/categories/${cat.slug}`} className="font-bold text-blue-500 hover:underline" style={{ color: config?.colors?.primary || undefined }}>All Products</Link>
-                  {cat.sub_categories && cat.sub_categories.map((sub: any) => (
-                    <Link 
-                      key={sub.id} 
-                      href={`/categories/${sub.slug}`}
-                      className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] font-medium pl-2"
-                    >
+                  <p className="font-mono text-[10px] uppercase tracking-wider text-[var(--muted-foreground)]">Browse {cat.name}</p>
+                  <Link href={`/categories/${cat.slug}`} className="font-semibold hover:underline" style={{ color: config?.colors?.primary || undefined }}>All Products</Link>
+                  {cat.sub_categories?.map((sub: any) => (
+                    <Link key={sub.id} href={`/categories/${sub.slug}`} className="pl-2 font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
                       — {sub.name}
                     </Link>
                   ))}
@@ -473,88 +492,54 @@ export default function HomePageClient({
         </div>
       </header>
 
-      {/* DYNAMIC HOMEPAGE SECTIONS */}
-      <div className="space-y-16 pb-20">
-        
+      {/* ============ DYNAMIC SECTIONS ============ */}
+      <div className="flex flex-col">
         {config.section_order.map((sectionId: string) => {
           if (config.disabled_sections.includes(sectionId)) return null;
 
           switch (sectionId) {
-            
-            // 3. HERO BANNER SECTION (3 Column Layout)
+
             case "hero":
               return (
-                <section key={sectionId} className="max-w-7xl w-full mx-auto px-4 md:px-6 pt-8 grid gap-6 md:grid-cols-3">
-                  
-                  {/* Left & Center: auto-slider */}
-                  <div className="md:col-span-2 relative h-[420px] rounded-2xl overflow-hidden shadow-xl group border border-outline-variant/10">
+                <section key={sectionId} className="mx-auto grid w-full max-w-7xl gap-px border-b border-[var(--border)] px-4 pt-0 md:grid-cols-3 md:px-6 md:pt-0 md:pb-px">
+                  <div className="relative h-[420px] overflow-hidden border border-[var(--border)] md:col-span-2">
                     {config.slider_images.map((img: string, idx: number) => (
-                      <div 
-                        key={idx}
-                        className={`absolute inset-0 transition-all duration-700 flex items-center justify-center bg-[var(--background)] ${
-                          activeSlide === idx ? "opacity-100 scale-100 z-10" : "opacity-0 scale-95 z-0"
-                        }`}
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent z-10" />
-                        <img src={img} className="w-full h-full object-cover" />
-                        
-                        <div className="absolute bottom-12 left-12 z-20 max-w-lg text-left text-white space-y-4">
-                          <span className="text-[10px] font-black uppercase tracking-widest bg-blue-600 text-white px-3 py-1 rounded-full inline-block" style={{ backgroundColor: config?.colors?.primary || undefined }}>NEW ARRIVAL</span>
-                          <h1 className="font-display text-3xl md:text-5xl font-bold tracking-tight leading-none uppercase">Future of Sound &amp; Vision</h1>
-                          <p className="text-white/80 text-xs md:text-sm font-medium leading-relaxed">Experience the pinnacle of luxury technology with our exclusive curated collection.</p>
-                          <Link 
-                            href="/products" 
-                            className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-8 py-3.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-lg hover:scale-105 active:scale-95 cursor-pointer"
-                            style={{ backgroundColor: config?.colors?.primary || undefined }}
-                          >
-                            Explore Collection
+                      <div key={idx} className={`absolute inset-0 flex items-center justify-center bg-[var(--surface-container-low)] transition-opacity duration-700 ${activeSlide === idx ? "opacity-100 z-10" : "opacity-0 z-0"}`}>
+                        <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+                        <img src={img} className="h-full w-full object-cover" />
+                        <div className="absolute bottom-10 left-10 z-20 max-w-lg space-y-4 text-left text-white">
+                          <span className="inline-block bg-white px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-black">New Arrival</span>
+                          <h1 className="font-display text-3xl font-bold uppercase leading-[1.05] tracking-tight md:text-5xl">Future of Sound &amp; Vision</h1>
+                          <p className="max-w-md text-xs font-medium leading-relaxed text-white/85 md:text-sm">Curated technology and lifestyle products, picked for people who notice detail.</p>
+                          <Link href="/products" className="inline-flex items-center gap-2 bg-white px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-black transition-opacity hover:opacity-85">
+                            Explore Collection <ArrowRight className="h-3.5 w-3.5" />
                           </Link>
                         </div>
                       </div>
                     ))}
 
-                    {/* Navigation Buttons */}
-                    <button 
-                      onClick={handlePrevSlide}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 bg-white/20 backdrop-blur-md rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center border border-white/20 hover:bg-white/30 cursor-pointer"
-                    >
-                      <ChevronLeft className="h-5 w-5" />
+                    <button onClick={handlePrevSlide} className="absolute left-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center border border-white/30 text-white opacity-0 transition-opacity hover:bg-white/10 group-hover:opacity-100 [.group:hover_&]:opacity-100">
+                      <ChevronLeft className="h-4 w-4" />
                     </button>
-                    <button 
-                      onClick={handleNextSlide}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 bg-white/20 backdrop-blur-md rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center border border-white/20 hover:bg-white/30 cursor-pointer"
-                    >
-                      <ChevronRight className="h-5 w-5" />
+                    <button onClick={handleNextSlide} className="absolute right-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center border border-white/30 text-white opacity-0 transition-opacity hover:bg-white/10 group-hover:opacity-100 [.group:hover_&]:opacity-100">
+                      <ChevronRight className="h-4 w-4" />
                     </button>
 
-                    {/* Pagination Indicators */}
-                    <div className="absolute bottom-6 right-12 z-20 flex gap-2">
+                    <div className="absolute bottom-6 right-8 z-20 flex gap-1.5">
                       {config.slider_images.map((_: any, idx: number) => (
-                        <button 
-                          key={idx}
-                          onClick={() => setActiveSlide(idx)}
-                          className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                            activeSlide === idx ? "bg-white w-8" : "bg-white/30 w-4"
-                          }`}
-                        />
+                        <button key={idx} onClick={() => setActiveSlide(idx)} className={`h-1 cursor-pointer transition-all ${activeSlide === idx ? "w-6 bg-white" : "w-3 bg-white/40"}`} />
                       ))}
                     </div>
                   </div>
 
-                  {/* Right Column: Side promos */}
-                  <div className="flex flex-col gap-6">
+                  <div className="flex flex-col gap-px">
                     {config.right_banners.slice(0, 2).map((banner: any, idx: number) => (
-                      <div 
-                        key={idx} 
-                        className="flex-1 h-44 md:h-auto rounded-2xl overflow-hidden relative shadow-md group hover:-translate-y-1 transition-all border border-outline-variant/10"
-                      >
-                        <div className="absolute inset-0 bg-cover bg-center transition-transform group-hover:scale-110 duration-700" style={{ backgroundImage: `url(${banner.url})` }} />
-                        <div className="absolute inset-0 bg-black/25 group-hover:bg-black/15 transition-colors z-0" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent z-10" />
-                        
-                        <div className="absolute bottom-6 left-6 z-20 space-y-1 text-left">
-                          <h3 className="text-white font-display font-bold text-base md:text-lg">{banner.title}</h3>
-                          <Link href={banner.link || "#"} className="text-white/95 text-[10px] font-black uppercase flex items-center gap-1 hover:gap-2 transition-all">
+                      <div key={idx} className="group relative h-[210px] flex-1 overflow-hidden border border-[var(--border)]">
+                        <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" style={{ backgroundImage: `url(${banner.url})` }} />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
+                        <div className="absolute bottom-5 left-5 z-10 space-y-1 text-left">
+                          <h3 className="font-display text-base font-bold text-white">{banner.title}</h3>
+                          <Link href={banner.link || "#"} className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-white/90 hover:gap-2 transition-all">
                             Shop Now <ArrowRight className="h-3 w-3" />
                           </Link>
                         </div>
@@ -564,115 +549,60 @@ export default function HomePageClient({
                 </section>
               );
 
-            // 4. SHOP BY CATEGORY (Horizontal Slider)
             case "categories":
               return (
-                <section key={sectionId} className="max-w-7xl w-full mx-auto px-4 md:px-6 py-4 space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h2 className="font-display text-base md:text-lg font-black uppercase tracking-wider text-[var(--foreground)]">Shop by Category</h2>
-                    <Link href="/products" className="text-blue-500 font-bold text-[10px] flex items-center gap-1 hover:underline uppercase tracking-wider" style={{ color: config?.colors?.primary || undefined }}>
-                      View All Categories <ArrowRight className="h-3.5 w-3.5" />
+                <section key={sectionId} className="mx-auto w-full max-w-7xl space-y-6 border-b border-[var(--border)] px-4 py-12 md:px-6">
+                  <div className="flex items-end justify-between">
+                    <h2 className="font-display text-lg font-bold uppercase tracking-wide text-[var(--foreground)]">Shop by Category</h2>
+                    <Link href="/products" className="flex items-center gap-1 font-mono text-[10px] font-semibold uppercase tracking-wider hover:underline" style={{ color: config?.colors?.primary || "var(--primary)" }}>
+                      View All <ArrowRight className="h-3 w-3" />
                     </Link>
                   </div>
 
-                  <div className="relative group/categories">
-                    {/* Left Scroll Arrow */}
-                    <button 
-                      onClick={() => scrollCategories("left")}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-9 h-9 bg-white/95 dark:bg-zinc-900/95 shadow-md border border-outline-variant/20 rounded-full flex items-center justify-center text-[var(--foreground)] hover:scale-105 active:scale-95 transition-all opacity-0 group-hover/categories:opacity-100 cursor-pointer"
-                    >
-                      <ChevronLeft className="h-5 w-5" />
+                  <div className="group/categories relative">
+                    <button onClick={() => scrollCategories("left")} className="absolute left-0 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 -translate-x-3 cursor-pointer items-center justify-center border border-[var(--border)] bg-[var(--card)] opacity-0 transition-opacity group-hover/categories:opacity-100">
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <button onClick={() => scrollCategories("right")} className="absolute right-0 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 translate-x-3 cursor-pointer items-center justify-center border border-[var(--border)] bg-[var(--card)] opacity-0 transition-opacity group-hover/categories:opacity-100">
+                      <ChevronRight className="h-4 w-4" />
                     </button>
 
-                    {/* Right Scroll Arrow */}
-                    <button 
-                      onClick={() => scrollCategories("right")}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-9 h-9 bg-white/95 dark:bg-zinc-900/95 shadow-md border border-outline-variant/20 rounded-full flex items-center justify-center text-[var(--foreground)] hover:scale-105 active:scale-95 transition-all opacity-0 group-hover/categories:opacity-100 cursor-pointer"
-                    >
-                      <ChevronRight className="h-5 w-5" />
-                    </button>
-
-                    <div 
-                      ref={categoryScrollRef}
-                      className="flex gap-6 overflow-x-auto pb-4 scrollbar-none snap-x items-center px-2"
-                    >
-                      {/* All Categories Dropdown Card */}
-                      <div 
-                        className="relative shrink-0 snap-start"
-                        onMouseLeave={() => setCategoryMenuOpen(false)}
-                      >
+                    <div ref={categoryScrollRef} className="scrollbar-none flex snap-x items-stretch gap-px overflow-x-auto border border-[var(--border)]">
+                      <div className="relative shrink-0 snap-start" onMouseLeave={() => setCategoryMenuOpen(false)}>
                         <button
                           onClick={() => setCategoryMenuOpen(!categoryMenuOpen)}
-                          className="w-36 h-40 bg-surface-container-low rounded-2xl flex flex-col items-center justify-center border border-outline-variant/10 shadow-xs cursor-pointer text-[var(--foreground)] hover:bg-blue-600 hover:text-white transition-all group"
-                          style={{ '--hover-bg': config?.colors?.primary || '#2563eb' } as React.CSSProperties}
+                          className="flex h-36 w-36 cursor-pointer flex-col items-center justify-center gap-3 border-r border-[var(--border)] bg-[var(--surface-container-low)] text-[var(--foreground)] transition-colors hover:bg-[var(--foreground)] hover:text-[var(--background)]"
                         >
-                          <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform">
-                            <Layers className="h-6 w-6 text-blue-500" style={{ color: config?.colors?.primary || undefined }} />
-                          </div>
-                          <span className="text-[10px] font-black uppercase flex items-center justify-center gap-1 w-full px-2 group-hover:text-white">
+                          <Layers className="h-6 w-6" />
+                          <span className="flex items-center gap-1 font-mono text-[10px] font-semibold uppercase">
                             Categories <ChevronDown className="h-3.5 w-3.5" />
                           </span>
                         </button>
 
                         {categoryMenuOpen && (
-                          <div 
-                            onMouseLeave={() => setHoveredCategory(null)}
-                            className="absolute top-44 left-0 w-56 bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-xl p-2.5 z-50 grid gap-1 text-xs text-[var(--foreground)] animate-fade-in text-left"
-                          >
-                            <p className="font-black text-[9px] uppercase text-[var(--muted-foreground)] tracking-wider px-2 py-1">Select Category</p>
-                            <Link 
-                              href="/products" 
-                              className="flex items-center gap-2 p-2 hover:bg-[var(--accent)] rounded-lg font-bold text-blue-500 transition-colors"
-                              style={{ color: config?.colors?.primary || undefined }}
-                              onMouseEnter={() => setHoveredCategory(null)}
-                            >
+                          <div onMouseLeave={() => setHoveredCategory(null)} className="absolute top-[145px] left-0 z-50 grid w-56 gap-0.5 border border-[var(--border)] bg-[var(--card)] p-2 text-xs text-[var(--foreground)]">
+                            <Link href="/products" className="p-2 font-semibold transition-colors hover:bg-[var(--accent)]" style={{ color: config?.colors?.primary || undefined }} onMouseEnter={() => setHoveredCategory(null)}>
                               All Products
                             </Link>
-                            <div className="h-px bg-[var(--border)] my-0.5" />
-                            <div className="grid gap-1 relative" onMouseLeave={() => setHoveredCategory(null)}>
+                            <div className="my-0.5 h-px bg-[var(--border)]" />
+                            <div className="relative grid gap-0.5" onMouseLeave={() => setHoveredCategory(null)}>
                               {categories.map((cat: any) => (
-                                <div
-                                  key={cat.id}
-                                  onMouseEnter={() => setHoveredCategory(cat.id)}
-                                  className="relative"
-                                >
-                                  <Link 
-                                    href={`/categories/${cat.slug}`}
-                                    className="flex items-center justify-between gap-2 p-2 hover:bg-[var(--accent)] rounded-lg font-semibold text-[var(--foreground)] transition-colors"
-                                  >
+                                <div key={cat.id} onMouseEnter={() => setHoveredCategory(cat.id)} className="relative">
+                                  <Link href={`/categories/${cat.slug}`} className="flex items-center justify-between gap-2 p-2 font-medium transition-colors hover:bg-[var(--accent)]">
                                     <span>{cat.name}</span>
-                                    {cat.sub_categories && cat.sub_categories.length > 0 && (
-                                      <ChevronRight className="h-3 w-3 text-[var(--muted-foreground)]" />
-                                    )}
+                                    {cat.sub_categories?.length > 0 && <ChevronRight className="h-3 w-3 text-[var(--muted-foreground)]" />}
                                   </Link>
                                 </div>
                               ))}
-
-                              {/* Side Flyout for Subcategories */}
                               {hoveredCategory && (() => {
                                 const cat = categories.find((c: any) => c.id === hoveredCategory);
-                                if (!cat || !cat.sub_categories || cat.sub_categories.length === 0) return null;
+                                if (!cat?.sub_categories?.length) return null;
                                 return (
-                                  <div 
-                                    className="absolute left-full top-0 ml-1.5 w-56 bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-xl p-3 grid gap-1 text-xs text-[var(--foreground)] animate-fade-in z-[60]"
-                                  >
-                                    <p className="font-black text-[9px] uppercase text-[var(--muted-foreground)] tracking-wider px-2 py-1">Browse {cat.name}</p>
-                                    <Link 
-                                      href={`/categories/${cat.slug}`}
-                                      className="flex items-center gap-2 p-2 hover:bg-[var(--accent)] rounded-lg font-bold text-blue-500 transition-colors"
-                                      style={{ color: config?.colors?.primary || undefined }}
-                                    >
-                                      All Products
-                                    </Link>
-                                    <div className="h-px bg-[var(--border)] my-0.5" />
+                                  <div className="absolute left-full top-0 z-[60] ml-0.5 grid w-56 gap-0.5 border border-[var(--border)] bg-[var(--card)] p-2">
+                                    <Link href={`/categories/${cat.slug}`} className="p-2 font-semibold hover:bg-[var(--accent)]" style={{ color: config?.colors?.primary || undefined }}>All Products</Link>
+                                    <div className="my-0.5 h-px bg-[var(--border)]" />
                                     {cat.sub_categories.map((sub: any) => (
-                                      <Link 
-                                        key={sub.id} 
-                                        href={`/categories/${sub.slug}`}
-                                        className="flex items-center gap-2 p-2 hover:bg-[var(--accent)] rounded-lg font-semibold text-[var(--foreground)] transition-colors"
-                                      >
-                                        — {sub.name}
-                                      </Link>
+                                      <Link key={sub.id} href={`/categories/${sub.slug}`} className="p-2 font-medium hover:bg-[var(--accent)]">— {sub.name}</Link>
                                     ))}
                                   </div>
                                 );
@@ -683,20 +613,19 @@ export default function HomePageClient({
                       </div>
 
                       {categories.map((cat: any) => (
-                        <Link 
-                          key={cat.id} 
+                        <Link
+                          key={cat.id}
                           href={`/categories/${cat.slug}`}
-                          className="flex-shrink-0 w-36 h-40 bg-surface-container-low rounded-2xl flex flex-col items-center justify-center border border-outline-variant/10 shadow-xs cursor-pointer snap-start hover:bg-[var(--hover-bg)] hover:text-white transition-all group"
-                          style={{ '--hover-bg': config?.colors?.primary || '#2563eb' } as React.CSSProperties}
+                          className="group flex h-36 w-36 shrink-0 snap-start flex-col items-center justify-center gap-3 border-r border-[var(--border)] bg-[var(--card)] transition-colors last:border-r-0 hover:bg-[var(--foreground)]"
                         >
-                          <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform overflow-hidden p-1.5 border border-outline-variant/5">
+                          <div className="flex h-12 w-12 items-center justify-center overflow-hidden">
                             {cat.image_url ? (
-                              <img src={cat.image_url} className="w-full h-full object-contain" />
+                              <img src={cat.image_url} className="h-full w-full object-contain" />
                             ) : (
-                              <Layers className="h-6 w-6 text-blue-500" style={{ color: config?.colors?.primary || undefined }} />
+                              <Layers className="h-6 w-6 text-[var(--foreground)] group-hover:text-[var(--background)]" />
                             )}
                           </div>
-                          <span className="text-[10px] font-black uppercase line-clamp-1 px-2 group-hover:text-white">{cat.name}</span>
+                          <span className="line-clamp-1 px-2 font-mono text-[10px] font-semibold uppercase text-[var(--foreground)] group-hover:text-[var(--background)]">{cat.name}</span>
                         </Link>
                       ))}
                     </div>
@@ -704,61 +633,47 @@ export default function HomePageClient({
                 </section>
               );
 
-            // 5. FLASH SALE / QUICK DEAL
             case "quick_deal":
               return (
-                <section key={sectionId} className="max-w-7xl w-full mx-auto px-4 md:px-6">
-                  <div 
-                    className="py-16 text-white rounded-3xl px-6 md:px-12 border border-outline-variant/10 shadow-2xl space-y-12"
-                    style={{ backgroundColor: config?.colors?.primary || '#2563eb' }}
-                  >
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-white/20 pb-8">
+                <section key={sectionId} className="border-b border-[var(--border)] bg-[var(--foreground)] py-16 text-[var(--background)]">
+                  <div className="mx-auto max-w-7xl space-y-10 px-4 md:px-6">
+                    <div className="flex flex-col justify-between gap-8 border-b border-white/15 pb-8 md:flex-row md:items-end">
                       <div>
-                        <div className="flex items-center gap-3 mb-4">
-                          <span className="w-12 h-[2px] bg-white/40"></span>
-                          <span className="text-white/80 font-black text-[10px] tracking-widest uppercase">LIMITED TIME OFFER</span>
-                        </div>
-                        <h2 className="font-display text-3xl md:text-5xl font-bold uppercase tracking-tight">Flash Sale Fever</h2>
+                        <p className="mb-3 font-mono text-[10px] uppercase tracking-widest text-white/60">Limited Time Offer</p>
+                        <h2 className="font-display text-3xl font-bold uppercase tracking-tight md:text-5xl">Flash Sale</h2>
                       </div>
-                      
-                      {/* Timer block */}
-                      <div className="flex gap-4">
-                        <div className="flex flex-col items-center">
-                          <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center text-white text-2xl font-bold border border-white/20">
-                            {String(timeLeft.hours).padStart(2, "0")}
+
+                      <div className="flex gap-3">
+                        {[
+                          { v: timeLeft.hours, l: "HRS" },
+                          { v: timeLeft.minutes, l: "MIN" },
+                          { v: timeLeft.seconds, l: "SEC" },
+                        ].map((t) => (
+                          <div key={t.l} className="flex flex-col items-center">
+                            <div className="flex h-14 w-14 items-center justify-center border border-white/25 font-mono text-xl font-semibold">
+                              {String(t.v).padStart(2, "0")}
+                            </div>
+                            <span className="mt-2 font-mono text-[9px] text-white/50">{t.l}</span>
                           </div>
-                          <span className="text-white/60 text-[10px] mt-2 font-black uppercase">HOURS</span>
-                        </div>
-                        <div className="flex flex-col items-center">
-                          <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center text-white text-2xl font-bold border border-white/20">
-                            {String(timeLeft.minutes).padStart(2, "0")}
-                          </div>
-                          <span className="text-white/60 text-[10px] mt-2 font-black uppercase">MINS</span>
-                        </div>
-                        <div className="flex flex-col items-center">
-                          <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center text-white text-2xl font-bold border border-white/20">
-                            {String(timeLeft.seconds).padStart(2, "0")}
-                          </div>
-                          <span className="text-white/60 text-[10px] mt-2 font-black uppercase">SECS</span>
-                        </div>
+                        ))}
                       </div>
                     </div>
 
-                    <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-                      <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-1 w-full md:w-auto">
+                    <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+                      <div className="scrollbar-none flex w-full items-center gap-2 overflow-x-auto py-1 md:w-auto">
                         {[
                           { id: "sale", name: "Flash Sale" },
                           { id: "best", name: "Best Seller" },
                           { id: "trending", name: "Trending" },
                           { id: "new", name: "New Arrival" }
                         ].map(tab => (
-                          <button 
+                          <button
                             key={tab.id}
                             onClick={() => setActiveQuickDealTab(tab.id)}
-                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer border ${
-                              activeQuickDealTab === tab.id 
-                                ? "bg-white text-zinc-900 border-white shadow-sm" 
-                                : "bg-white/10 hover:bg-white/20 text-white border-white/20"
+                            className={`cursor-pointer whitespace-nowrap border px-4 py-2 font-mono text-[10px] font-semibold uppercase tracking-wider transition-colors ${
+                              activeQuickDealTab === tab.id
+                                ? "border-white bg-white text-[var(--foreground)]"
+                                : "border-white/25 text-white/80 hover:border-white/60"
                             }`}
                           >
                             {tab.name}
@@ -766,245 +681,130 @@ export default function HomePageClient({
                         ))}
                       </div>
 
-                      <Link 
-                        href={`/products?tab=${activeQuickDealTab}`} 
-                        className="text-xs font-black text-white hover:underline flex items-center gap-1.5 uppercase tracking-widest shrink-0"
-                      >
-                        View All Deals <ArrowRight className="h-3.5 w-3.5" />
+                      <Link href={`/products?tab=${activeQuickDealTab}`} className="flex shrink-0 items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-widest hover:underline">
+                        View All <ArrowRight className="h-3.5 w-3.5" />
                       </Link>
                     </div>
 
                     {quickDealProducts.length === 0 ? (
-                      <div className="p-12 text-center bg-white/5 border border-dashed border-white/15 rounded-2xl text-xs text-white/60">
+                      <div className="border border-dashed border-white/20 p-12 text-center font-mono text-xs text-white/50">
                         No active deal products listed.
                       </div>
                     ) : (
-                      <div className="relative group/flash">
-                        {/* Left Scroll Arrow */}
-                        <button 
-                          onClick={() => scrollFlashSale("left")}
-                          className="absolute -left-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 bg-white/90 dark:bg-zinc-900/90 text-zinc-900 dark:text-white backdrop-blur-md rounded-full shadow-lg border border-outline-variant/20 flex items-center justify-center hover:scale-105 transition-all opacity-0 group-hover/flash:opacity-100 cursor-pointer"
-                        >
-                          <ChevronLeft className="h-5 w-5" />
-                        </button>
+                      <div className="relative">
+                        {quickDealTotalPages > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setQuickDealPage(p => Math.max(1, p - 1))}
+                            disabled={quickDealPage === 1}
+                            className="absolute left-0 top-1/2 z-20 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/25 bg-[var(--foreground)] text-white transition-colors hover:border-white/60 disabled:opacity-30"
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </button>
+                        )}
 
-                        {/* Right Scroll Arrow */}
-                        <button 
-                          onClick={() => scrollFlashSale("right")}
-                          className="absolute -right-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 bg-white/90 dark:bg-zinc-900/90 text-zinc-900 dark:text-white backdrop-blur-md rounded-full shadow-lg border border-outline-variant/20 flex items-center justify-center hover:scale-105 transition-all opacity-0 group-hover/flash:opacity-100 cursor-pointer"
+                        <div
+                          key={quickDealPage}
+                          className="pagination-fade grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4"
                         >
-                          <ChevronRight className="h-5 w-5" />
-                        </button>
-
-                        <div 
-                          ref={flashSaleScrollRef}
-                          className="flex gap-6 overflow-x-auto pb-4 scrollbar-none snap-x items-stretch px-2 text-zinc-900"
-                        >
-                          {quickDealProducts.map((product: any) => {
-                            const discount = product.compare_price && product.compare_price > product.selling_price
-                              ? Math.round(((product.compare_price - product.selling_price) / product.compare_price) * 100)
-                              : null;
-                            const inWishlist = wishlist.some(item => item.id === product.id);
-
-                            return (
-                              <div 
+                          {quickDealProducts
+                            .slice((quickDealPage - 1) * 4, quickDealPage * 4)
+                            .map((product: any) => (
+                              <ProductCard
                                 key={product.id}
-                                className="product-card w-64 shrink-0 snap-start bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden relative border border-outline-variant/10 flex flex-col justify-between"
-                              >
-                                <div className="relative">
-                                  {discount && (
-                                    <span className="absolute top-4 left-4 z-10 px-2.5 py-1 rounded-md text-[9px] font-black bg-rose-500 text-white uppercase tracking-wider">
-                                      -{discount}% OFF
-                                    </span>
-                                  )}
-
-                                  <button 
-                                    onClick={() => handleToggleWishlist(product)}
-                                    className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white border border-outline-variant/20 hover:text-rose-500 transition-colors shadow-xs cursor-pointer text-zinc-900"
-                                  >
-                                    <Heart className={`h-4 w-4 ${inWishlist ? "fill-rose-500 text-rose-500" : ""}`} />
-                                  </button>
-
-                                  <Link href={`/products/${product.slug}`} className="h-56 bg-surface-container-low flex items-center justify-center border-b border-outline-variant/10 p-4 overflow-hidden relative">
-                                    <img src={product.featured_image} className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300" />
-                                    <div className="action-overlay absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
-                                      <span className="bg-white text-zinc-900 px-4 py-2 rounded-lg font-black text-[10px] uppercase tracking-wider">Quick View</span>
-                                    </div>
-                                  </Link>
-                                </div>
-
-                                <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
-                                  <div>
-                                    <span className="text-[9px] font-bold text-blue-600 uppercase tracking-wider">{product.brand?.name || "General"}</span>
-                                    <h4 className="font-bold text-xs line-clamp-1 mt-0.5 hover:text-blue-600 transition-colors">
-                                      <Link href={`/products/${product.slug}`}>{product.name}</Link>
-                                    </h4>
-                                    <div className="flex items-center gap-1.5 mt-1">
-                                      <div className="flex text-amber-500 text-[10px]">
-                                        <Star className="h-3.5 w-3.5 fill-current" />
-                                        <span className="font-bold text-zinc-500 ml-1">4.8</span>
-                                      </div>
-                                      <span className="text-[9px] text-zinc-400 font-medium">• 120 sold</span>
-                                    </div>
-                                  </div>
-
-                                  <div className="flex flex-col gap-2 pt-2 border-t border-outline-variant/10">
-                                    <div className="flex items-baseline justify-between">
-                                      <span className="text-base font-black text-blue-600" style={{ color: config?.colors?.primary || undefined }}>৳{product.selling_price.toFixed(2)}</span>
-                                      {product.compare_price && (
-                                        <span className="text-[10px] line-through text-zinc-400 font-semibold">৳{product.compare_price.toFixed(2)}</span>
-                                      )}
-                                    </div>
-
-                                    <div className="flex gap-2 w-full mt-1">
-                                      <button 
-                                        onClick={() => handleBuyNow(product)}
-                                        className="flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-[10px] font-black uppercase tracking-wider cursor-pointer shadow-xs text-center flex items-center justify-center"
-                                      >
-                                        Buy Now
-                                      </button>
-                                      <button 
-                                        onClick={() => handleAddToCart(product)}
-                                        className="w-10 h-10 shrink-0 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center justify-center cursor-pointer shadow-xs"
-                                        style={{ backgroundColor: config?.colors?.primary || undefined }}
-                                      >
-                                        <ShoppingCart className="h-4 w-4" />
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })}
+                                product={product}
+                                wishlist={wishlist}
+                                onToggleWishlist={handleToggleWishlist}
+                                onAddToCart={handleAddToCart}
+                                onBuyNow={handleBuyNow}
+                              />
+                            ))}
                         </div>
+
+                        {quickDealTotalPages > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setQuickDealPage(p => Math.min(quickDealTotalPages, p + 1))}
+                            disabled={quickDealPage === quickDealTotalPages}
+                            className="absolute right-0 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 translate-x-1/2 cursor-pointer items-center justify-center rounded-full border border-white/25 bg-[var(--foreground)] text-white transition-colors hover:border-white/60 disabled:opacity-30"
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </button>
+                        )}
+
+                        {quickDealTotalPages > 1 && (
+                          <div className="mt-6 flex items-center justify-center">
+                            <span className="font-mono text-xs text-white/60">
+                              {quickDealPage} / {quickDealTotalPages}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
                 </section>
               );
 
-            // 7. MULTIPLE PRODUCT SECTIONS
             case "featured":
               return (
-                <div key={sectionId} className="space-y-16">
-                  {/* Featured Masterpieces with Pagination */}
-                  <section className="max-w-7xl w-full mx-auto px-4 md:px-6 space-y-12">
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-outline-variant/15 pb-6">
+                <div key={sectionId} className="flex flex-col">
+                  <section className="mx-auto w-full max-w-7xl space-y-8 border-b border-[var(--border)] px-4 py-16 md:px-6">
+                    <div className="flex flex-col justify-between gap-4 border-b border-[var(--border)] pb-6 md:flex-row md:items-end">
                       <div>
-                        <h2 className="font-display text-2xl md:text-3xl font-bold uppercase tracking-tight text-[var(--foreground)]">Featured Masterpieces</h2>
-                        <p className="text-[var(--muted-foreground)] text-xs font-medium max-w-lg mt-2">Hand-selected pieces from the world's most prestigious designers and innovators.</p>
+                        <h2 className="font-display text-2xl font-bold uppercase tracking-tight text-[var(--foreground)] md:text-3xl">Featured</h2>
+                        <p className="mt-2 max-w-lg text-xs font-medium text-[var(--muted-foreground)]">Hand-selected pieces worth your attention.</p>
                       </div>
-                      <div className="flex items-center gap-4 shrink-0">
-                        {/* Pagination controls */}
-                        {sections.featured.length > 4 && (
-                          <div className="flex items-center gap-2">
-                            <button 
-                              type="button"
-                              onClick={() => setFeaturedPage(p => Math.max(1, p - 1))}
-                              disabled={featuredPage === 1}
-                              className="w-8 h-8 rounded-full border border-outline-variant/30 flex items-center justify-center text-[var(--foreground)] disabled:opacity-30 hover:bg-[var(--accent)] cursor-pointer"
-                            >
-                              <ChevronLeft className="h-4 w-4" />
-                            </button>
-                            <span className="text-xs font-mono font-bold text-zinc-500">
-                              {featuredPage} / {Math.ceil(sections.featured.length / 4)}
-                            </span>
-                            <button 
-                              type="button"
-                              onClick={() => setFeaturedPage(p => Math.min(Math.ceil(sections.featured.length / 4), p + 1))}
-                              disabled={featuredPage === Math.ceil(sections.featured.length / 4)}
-                              className="w-8 h-8 rounded-full border border-outline-variant/30 flex items-center justify-center text-[var(--foreground)] disabled:opacity-30 hover:bg-[var(--accent)] cursor-pointer"
-                            >
-                              <ChevronRight className="h-4 w-4" />
-                            </button>
-                          </div>
-                        )}
-                        <div className="h-4 w-px bg-outline-variant/30 hidden md:block" />
-                        <Link 
-                          href="/products?tab=featured" 
-                          className="text-xs font-black text-blue-500 hover:underline flex items-center gap-1.5 uppercase tracking-widest shrink-0"
-                          style={{ color: config?.colors?.primary || undefined }}
-                        >
-                          View All Masterpieces <ArrowRight className="h-3.5 w-3.5" />
-                        </Link>
-                      </div>
+                      <Link href="/products?tab=featured" className="flex shrink-0 items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-widest hover:underline" style={{ color: config?.colors?.primary || "var(--primary)" }}>
+                        View All <ArrowRight className="h-3.5 w-3.5" />
+                      </Link>
                     </div>
 
-                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                      {sections.featured.slice((featuredPage - 1) * 4, featuredPage * 4).map((product: any) => {
-                        const discount = product.compare_price && product.compare_price > product.selling_price
-                          ? Math.round(((product.compare_price - product.selling_price) / product.compare_price) * 100)
-                          : null;
-                        const inWishlist = wishlist.some(item => item.id === product.id);
+                    <div className="relative">
+                      {sections.featured.length > 4 && (
+                        <button
+                          type="button"
+                          onClick={() => setFeaturedPage(p => Math.max(1, p - 1))}
+                          disabled={featuredPage === 1}
+                          className="absolute left-0 top-1/2 z-20 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] shadow-sm transition-colors hover:border-[var(--foreground)] disabled:opacity-30"
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </button>
+                      )}
 
-                        return (
-                          <div 
+                      <div key={featuredPage} className="pagination-fade grid grid-cols-2 gap-5 lg:grid-cols-4">
+                        {sections.featured.slice((featuredPage - 1) * 4, featuredPage * 4).map((product: any) => (
+                          <ProductCard
                             key={product.id}
-                            className="product-card group bg-white rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden relative border border-outline-variant/10 flex flex-col justify-between text-zinc-900"
-                          >
-                            <div className="relative">
-                              {discount && (
-                                <span className="absolute top-4 left-4 z-10 px-2.5 py-1 rounded-md text-[9px] font-black bg-rose-500 text-white uppercase tracking-wider">
-                                  -{discount}%
-                                </span>
-                              )}
+                            product={product}
+                            wishlist={wishlist}
+                            onToggleWishlist={handleToggleWishlist}
+                            onAddToCart={handleAddToCart}
+                            onBuyNow={handleBuyNow}
+                          />
+                        ))}
+                      </div>
 
-                              <button 
-                                onClick={() => handleToggleWishlist(product)}
-                                className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white border border-outline-variant/20 hover:text-rose-500 transition-colors shadow-xs cursor-pointer text-zinc-900"
-                              >
-                                <Heart className={`h-4 w-4 ${inWishlist ? "fill-rose-500 text-rose-500" : ""}`} />
-                              </button>
+                      {sections.featured.length > 4 && (
+                        <button
+                          type="button"
+                          onClick={() => setFeaturedPage(p => Math.min(Math.ceil(sections.featured.length / 4), p + 1))}
+                          disabled={featuredPage === Math.ceil(sections.featured.length / 4)}
+                          className="absolute right-0 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 translate-x-1/2 cursor-pointer items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] shadow-sm transition-colors hover:border-[var(--foreground)] disabled:opacity-30"
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </button>
+                      )}
 
-                              <Link href={`/products/${product.slug}`} className="h-72 bg-surface-container-low flex items-center justify-center p-4 overflow-hidden relative border-b border-outline-variant/5">
-                                <img src={product.featured_image} className="max-h-full max-w-full object-contain group-hover:scale-110 transition-transform duration-700" />
-                                <div className="action-overlay absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
-                                  <span className="bg-white text-zinc-900 px-4 py-2 rounded-lg font-black text-[10px] uppercase tracking-wider">Quick View</span>
-                                </div>
-                              </Link>
-                            </div>
-
-                            <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                              <div>
-                                <div className="flex items-center justify-between">
-                                  <span className="text-[9px] font-bold text-blue-600 uppercase tracking-wider">{product.brand?.name || "General"}</span>
-                                  <div className="flex items-center gap-1 text-amber-500 text-[10px]">
-                                    <Star className="h-3.5 w-3.5 fill-current" />
-                                    <span className="font-bold text-zinc-500">4.9</span>
-                                  </div>
-                                </div>
-                                <h4 className="font-bold text-sm line-clamp-1 mt-1 group-hover:text-blue-600 transition-colors">
-                                  <Link href={`/products/${product.slug}`}>{product.name}</Link>
-                                </h4>
-                              </div>
-
-                              <div className="flex flex-col gap-2 pt-2 border-t border-outline-variant/10">
-                                <span className="text-base font-black text-zinc-900">৳{product.selling_price.toFixed(2)}</span>
-                                
-                                <div className="flex gap-2 w-full mt-1">
-                                  <button 
-                                    onClick={() => handleBuyNow(product)}
-                                    className="flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-[10px] font-black uppercase tracking-wider cursor-pointer shadow-xs text-center flex items-center justify-center"
-                                  >
-                                    Buy Now
-                                  </button>
-                                  <button 
-                                    onClick={() => handleAddToCart(product)}
-                                    className="w-10 h-10 shrink-0 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center justify-center cursor-pointer shadow-xs"
-                                    style={{ backgroundColor: config?.colors?.primary || undefined }}
-                                  >
-                                    <ShoppingCart className="h-4 w-4" />
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
+                      {sections.featured.length > 4 && (
+                        <div className="mt-6 flex items-center justify-center">
+                          <span className="font-mono text-xs text-[var(--muted-foreground)]">
+                            {featuredPage} / {Math.ceil(sections.featured.length / 4)}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </section>
 
-                  {/* Category-Specific Paginated Product Rows */}
                   {categories.map((cat: any) => {
                     const catProducts = products.filter((p: any) => p.category_id === cat.id);
                     if (catProducts.length === 0) return null;
@@ -1014,119 +814,60 @@ export default function HomePageClient({
                     const paginatedCatProducts = catProducts.slice((catPage - 1) * 4, catPage * 4);
 
                     return (
-                      <section key={cat.id} className="max-w-7xl w-full mx-auto px-4 md:px-6 space-y-12 animate-fade-in">
-                        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-outline-variant/15 pb-6">
+                      <section key={cat.id} className="mx-auto w-full max-w-7xl space-y-8 border-b border-[var(--border)] px-4 py-16 md:px-6">
+                        <div className="flex flex-col justify-between gap-4 border-b border-[var(--border)] pb-6 md:flex-row md:items-end">
                           <div>
-                            <h2 className="font-display text-2xl md:text-3xl font-bold uppercase tracking-tight text-[var(--foreground)]">{cat.name} Collection</h2>
-                            <p className="text-[var(--muted-foreground)] text-xs font-medium max-w-lg mt-2">Premium curated list of items categorized under {cat.name}.</p>
+                            <h2 className="font-display text-2xl font-bold uppercase tracking-tight text-[var(--foreground)] md:text-3xl">{cat.name}</h2>
+                            <p className="mt-2 max-w-lg text-xs font-medium text-[var(--muted-foreground)]">Browse the {cat.name} collection.</p>
                           </div>
-                          <div className="flex items-center gap-4 shrink-0">
-                            {/* Pagination controls */}
-                            {catProducts.length > 4 && (
-                              <div className="flex items-center gap-2">
-                                <button 
-                                  type="button"
-                                  onClick={() => setCategoryPageMap(prev => ({ ...prev, [cat.id]: Math.max(1, (prev[cat.id] || 1) - 1) }))}
-                                  disabled={catPage === 1}
-                                  className="w-8 h-8 rounded-full border border-outline-variant/30 flex items-center justify-center text-[var(--foreground)] disabled:opacity-30 hover:bg-[var(--accent)] cursor-pointer"
-                                >
-                                  <ChevronLeft className="h-4 w-4" />
-                                </button>
-                                <span className="text-xs font-mono font-bold text-zinc-500">
-                                  {catPage} / {catTotalPages}
-                                </span>
-                                <button 
-                                  type="button"
-                                  onClick={() => setCategoryPageMap(prev => ({ ...prev, [cat.id]: Math.min(catTotalPages, (prev[cat.id] || 1) + 1) }))}
-                                  disabled={catPage === catTotalPages}
-                                  className="w-8 h-8 rounded-full border border-outline-variant/30 flex items-center justify-center text-[var(--foreground)] disabled:opacity-30 hover:bg-[var(--accent)] cursor-pointer"
-                                >
-                                  <ChevronRight className="h-4 w-4" />
-                                </button>
-                              </div>
-                            )}
-                            <div className="h-4 w-px bg-outline-variant/30 hidden md:block" />
-                            <Link 
-                              href={`/categories/${cat.slug}`}
-                              className="text-xs font-black text-blue-500 hover:underline flex items-center gap-1.5 uppercase tracking-widest shrink-0"
-                              style={{ color: config?.colors?.primary || undefined }}
-                            >
-                              View All Products <ArrowRight className="h-3.5 w-3.5" />
-                            </Link>
-                          </div>
+                          <Link href={`/categories/${cat.slug}`} className="flex shrink-0 items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-widest hover:underline" style={{ color: config?.colors?.primary || "var(--primary)" }}>
+                            View All <ArrowRight className="h-3.5 w-3.5" />
+                          </Link>
                         </div>
 
-                        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                          {paginatedCatProducts.map((product: any) => {
-                            const discount = product.compare_price && product.compare_price > product.selling_price
-                              ? Math.round(((product.compare_price - product.selling_price) / product.compare_price) * 100)
-                              : null;
-                            const inWishlist = wishlist.some(item => item.id === product.id);
+                        <div className="relative">
+                          {catProducts.length > 4 && (
+                            <button
+                              type="button"
+                              onClick={() => setCategoryPageMap(prev => ({ ...prev, [cat.id]: Math.max(1, (prev[cat.id] || 1) - 1) }))}
+                              disabled={catPage === 1}
+                              className="absolute left-0 top-1/2 z-20 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] shadow-sm transition-colors hover:border-[var(--foreground)] disabled:opacity-30"
+                            >
+                              <ChevronLeft className="h-4 w-4" />
+                            </button>
+                          )}
 
-                            return (
-                              <div 
+                          <div key={catPage} className="pagination-fade grid grid-cols-2 gap-5 lg:grid-cols-4">
+                            {paginatedCatProducts.map((product: any) => (
+                              <ProductCard
                                 key={product.id}
-                                className="product-card group bg-white rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden relative border border-outline-variant/10 flex flex-col justify-between text-zinc-900"
-                              >
-                                <div className="relative">
-                                  {discount && (
-                                    <span className="absolute top-4 left-4 z-10 px-2.5 py-1 rounded-md text-[9px] font-black bg-rose-500 text-white uppercase tracking-wider">
-                                      -{discount}%
-                                    </span>
-                                  )}
+                                product={product}
+                                wishlist={wishlist}
+                                onToggleWishlist={handleToggleWishlist}
+                                onAddToCart={handleAddToCart}
+                                onBuyNow={handleBuyNow}
+                              />
+                            ))}
+                          </div>
 
-                                  <button 
-                                    onClick={() => handleToggleWishlist(product)}
-                                    className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white border border-outline-variant/20 hover:text-rose-500 transition-colors shadow-xs cursor-pointer text-zinc-900"
-                                  >
-                                    <Heart className={`h-4 w-4 ${inWishlist ? "fill-rose-500 text-rose-500" : ""}`} />
-                                  </button>
+                          {catProducts.length > 4 && (
+                            <button
+                              type="button"
+                              onClick={() => setCategoryPageMap(prev => ({ ...prev, [cat.id]: Math.min(catTotalPages, (prev[cat.id] || 1) + 1) }))}
+                              disabled={catPage === catTotalPages}
+                              className="absolute right-0 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 translate-x-1/2 cursor-pointer items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] shadow-sm transition-colors hover:border-[var(--foreground)] disabled:opacity-30"
+                            >
+                              <ChevronRight className="h-4 w-4" />
+                            </button>
+                          )}
 
-                                  <Link href={`/products/${product.slug}`} className="h-72 bg-surface-container-low flex items-center justify-center p-4 overflow-hidden relative border-b border-outline-variant/5">
-                                    <img src={product.featured_image} className="max-h-full max-w-full object-contain group-hover:scale-110 transition-transform duration-700" />
-                                    <div className="action-overlay absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
-                                      <span className="bg-white text-zinc-900 px-4 py-2 rounded-lg font-black text-[10px] uppercase tracking-wider">Quick View</span>
-                                    </div>
-                                  </Link>
-                                </div>
-
-                                <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                                  <div>
-                                    <div className="flex items-center justify-between">
-                                      <span className="text-[9px] font-bold text-blue-600 uppercase tracking-wider">{product.brand?.name || "General"}</span>
-                                      <div className="flex items-center gap-1 text-amber-500 text-[10px]">
-                                        <Star className="h-3.5 w-3.5 fill-current" />
-                                        <span className="font-bold text-zinc-500">4.9</span>
-                                      </div>
-                                    </div>
-                                    <h4 className="font-bold text-sm line-clamp-1 mt-1 group-hover:text-blue-600 transition-colors">
-                                      <Link href={`/products/${product.slug}`}>{product.name}</Link>
-                                    </h4>
-                                  </div>
-
-                                  <div className="flex flex-col gap-2 pt-2 border-t border-outline-variant/10">
-                                    <span className="text-base font-black text-zinc-900">৳{product.selling_price.toFixed(2)}</span>
-                                    
-                                    <div className="flex gap-2 w-full mt-1">
-                                      <button 
-                                        onClick={() => handleBuyNow(product)}
-                                        className="flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-[10px] font-black uppercase tracking-wider cursor-pointer shadow-xs text-center flex items-center justify-center"
-                                      >
-                                        Buy Now
-                                      </button>
-                                      <button 
-                                        onClick={() => handleAddToCart(product)}
-                                        className="w-10 h-10 shrink-0 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center justify-center cursor-pointer shadow-xs"
-                                        style={{ backgroundColor: config?.colors?.primary || undefined }}
-                                      >
-                                        <ShoppingCart className="h-4 w-4" />
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })}
+                          {catProducts.length > 4 && (
+                            <div className="mt-6 flex items-center justify-center">
+                              <span className="font-mono text-xs text-[var(--muted-foreground)]">
+                                {catPage} / {catTotalPages}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </section>
                     );
@@ -1134,120 +875,88 @@ export default function HomePageClient({
                 </div>
               );
 
-            // 8. PROMOTIONAL FULL WIDTH BANNER
             case "promo_banner":
               return (
-                <section key={sectionId} className="max-w-7xl w-full mx-auto px-4 md:px-6 py-4">
-                  {config.promo_banners && config.promo_banners.length > 0 && (
-                    <Link href="/products" className="block w-full h-44 md:h-[300px] rounded-3xl overflow-hidden border border-outline-variant/10 shadow-md relative group cursor-pointer">
-                      <img src={config.promo_banners[0]} className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-1000" />
-                      <div className="absolute inset-0 bg-black/10 group-hover:bg-black/25 transition-colors duration-300" />
+                <section key={sectionId} className="mx-auto w-full max-w-7xl border-b border-[var(--border)] px-4 py-12 md:px-6">
+                  {config.promo_banners?.length > 0 && (
+                    <Link href="/products" className="group relative block h-44 w-full overflow-hidden border border-[var(--border)] md:h-[280px]">
+                      <img src={config.promo_banners[0]} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
                     </Link>
                   )}
                 </section>
               );
 
-            // 11. NEWSLETTER
             case "newsletter":
               return (
-                <section key={sectionId} className="max-w-7xl w-full mx-auto px-4 md:px-6 py-6">
-                  {/* Newsletter card */}
-                  <div className="bg-surface-container rounded-3xl p-10 md:p-12 relative overflow-hidden flex flex-col lg:flex-row items-center justify-between gap-8 border border-outline-variant/10 shadow-sm">
-                    <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none">
-                      <div className="w-full h-full border-4 border-blue-600 rounded-full scale-150 -translate-x-1/2 -translate-y-1/2" style={{ borderColor: config?.colors?.primary || undefined }}></div>
-                    </div>
-                    
-                    <div className="z-10 text-left space-y-2 max-w-md">
-                      <h2 className="font-display text-2xl md:text-3xl font-bold uppercase tracking-tight text-[var(--foreground)]">Join the YazMart Circle</h2>
-                      <p className="text-[var(--muted-foreground)] text-xs md:text-sm font-medium leading-relaxed">Get early access to exclusive drops, campaign promotions, and members-only luxury insights.</p>
+                <section key={sectionId} className="mx-auto w-full max-w-7xl border-b border-[var(--border)] px-4 py-16 md:px-6">
+                  <div className="flex flex-col items-center justify-between gap-8 border border-[var(--border)] p-10 md:flex-row md:p-14">
+                    <div className="max-w-md space-y-2 text-left">
+                      <h2 className="font-display text-2xl font-bold uppercase tracking-tight text-[var(--foreground)] md:text-3xl">Join the Circle</h2>
+                      <p className="text-xs font-medium leading-relaxed text-[var(--muted-foreground)] md:text-sm">Early access to new drops and members-only offers, straight to your inbox.</p>
                     </div>
 
-                    <div className="z-10 w-full lg:w-auto">
-                      <form 
-                        onSubmit={(e) => { 
-                          e.preventDefault(); 
-                          toast.success("Subscription registered successfully!", {
-                            style: {
-                              background: "var(--card)",
-                              color: "var(--foreground)",
-                              border: "1px solid var(--border)",
-                              fontSize: "12px",
-                              fontWeight: "bold"
-                            }
+                    <div className="w-full md:w-auto">
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          toast.success("Subscribed successfully!", {
+                            style: { background: "var(--card)", color: "var(--foreground)", border: "1px solid var(--border)", fontSize: "12px", fontWeight: "600", borderRadius: "0" }
                           });
-                        }} 
-                        className="flex flex-col sm:flex-row gap-4 bg-[var(--card)] p-1.5 rounded-2xl border border-outline-variant/10 shadow-inner"
+                        }}
+                        className="flex flex-col gap-0 border border-[var(--foreground)] sm:flex-row"
                       >
-                        <input 
-                          type="email" 
-                          required 
-                          placeholder="Your premium email"
-                          className="bg-transparent border-none text-xs text-[var(--foreground)] focus:outline-none flex-1 px-4 py-3 font-medium placeholder-[var(--muted-foreground)] focus:ring-0"
-                        />
-                        <button 
-                          type="submit" 
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md hover:scale-102 cursor-pointer"
-                          style={{ backgroundColor: config?.colors?.primary || undefined }}
-                        >
-                          Join Now
+                        <div className="flex flex-1 items-center gap-2 px-4">
+                          <Mail className="h-3.5 w-3.5 shrink-0 text-[var(--muted-foreground)]" />
+                          <input type="email" required placeholder="you@example.com" className="w-full border-none bg-transparent py-3 text-xs font-medium text-[var(--foreground)] placeholder-[var(--muted-foreground)] focus:outline-none focus:ring-0" />
+                        </div>
+                        <button type="submit" className="cursor-pointer bg-[var(--foreground)] px-8 py-3 text-xs font-semibold uppercase tracking-wider text-[var(--background)] transition-opacity hover:opacity-85">
+                          Join
                         </button>
                       </form>
-                      <p className="text-[9px] text-zinc-400 mt-3 text-left">By joining, you agree to our Terms and Privacy Policy.</p>
+                      <p className="mt-3 text-left font-mono text-[9px] text-[var(--muted-foreground)]">By joining you agree to our Terms and Privacy Policy.</p>
                     </div>
                   </div>
                 </section>
               );
 
-            // 9. BRAND LOGOS SECTION
             case "brands":
               const doubleBrands = [...config.brand_logos, ...config.brand_logos, ...config.brand_logos];
               return (
-                <section key={sectionId} className="py-16 overflow-hidden bg-surface-container-low border-y border-outline-variant/25">
-                  <div className="flex animate-marquee gap-16 whitespace-nowrap items-center">
-                    <div className="text-4xl font-black text-outline/30 tracking-widest flex items-center gap-16 uppercase">
+                <section key={sectionId} className="overflow-hidden border-b border-[var(--border)] bg-[var(--surface-container-low)] py-14">
+                  <div className="animate-marquee flex items-center gap-16 whitespace-nowrap">
+                    <div className="flex items-center gap-16 font-display text-3xl font-bold uppercase tracking-widest text-[var(--muted-foreground)]/50">
                       {doubleBrands.map((brand: any, idx: number) => (
-                        <span key={idx} className="hover:text-blue-500 transition-colors cursor-pointer">{brand.name}</span>
+                        <span key={idx} className="cursor-pointer transition-colors hover:text-[var(--foreground)]">{brand.name}</span>
                       ))}
                     </div>
                   </div>
                 </section>
               );
 
-            // 10. CUSTOMER REVIEWS
             case "testimonials":
               return (
-                <section key={sectionId} className="max-w-7xl w-full mx-auto px-4 md:px-6 py-8 space-y-12">
-                  <div className="text-center space-y-2">
-                    <h2 className="font-display text-2xl md:text-4xl font-bold uppercase tracking-tight text-[var(--foreground)]">Loved by Connoisseurs</h2>
-                    <p className="text-[var(--muted-foreground)] text-xs md:text-sm font-medium">Join over 1M+ customers experiencing the YazMart difference.</p>
+                <section key={sectionId} className="mx-auto w-full max-w-7xl space-y-12 border-b border-[var(--border)] px-4 py-16 md:px-6">
+                  <div className="space-y-2 text-center">
+                    <h2 className="font-display text-2xl font-bold uppercase tracking-tight text-[var(--foreground)] md:text-4xl">What People Say</h2>
+                    <p className="text-xs font-medium text-[var(--muted-foreground)] md:text-sm">Join over 1M+ customers shopping with YazMart.</p>
                   </div>
 
-                  <div className="grid gap-6 md:grid-cols-3">
+                  <div className="grid gap-px border border-[var(--border)] bg-[var(--border)] md:grid-cols-3">
                     {config.testimonials.slice(0, 3).map((item: any, idx: number) => (
-                      <div 
-                        key={idx}
-                        className="bg-[var(--card)] p-8 rounded-2xl border border-outline-variant/10 shadow-xs relative text-left flex flex-col justify-between space-y-6 animate-fade-in"
-                      >
-                        <span className="absolute top-4 right-6 text-blue-500/10 text-7xl font-serif select-none pointer-events-none">“</span>
-                        
+                      <div key={idx} className="flex flex-col justify-between gap-6 bg-[var(--card)] p-8 text-left">
                         <div className="space-y-4">
                           <div className="flex gap-1 text-amber-500">
-                            {[...Array(5)].map((_, i) => (
-                              <Star key={i} className="h-4 w-4 fill-current" />
-                            ))}
+                            {[...Array(5)].map((_, i) => <Star key={i} className="h-3.5 w-3.5 fill-current" />)}
                           </div>
-                          <p className="text-[var(--foreground)] text-xs md:text-sm font-medium leading-relaxed">
-                            "{item.text}"
-                          </p>
+                          <p className="text-xs font-medium leading-relaxed text-[var(--foreground)] md:text-sm">{item.text}</p>
                         </div>
-
-                        <div className="flex items-center gap-4 pt-4 border-t border-outline-variant/10">
-                          <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center font-black text-xs text-blue-500 uppercase">
+                        <div className="flex items-center gap-3 border-t border-[var(--border)] pt-4">
+                          <div className="flex h-9 w-9 items-center justify-center bg-[var(--foreground)] font-mono text-xs font-semibold uppercase text-[var(--background)]">
                             {item.name?.charAt(0) || "U"}
                           </div>
                           <div>
-                            <p className="font-bold text-xs text-[var(--foreground)]">{item.name}</p>
-                            <p className="text-[9px] text-[var(--muted-foreground)] font-semibold uppercase tracking-wider">{item.role}</p>
+                            <p className="text-xs font-semibold text-[var(--foreground)]">{item.name}</p>
+                            <p className="font-mono text-[9px] uppercase tracking-wider text-[var(--muted-foreground)]">{item.role}</p>
                           </div>
                         </div>
                       </div>
@@ -1260,253 +969,164 @@ export default function HomePageClient({
               return null;
           }
         })}
-
       </div>
 
-      {/* Footer */}
-      <footer className="bg-zinc-950 text-zinc-400 border-t border-zinc-900 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 py-16 grid gap-12 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 text-xs font-medium text-left">
-          
-          <div className="lg:col-span-2 space-y-6">
-            <Link href="/" className="font-display text-2xl font-black text-white tracking-tight uppercase">YazMart</Link>
-            <p className="leading-relaxed font-normal text-zinc-500 max-w-xs">Elevating the digital shopping experience through curated luxury and technological excellence.</p>
-            <div className="flex gap-4">
-              <span className="w-8 h-8 rounded-full border border-zinc-800 flex items-center justify-center hover:bg-white hover:text-zinc-950 transition-colors cursor-pointer"><Layers className="h-4 w-4" /></span>
-              <span className="w-8 h-8 rounded-full border border-zinc-800 flex items-center justify-center hover:bg-white hover:text-zinc-950 transition-colors cursor-pointer"><Star className="h-4 w-4" /></span>
-              <span className="w-8 h-8 rounded-full border border-zinc-800 flex items-center justify-center hover:bg-white hover:text-zinc-950 transition-colors cursor-pointer"><ShoppingCart className="h-4 w-4" /></span>
-            </div>
+      {/* ============ FOOTER ============ */}
+      <footer className="border-t border-white/10 bg-[#0c0c0c] text-zinc-400">
+        <div className="mx-auto grid max-w-7xl gap-12 px-4 py-16 text-left text-xs font-medium sm:grid-cols-2 md:grid-cols-3 md:px-6 lg:grid-cols-6">
+
+          <div className="space-y-6 lg:col-span-2">
+            <Link href="/" className="font-display text-xl font-bold uppercase tracking-tight text-white">YazMart</Link>
+            <p className="max-w-xs font-normal leading-relaxed text-zinc-500">Curated shopping for people who care about the details.</p>
           </div>
 
           <div>
-            <h4 className="font-black text-white uppercase tracking-wider mb-6 text-[10px]">Company</h4>
+            <h4 className="mb-6 font-mono text-[10px] font-semibold uppercase tracking-wider text-white">Company</h4>
             <ul className="space-y-4 font-normal text-zinc-500">
-              <li><Link href="#" className="hover:text-white transition-colors">About Us</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Sustainability</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Careers</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Press Room</Link></li>
+              <li><Link href="#" className="transition-colors hover:text-white">About Us</Link></li>
+              <li><Link href="#" className="transition-colors hover:text-white">Careers</Link></li>
+              <li><Link href="#" className="transition-colors hover:text-white">Press</Link></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-black text-white uppercase tracking-wider mb-6 text-[10px]">Support Desk</h4>
+            <h4 className="mb-6 font-mono text-[10px] font-semibold uppercase tracking-wider text-white">Support</h4>
             <ul className="space-y-4 font-normal text-zinc-500">
-              <li><Link href="#" className="hover:text-white transition-colors">Help Center</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Contact Us</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Shipping &amp; Returns</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Sizing Guides</Link></li>
+              <li><Link href="#" className="transition-colors hover:text-white">Help Center</Link></li>
+              <li><Link href="#" className="transition-colors hover:text-white">Contact Us</Link></li>
+              <li><Link href="#" className="transition-colors hover:text-white">Shipping &amp; Returns</Link></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-black text-white uppercase tracking-wider mb-6 text-[10px]">Legal Terms</h4>
+            <h4 className="mb-6 font-mono text-[10px] font-semibold uppercase tracking-wider text-white">Legal</h4>
             <ul className="space-y-4 font-normal text-zinc-500">
-              <li><Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Terms of Service</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Cookie Policy</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Security Audit</Link></li>
+              <li><Link href="#" className="transition-colors hover:text-white">Privacy Policy</Link></li>
+              <li><Link href="#" className="transition-colors hover:text-white">Terms of Service</Link></li>
             </ul>
           </div>
 
           <div className="space-y-4">
-            <h4 className="font-black text-white uppercase tracking-wider mb-6 text-[10px]">Mobile Experience</h4>
-            <div className="flex flex-col gap-3">
-              <span className="bg-zinc-900 border border-zinc-800 text-white px-4 py-2.5 rounded-xl flex items-center gap-3 hover:bg-zinc-800 transition-colors cursor-pointer select-none">
-                <Layers className="h-5 w-5 shrink-0" />
-                <div className="text-[8px] leading-tight font-black uppercase text-left">Download on the <br/><span className="text-[11px] font-bold">App Store</span></div>
-              </span>
-              <span className="bg-zinc-900 border border-zinc-800 text-white px-4 py-2.5 rounded-xl flex items-center gap-3 hover:bg-zinc-800 transition-colors cursor-pointer select-none">
-                <ShoppingCart className="h-5 w-5 shrink-0" />
-                <div className="text-[8px] leading-tight font-black uppercase text-left">Get it on <br/><span className="text-[11px] font-bold">Google Play</span></div>
-              </span>
+            <h4 className="mb-6 font-mono text-[10px] font-semibold uppercase tracking-wider text-white">Payments</h4>
+            <div className="flex flex-wrap gap-2 font-mono text-[10px] uppercase text-zinc-400">
+              <span className="border border-zinc-800 px-2 py-1">Visa</span>
+              <span className="border border-zinc-800 px-2 py-1">Mastercard</span>
+              <span className="border border-zinc-800 px-2 py-1">bKash</span>
+              <span className="border border-zinc-800 px-2 py-1">Nagad</span>
             </div>
           </div>
 
         </div>
 
-        <div className="max-w-7xl mx-auto border-t border-zinc-900 h-20 px-4 md:px-6 flex items-center justify-between text-[10px] text-zinc-500 font-semibold uppercase tracking-wider">
-          <p>&copy; 2026 YazMart. All rights reserved.</p>
-          <div className="flex gap-4">
-            <span>Visa</span>
-            <span>Mastercard</span>
-            <span>bKash</span>
-            <span>NAGAD</span>
-          </div>
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between border-t border-white/10 px-4 font-mono text-[10px] uppercase tracking-wider text-zinc-500 md:px-6">
+          <p>© 2026 YazMart</p>
         </div>
       </footer>
 
-      {/* RIGHT SIDEBAR (CART / WISHLIST DRAWER) */}
+      {/* ============ CART / WISHLIST DRAWER ============ */}
       {rightSidebar && (
         <>
-          {/* Backdrop */}
-          <div 
-            className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-xs transition-opacity"
-            onClick={() => setRightSidebar(null)}
-          />
+          <div className="fixed inset-0 z-[90] bg-black/50" onClick={() => setRightSidebar(null)} />
 
-          {/* Drawer Panel */}
-          <div className="fixed inset-y-0 right-0 z-[100] w-full sm:w-96 bg-[var(--card)] border-l border-[var(--border)] shadow-2xl flex flex-col transition-all duration-300 animate-fade-in text-left">
-            {/* Header */}
-            <div className="p-4 border-b border-[var(--border)] flex items-center justify-between">
-              <div className="flex gap-4">
-                <button 
+          <div className="fixed inset-y-0 right-0 z-[100] flex w-full flex-col border-l border-[var(--border)] bg-[var(--card)] text-left sm:w-[400px]">
+            <div className="flex items-center justify-between border-b border-[var(--border)] p-4">
+              <div className="flex gap-6">
+                <button
                   onClick={() => setRightSidebar("cart")}
-                  className={`text-xs font-black uppercase tracking-wider pb-1 border-b-2 cursor-pointer transition-all ${
-                    rightSidebar === "cart" 
-                      ? "border-blue-500 text-blue-500 font-black" 
-                      : "border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                  }`}
-                  style={rightSidebar === "cart" ? { color: config?.colors?.primary, borderColor: config?.colors?.primary } : {}}
+                  className={`cursor-pointer border-b-2 pb-1 font-mono text-[11px] font-semibold uppercase tracking-wider transition-colors ${rightSidebar === "cart" ? "border-[var(--foreground)] text-[var(--foreground)]" : "border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]"}`}
                 >
                   Cart ({cart.length})
                 </button>
-                <button 
+                <button
                   onClick={() => setRightSidebar("wishlist")}
-                  className={`text-xs font-black uppercase tracking-wider pb-1 border-b-2 cursor-pointer transition-all ${
-                    rightSidebar === "wishlist" 
-                      ? "border-blue-500 text-blue-500 font-black" 
-                      : "border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                  }`}
-                  style={rightSidebar === "wishlist" ? { color: config?.colors?.primary, borderColor: config?.colors?.primary } : {}}
+                  className={`cursor-pointer border-b-2 pb-1 font-mono text-[11px] font-semibold uppercase tracking-wider transition-colors ${rightSidebar === "wishlist" ? "border-[var(--foreground)] text-[var(--foreground)]" : "border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]"}`}
                 >
                   Wishlist ({wishlist.length})
                 </button>
               </div>
-              <button 
-                onClick={() => setRightSidebar(null)}
-                className="p-1 rounded-lg hover:bg-[var(--accent)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors cursor-pointer"
-              >
-                <ChevronRight className="h-5 w-5" />
+              <button onClick={() => setRightSidebar(null)} className="cursor-pointer p-1 text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)]">
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            {/* Content List */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
+            <div className="scrollbar-thin flex-1 space-y-3 overflow-y-auto p-4">
               {rightSidebar === "cart" ? (
                 cart.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-center text-[var(--muted-foreground)] py-12 space-y-3">
-                    <ShoppingCart className="h-10 w-10 text-[var(--border)]" />
-                    <p className="text-xs font-bold uppercase">Your cart is empty</p>
-                    <button 
-                      onClick={() => setRightSidebar(null)} 
-                      className="px-4 py-2 bg-blue-600 text-white text-[10px] font-black uppercase tracking-wider rounded-xl hover:bg-blue-700 transition-colors"
-                      style={{ backgroundColor: config?.colors?.primary }}
-                    >
+                  <div className="flex h-full flex-col items-center justify-center gap-3 py-12 text-center text-[var(--muted-foreground)]">
+                    <ShoppingCart className="h-9 w-9 text-[var(--border)]" />
+                    <p className="font-mono text-xs font-semibold uppercase">Your cart is empty</p>
+                    <button onClick={() => setRightSidebar(null)} className="cursor-pointer border border-[var(--foreground)] px-4 py-2 font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--foreground)] transition-colors hover:bg-[var(--foreground)] hover:text-[var(--background)]">
                       Continue Shopping
                     </button>
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    {cart.map((item) => (
-                      <div key={item.id} className="flex gap-3 p-3 border border-[var(--border)] bg-[var(--background)] rounded-xl relative group">
-                        <div className="w-12 h-12 rounded border border-[var(--border)] bg-white overflow-hidden flex items-center justify-center p-1 shrink-0">
-                          {item.image ? (
-                            <img src={item.image} className="max-h-full max-w-full object-contain" />
-                          ) : (
-                            <ShoppingBag className="h-5 w-5 text-zinc-400" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0 pr-6">
-                          <h4 className="font-bold text-xs text-[var(--foreground)] line-clamp-1">{item.name}</h4>
-                          <p className="text-[9px] text-[var(--muted-foreground)] font-mono mt-0.5">{item.sku}</p>
-                          <p className="text-xs font-black text-blue-500 mt-1" style={{ color: config?.colors?.primary }}>৳{item.price.toFixed(2)}</p>
-                          
-                          {/* Quantity control */}
-                          <div className="flex items-center border border-[var(--border)] rounded-md w-fit bg-[var(--card)] mt-2">
-                            <button 
-                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                              className="px-2 py-0.5 text-xs font-bold hover:bg-[var(--accent)] rounded-l"
-                            >
-                              -
-                            </button>
-                            <span className="px-3 py-0.5 text-xs font-bold border-x border-[var(--border)]">{item.quantity}</span>
-                            <button 
-                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                              className="px-2 py-0.5 text-xs font-bold hover:bg-[var(--accent)] rounded-r"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-                        <button 
-                          onClick={() => removeFromCart(item.id)}
-                          className="absolute top-3 right-3 text-zinc-400 hover:text-rose-500 transition-colors p-1 cursor-pointer"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                  cart.map((item) => (
+                    <div key={item.id} className="group relative flex gap-3 border border-[var(--border)] p-3">
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center border border-[var(--border)] bg-white p-1">
+                        {item.image ? <img src={item.image} className="max-h-full max-w-full object-contain" /> : <ShoppingBag className="h-5 w-5 text-zinc-400" />}
                       </div>
-                    ))}
-                  </div>
+                      <div className="min-w-0 flex-1 pr-6">
+                        <h4 className="line-clamp-1 text-xs font-semibold text-[var(--foreground)]">{item.name}</h4>
+                        <p className="mt-0.5 font-mono text-[9px] text-[var(--muted-foreground)]">{item.sku}</p>
+                        <p className="mt-1 font-mono text-xs font-semibold" style={{ color: config?.colors?.primary || "var(--primary)" }}>৳{item.price.toFixed(2)}</p>
+
+                        <div className="mt-2 flex w-fit items-center border border-[var(--border)]">
+                          <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="cursor-pointer px-2 py-0.5 text-xs font-bold hover:bg-[var(--accent)]"><Minus className="h-3 w-3" /></button>
+                          <span className="border-x border-[var(--border)] px-3 py-0.5 font-mono text-xs font-semibold">{item.quantity}</span>
+                          <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="cursor-pointer px-2 py-0.5 text-xs font-bold hover:bg-[var(--accent)]"><Plus className="h-3 w-3" /></button>
+                        </div>
+                      </div>
+                      <button onClick={() => removeFromCart(item.id)} className="absolute top-3 right-3 cursor-pointer p-1 text-zinc-400 transition-colors hover:text-[var(--primary)]">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))
                 )
               ) : (
                 wishlist.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-center text-[var(--muted-foreground)] py-12 space-y-3">
-                    <Heart className="h-10 w-10 text-[var(--border)]" />
-                    <p className="text-xs font-bold uppercase">Your wishlist is empty</p>
+                  <div className="flex h-full flex-col items-center justify-center gap-3 py-12 text-center text-[var(--muted-foreground)]">
+                    <Heart className="h-9 w-9 text-[var(--border)]" />
+                    <p className="font-mono text-xs font-semibold uppercase">Your wishlist is empty</p>
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    {wishlist.map((item) => (
-                      <div key={item.id} className="flex gap-3 p-3 border border-[var(--border)] bg-[var(--background)] rounded-xl relative group">
-                        <div className="w-12 h-12 rounded border border-[var(--border)] bg-white overflow-hidden flex items-center justify-center p-1 shrink-0">
-                          {item.image ? (
-                            <img src={item.image} className="max-h-full max-w-full object-contain" />
-                          ) : (
-                            <ShoppingBag className="h-5 w-5 text-zinc-400" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0 pr-6">
-                          <h4 className="font-bold text-xs text-[var(--foreground)] line-clamp-1">{item.name}</h4>
-                          <p className="text-[9px] text-[var(--muted-foreground)] font-mono mt-0.5">{item.sku}</p>
-                          <p className="text-xs font-black text-blue-500 mt-1" style={{ color: config?.colors?.primary }}>৳{item.price.toFixed(2)}</p>
-                          
-                          <button 
-                            onClick={() => {
-                              addToCart(item);
-                              removeFromWishlist(item.id);
-                              setRightSidebar("cart");
-                            }}
-                            className="mt-2 flex items-center gap-1.5 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[9px] font-black uppercase tracking-wider cursor-pointer"
-                            style={{ backgroundColor: config?.colors?.primary }}
-                          >
-                            <ShoppingCart className="h-3 w-3" /> Add to Cart
-                          </button>
-                        </div>
-                        <button 
-                          onClick={() => removeFromWishlist(item.id)}
-                          className="absolute top-3 right-3 text-zinc-400 hover:text-rose-500 transition-colors p-1 cursor-pointer"
+                  wishlist.map((item) => (
+                    <div key={item.id} className="group relative flex gap-3 border border-[var(--border)] p-3">
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center border border-[var(--border)] bg-white p-1">
+                        {item.image ? <img src={item.image} className="max-h-full max-w-full object-contain" /> : <ShoppingBag className="h-5 w-5 text-zinc-400" />}
+                      </div>
+                      <div className="min-w-0 flex-1 pr-6">
+                        <h4 className="line-clamp-1 text-xs font-semibold text-[var(--foreground)]">{item.name}</h4>
+                        <p className="mt-0.5 font-mono text-[9px] text-[var(--muted-foreground)]">{item.sku}</p>
+                        <p className="mt-1 font-mono text-xs font-semibold" style={{ color: config?.colors?.primary || "var(--primary)" }}>৳{item.price.toFixed(2)}</p>
+                        <button
+                          onClick={() => { addToCart(item); removeFromWishlist(item.id); setRightSidebar("cart"); }}
+                          className="mt-2 flex cursor-pointer items-center gap-1.5 bg-[var(--foreground)] px-3 py-1 font-mono text-[9px] font-semibold uppercase tracking-wider text-[var(--background)]"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <ShoppingCart className="h-3 w-3" /> Add to Cart
                         </button>
                       </div>
-                    ))}
-                  </div>
+                      <button onClick={() => removeFromWishlist(item.id)} className="absolute top-3 right-3 cursor-pointer p-1 text-zinc-400 transition-colors hover:text-[var(--primary)]">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))
                 )
               )}
             </div>
 
-            {/* Bottom Panel */}
             {rightSidebar === "cart" && cart.length > 0 && (
-              <div className="p-4 border-t border-[var(--border)] bg-[var(--card)] space-y-4">
-                <div className="flex items-center justify-between text-xs font-bold uppercase">
-                  <span>Subtotal:</span>
-                  <span className="text-sm font-black text-blue-500" style={{ color: config?.colors?.primary }}>
+              <div className="space-y-4 border-t border-[var(--border)] p-4">
+                <div className="flex items-center justify-between font-mono text-xs font-semibold uppercase">
+                  <span>Subtotal</span>
+                  <span style={{ color: config?.colors?.primary || "var(--primary)" }}>
                     ৳{cart.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2)}
                   </span>
                 </div>
-                <div className="grid gap-2 grid-cols-2">
-                  <Link 
-                    href="/cart" 
-                    onClick={() => setRightSidebar(null)}
-                    className="block text-center py-2.5 bg-[var(--accent)] hover:bg-[var(--border)] border border-[var(--border)] text-xs font-black uppercase tracking-wider rounded-xl transition-all text-[var(--foreground)]"
-                  >
+                <div className="grid grid-cols-2 gap-px border border-[var(--border)]">
+                  <Link href="/cart" onClick={() => setRightSidebar(null)} className="block bg-[var(--card)] py-2.5 text-center font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--foreground)] transition-colors hover:bg-[var(--accent)]">
                     View Cart
                   </Link>
-                  <Link 
-                    href="/checkout" 
-                    onClick={() => setRightSidebar(null)}
-                    className="block text-center py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-md"
-                    style={{ backgroundColor: config?.colors?.primary }}
-                  >
+                  <Link href="/checkout" onClick={() => setRightSidebar(null)} className="block bg-[var(--foreground)] py-2.5 text-center font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--background)] transition-opacity hover:opacity-85">
                     Checkout
                   </Link>
                 </div>

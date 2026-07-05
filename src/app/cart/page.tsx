@@ -2,14 +2,13 @@
 
 import React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+
 import { useShopStore } from "@/store/shop-store";
 import { useAuthStore } from "@/store/auth-store";
 import { signOutAction } from "@/actions/auth";
 import { ShoppingCart, Trash2, ArrowLeft, CreditCard, ShoppingBag, Heart, ShieldCheck, Check } from "lucide-react";
 
 export default function CartPage() {
-  const router = useRouter();
   const { cart, removeFromCart, updateQuantity, clearCart, wishlist } = useShopStore();
   const { user } = useAuthStore();
 
@@ -17,13 +16,7 @@ export default function CartPage() {
   const shipping = subtotal > 100 || subtotal === 0 ? 0 : 15;
   const total = subtotal + shipping;
 
-  React.useEffect(() => {
-    if (!user) {
-      router.push("/auth");
-    }
-  }, [user, router]);
 
-  if (!user) return null; // Avoid flashing content before redirect
 
   return (
     <div className="min-h-screen flex flex-col bg-[var(--background)] text-[var(--foreground)] font-sans">

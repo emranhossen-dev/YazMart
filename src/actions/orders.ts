@@ -9,6 +9,8 @@ export async function createOrder(data: {
   shipping_address: string;
   phone: string;
   total_amount: number;
+  payment_method?: string;
+  delivery_charge?: number;
   items: any[];
 }) {
   try {
@@ -16,9 +18,7 @@ export async function createOrder(data: {
       return { error: "Missing required fields or items list is empty." };
     }
 
-    // Start a transaction to create the order and decrement stock
     const result = await prisma.$transaction(async (tx) => {
-      // 1. Create order record
       const order = await tx.orderMatrix.create({
         data: {
           customer_name: data.customer_name,
@@ -26,17 +26,22 @@ export async function createOrder(data: {
           shipping_address: data.shipping_address,
           phone: data.phone,
           total_amount: data.total_amount,
-          items: data.items, // JSON array
-          status: "PENDING",
+          // Store payment metadata inside items JSON blob
+          items: {
+            __meta: {
+              payment_method: data.payment_method || "COD",
+              delivery_charge: data.delivery_charge || 0,
+            },
+            list: data.items,
+          },
+          status: data.payment_method === "ONLINE" ? "AWAITING_PAYMENT" : "PENDING",
         },
       });
 
-      // 2. Decrement stock for each product
+      // Decrement stock for each product
       for (const item of data.items) {
         if (item.id) {
-          const product = await tx.pimProducts.findUnique({
-            where: { id: item.id }
-          });
+          const product = await tx.pimProducts.findUnique({ where: { id: item.id } });
           if (product) {
             const newStock = Math.max(0, Number(product.current_stock) - Number(item.quantity));
             await tx.pimProducts.update({
@@ -44,7 +49,7 @@ export async function createOrder(data: {
               data: {
                 current_stock: newStock,
                 stock_status: newStock > 0 ? "IN_STOCK" : "OUT_OF_STOCK",
-              }
+              },
             });
           }
         }
@@ -58,6 +63,41 @@ export async function createOrder(data: {
   } catch (error: any) {
     console.error("❌ CREATE ORDER ERROR:", error);
     return { error: `Failed to place order: ${error?.message || "Internal database error."}` };
+  }
+}
+
+export async function submitOnlinePayment(orderId: string, trxId: string) {
+  try {
+    if (!orderId || !trxId) {
+      return { error: "Order ID and Transaction ID are required." };
+    }
+
+    const order = await prisma.orderMatrix.findUnique({ where: { id: orderId } });
+    if (!order) return { error: "Order not found." };
+
+    const existingItems = order.items as any;
+    const updatedItems = {
+      ...existingItems,
+      __meta: {
+        ...(existingItems?.__meta || {}),
+        trx_id: trxId,
+        payment_verified_at: new Date().toISOString(),
+      },
+    };
+
+    await prisma.orderMatrix.update({
+      where: { id: orderId },
+      data: {
+        items: updatedItems,
+        status: "PAYMENT_RECEIVED",
+      },
+    });
+
+    revalidatePath("/admin/orders");
+    return { success: true };
+  } catch (error: any) {
+    console.error("❌ SUBMIT PAYMENT ERROR:", error);
+    return { error: `Failed to submit payment: ${error?.message || "Internal error."}` };
   }
 }
 
@@ -75,11 +115,24 @@ export async function getOrders() {
 
 export async function getOrderById(id: string) {
   try {
-    const order = await prisma.orderMatrix.findUnique({
-      where: { id },
-    });
+    const order = await prisma.orderMatrix.findUnique({ where: { id } });
     if (!order) return { error: "Order not found." };
-    return { order: { ...order, total_amount: Number(order.total_amount) } };
+
+    // Flatten stored JSON — handle both old flat array and new { __meta, list } shape
+    const raw = order.items as any;
+    const itemList: any[] = Array.isArray(raw) ? raw : (raw?.list || []);
+    const meta = raw?.__meta || {};
+
+    return {
+      order: {
+        ...order,
+        total_amount: Number(order.total_amount),
+        items: itemList,
+        payment_method: meta.payment_method || "COD",
+        delivery_charge: meta.delivery_charge || 0,
+        trx_id: meta.trx_id || null,
+      },
+    };
   } catch (error) {
     return { error: "Failed to fetch order details." };
   }
@@ -89,7 +142,7 @@ export async function updateOrderStatus(id: string, status: string) {
   try {
     const order = await prisma.orderMatrix.update({
       where: { id },
-      data: { status }
+      data: { status },
     });
     revalidatePath("/admin/orders");
     return { success: true, order };
