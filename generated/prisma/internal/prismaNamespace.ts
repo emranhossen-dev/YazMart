@@ -418,7 +418,9 @@ export const ModelName = {
   OrderMatrix: 'OrderMatrix',
   HomepageConfig: 'HomepageConfig',
   StockItem: 'StockItem',
-  coupons: 'coupons'
+  coupons: 'coupons',
+  Store: 'Store',
+  SubOrder: 'SubOrder'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -434,7 +436,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "audit_log_entries" | "custom_oauth_providers" | "flow_state" | "identities" | "instances" | "mfa_amr_claims" | "mfa_challenges" | "mfa_factors" | "oauth_authorizations" | "oauth_client_states" | "oauth_clients" | "oauth_consents" | "one_time_tokens" | "refresh_tokens" | "saml_providers" | "saml_relay_states" | "schema_migrations" | "sessions" | "sso_domains" | "sso_providers" | "users" | "webauthn_challenges" | "webauthn_credentials" | "categories" | "products" | "profiles" | "roles" | "categoryMatrix" | "brandMatrix" | "pimProducts" | "productVariants" | "orderMatrix" | "homepageConfig" | "stockItem" | "coupons"
+    modelProps: "audit_log_entries" | "custom_oauth_providers" | "flow_state" | "identities" | "instances" | "mfa_amr_claims" | "mfa_challenges" | "mfa_factors" | "oauth_authorizations" | "oauth_client_states" | "oauth_clients" | "oauth_consents" | "one_time_tokens" | "refresh_tokens" | "saml_providers" | "saml_relay_states" | "schema_migrations" | "sessions" | "sso_domains" | "sso_providers" | "users" | "webauthn_challenges" | "webauthn_credentials" | "categories" | "products" | "profiles" | "roles" | "categoryMatrix" | "brandMatrix" | "pimProducts" | "productVariants" | "orderMatrix" | "homepageConfig" | "stockItem" | "coupons" | "store" | "subOrder"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3028,6 +3030,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Store: {
+      payload: Prisma.$StorePayload<ExtArgs>
+      fields: Prisma.StoreFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.StoreFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.StoreFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorePayload>
+        }
+        findFirst: {
+          args: Prisma.StoreFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.StoreFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorePayload>
+        }
+        findMany: {
+          args: Prisma.StoreFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorePayload>[]
+        }
+        create: {
+          args: Prisma.StoreCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorePayload>
+        }
+        createMany: {
+          args: Prisma.StoreCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.StoreCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorePayload>[]
+        }
+        delete: {
+          args: Prisma.StoreDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorePayload>
+        }
+        update: {
+          args: Prisma.StoreUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorePayload>
+        }
+        deleteMany: {
+          args: Prisma.StoreDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.StoreUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.StoreUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorePayload>[]
+        }
+        upsert: {
+          args: Prisma.StoreUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$StorePayload>
+        }
+        aggregate: {
+          args: Prisma.StoreAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateStore>
+        }
+        groupBy: {
+          args: Prisma.StoreGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StoreGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.StoreCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.StoreCountAggregateOutputType> | number
+        }
+      }
+    }
+    SubOrder: {
+      payload: Prisma.$SubOrderPayload<ExtArgs>
+      fields: Prisma.SubOrderFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SubOrderFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubOrderPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SubOrderFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubOrderPayload>
+        }
+        findFirst: {
+          args: Prisma.SubOrderFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubOrderPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SubOrderFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubOrderPayload>
+        }
+        findMany: {
+          args: Prisma.SubOrderFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubOrderPayload>[]
+        }
+        create: {
+          args: Prisma.SubOrderCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubOrderPayload>
+        }
+        createMany: {
+          args: Prisma.SubOrderCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SubOrderCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubOrderPayload>[]
+        }
+        delete: {
+          args: Prisma.SubOrderDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubOrderPayload>
+        }
+        update: {
+          args: Prisma.SubOrderUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubOrderPayload>
+        }
+        deleteMany: {
+          args: Prisma.SubOrderDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SubOrderUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SubOrderUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubOrderPayload>[]
+        }
+        upsert: {
+          args: Prisma.SubOrderUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SubOrderPayload>
+        }
+        aggregate: {
+          args: Prisma.SubOrderAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSubOrder>
+        }
+        groupBy: {
+          args: Prisma.SubOrderGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SubOrderGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SubOrderCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SubOrderCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -3575,6 +3725,7 @@ export const PimProductsScalarFieldEnum = {
   is_new_arrival: 'is_new_arrival',
   category_id: 'category_id',
   brand_id: 'brand_id',
+  store_id: 'store_id',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -3655,6 +3806,37 @@ export const CouponsScalarFieldEnum = {
 } as const
 
 export type CouponsScalarFieldEnum = (typeof CouponsScalarFieldEnum)[keyof typeof CouponsScalarFieldEnum]
+
+
+export const StoreScalarFieldEnum = {
+  id: 'id',
+  owner_id: 'owner_id',
+  name: 'name',
+  slug: 'slug',
+  logo_url: 'logo_url',
+  banner_url: 'banner_url',
+  description: 'description',
+  status: 'status',
+  colors: 'colors',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type StoreScalarFieldEnum = (typeof StoreScalarFieldEnum)[keyof typeof StoreScalarFieldEnum]
+
+
+export const SubOrderScalarFieldEnum = {
+  id: 'id',
+  parent_id: 'parent_id',
+  store_id: 'store_id',
+  total_amount: 'total_amount',
+  status: 'status',
+  items: 'items',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SubOrderScalarFieldEnum = (typeof SubOrderScalarFieldEnum)[keyof typeof SubOrderScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -4100,6 +4282,8 @@ export type GlobalOmitConfig = {
   homepageConfig?: Prisma.HomepageConfigOmit
   stockItem?: Prisma.StockItemOmit
   coupons?: Prisma.couponsOmit
+  store?: Prisma.StoreOmit
+  subOrder?: Prisma.SubOrderOmit
 }
 
 /* Types for Logging */

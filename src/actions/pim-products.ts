@@ -69,6 +69,7 @@ export async function createEnterpriseProduct(data: any) {
       warranty: data.warranty || null,
       usability: data.usability || null,
       package_includes: data.package_includes || null,
+      store_id: data.store_id || null,
     };
 
     let savedProduct;
@@ -94,7 +95,12 @@ export async function createEnterpriseProduct(data: any) {
     }
 
     revalidatePath("/admin/products");
+    revalidatePath("/seller/products");
     revalidatePath("/");
+    if (savedProduct.store_id) {
+      const store = await prisma.store.findUnique({ where: { id: savedProduct.store_id } });
+      if (store) revalidatePath(`/stores/${store.slug}`);
+    }
     return { success: "Product database record saved successfully!", product: serializePimProduct(savedProduct) };
   } catch (error: any) {
     console.error("❌ PIM ENGINE ERROR:", error);

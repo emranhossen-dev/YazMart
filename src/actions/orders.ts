@@ -38,7 +38,9 @@ export async function createOrder(data: {
         },
       });
 
-      // Decrement stock for each product
+      // Group items by store_id and decrement stock
+      const storeItemsMap = new Map<string | null, any[]>();
+
       for (const item of data.items) {
         if (item.id) {
           const product = await tx.pimProducts.findUnique({ where: { id: item.id } });
@@ -51,7 +53,36 @@ export async function createOrder(data: {
                 stock_status: newStock > 0 ? "IN_STOCK" : "OUT_OF_STOCK",
               },
             });
+
+            const storeId = product.store_id || null;
+            if (!storeItemsMap.has(storeId)) {
+              storeItemsMap.set(storeId, []);
+            }
+            storeItemsMap.get(storeId)!.push({
+              id: item.id,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+              image: item.image,
+              sku: product.sku,
+            });
           }
+        }
+      }
+
+      // Create SubOrders for each store
+      for (const [storeId, itemsList] of storeItemsMap.entries()) {
+        if (storeId) {
+          const subTotal = itemsList.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+          await tx.subOrder.create({
+            data: {
+              parent_id: order.id,
+              store_id: storeId,
+              total_amount: subTotal,
+              status: order.status,
+              items: itemsList,
+            },
+          });
         }
       }
 
@@ -85,12 +116,21 @@ export async function submitOnlinePayment(orderId: string, trxId: string) {
       },
     };
 
-    await prisma.orderMatrix.update({
-      where: { id: orderId },
-      data: {
-        items: updatedItems,
-        status: "PAYMENT_RECEIVED",
-      },
+    await prisma.$transaction(async (tx) => {
+      await tx.orderMatrix.update({
+        where: { id: orderId },
+        data: {
+          items: updatedItems,
+          status: "PAYMENT_RECEIVED",
+        },
+      });
+
+      await tx.subOrder.updateMany({
+        where: { parent_id: orderId },
+        data: {
+          status: "PAYMENT_RECEIVED",
+        },
+      });
     });
 
     revalidatePath("/admin/orders");
@@ -140,9 +180,18 @@ export async function getOrderById(id: string) {
 
 export async function updateOrderStatus(id: string, status: string) {
   try {
-    const order = await prisma.orderMatrix.update({
-      where: { id },
-      data: { status },
+    const order = await prisma.$transaction(async (tx) => {
+      const updated = await tx.orderMatrix.update({
+        where: { id },
+        data: { status },
+      });
+
+      await tx.subOrder.updateMany({
+        where: { parent_id: id },
+        data: { status },
+      });
+
+      return updated;
     });
     revalidatePath("/admin/orders");
     return { success: true, order };

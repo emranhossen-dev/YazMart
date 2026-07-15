@@ -85,7 +85,9 @@ export const ModelName = {
   OrderMatrix: 'OrderMatrix',
   HomepageConfig: 'HomepageConfig',
   StockItem: 'StockItem',
-  coupons: 'coupons'
+  coupons: 'coupons',
+  Store: 'Store',
+  SubOrder: 'SubOrder'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -612,6 +614,7 @@ export const PimProductsScalarFieldEnum = {
   is_new_arrival: 'is_new_arrival',
   category_id: 'category_id',
   brand_id: 'brand_id',
+  store_id: 'store_id',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -692,6 +695,37 @@ export const CouponsScalarFieldEnum = {
 } as const
 
 export type CouponsScalarFieldEnum = (typeof CouponsScalarFieldEnum)[keyof typeof CouponsScalarFieldEnum]
+
+
+export const StoreScalarFieldEnum = {
+  id: 'id',
+  owner_id: 'owner_id',
+  name: 'name',
+  slug: 'slug',
+  logo_url: 'logo_url',
+  banner_url: 'banner_url',
+  description: 'description',
+  status: 'status',
+  colors: 'colors',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type StoreScalarFieldEnum = (typeof StoreScalarFieldEnum)[keyof typeof StoreScalarFieldEnum]
+
+
+export const SubOrderScalarFieldEnum = {
+  id: 'id',
+  parent_id: 'parent_id',
+  store_id: 'store_id',
+  total_amount: 'total_amount',
+  status: 'status',
+  items: 'items',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SubOrderScalarFieldEnum = (typeof SubOrderScalarFieldEnum)[keyof typeof SubOrderScalarFieldEnum]
 
 
 export const SortOrder = {

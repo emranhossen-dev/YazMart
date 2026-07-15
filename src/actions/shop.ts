@@ -270,3 +270,44 @@ export async function getAllProducts(filters?: {
     return { error: `Database failed: ${error?.message}`, products: [], categories: [] };
   }
 }
+
+export async function getStoreData(slug: string) {
+  try {
+    const store = await prisma.store.findUnique({
+      where: { slug },
+    });
+
+    if (!store) {
+      return { store: null, products: [], error: "Store not found" };
+    }
+
+    const products = await prisma.pimProducts.findMany({
+      where: {
+        store_id: store.id,
+        status: "PUBLISHED",
+      },
+      include: {
+        category: true,
+        brand: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const serializedStore = {
+      ...store,
+      createdAt: store.createdAt.toISOString(),
+      updatedAt: store.updatedAt.toISOString(),
+    };
+
+    const formattedProducts = products.map(serializeProduct);
+
+    return {
+      store: serializedStore,
+      products: formattedProducts,
+      error: null,
+    };
+  } catch (error: any) {
+    console.error("❌ STORE DATA FETCH ERROR:", error);
+    return { store: null, products: [], error: error.message };
+  }
+}

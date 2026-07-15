@@ -730,6 +730,8 @@ model PimProducts {
   brand           BrandMatrix?      @relation(fields: [brand_id], references: [id])
   variants        ProductVariants[]
   stock_items     StockItem[]
+  store_id        String?
+  store           Store?            @relation(fields: [store_id], references: [id], onDelete: Cascade)
 
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
@@ -765,6 +767,7 @@ model OrderMatrix {
   total_amount     Decimal     @db.Decimal(10, 2)
   status           String      @default("PENDING") // PENDING, PROCESSING, COMPLETED, CANCELLED
   items            Json        // Stores array of products { id, name, price, quantity, image }
+  sub_orders       SubOrder[]
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
 
@@ -809,6 +812,39 @@ model coupons {
   is_active        Boolean   @default(true)
   created_at       DateTime? @default(now()) @db.Timestamptz(6)
   updated_at       DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@schema("public")
+}
+
+model Store {
+  id          String        @id @default(uuid())
+  owner_id    String        @db.Uuid
+  name        String
+  slug        String        @unique
+  logo_url    String?
+  banner_url  String?
+  description String?
+  status      String        @default("ACTIVE") // ACTIVE, INACTIVE
+  colors      Json?         // Theme custom colors for the seller's storefront
+  products    PimProducts[]
+  sub_orders  SubOrder[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@schema("public")
+}
+
+model SubOrder {
+  id           String      @id @default(uuid())
+  parent_id    String
+  parent       OrderMatrix @relation(fields: [parent_id], references: [id], onDelete: Cascade)
+  store_id     String
+  store        Store       @relation(fields: [store_id], references: [id], onDelete: Cascade)
+  total_amount Decimal     @db.Decimal(10, 2)
+  status       String      @default("PENDING") // PENDING, PROCESSING, COMPLETED, CANCELLED
+  items        Json        // [{ id, name, price, quantity, image }]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 
   @@schema("public")
 }

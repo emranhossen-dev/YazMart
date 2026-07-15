@@ -414,6 +414,9 @@ export default function HomePageClient({
                       Admin Panel
                     </Link>
                   )}
+                  <Link href="/seller" className="block w-full px-3 py-2 text-left font-semibold transition-colors hover:bg-[var(--accent)]">
+                    Seller Panel
+                  </Link>
                   <button
                     onClick={async () => { await signOutAction(); window.location.reload(); }}
                     className="w-full cursor-pointer px-3 py-2 text-left font-semibold text-[var(--primary)] transition-colors hover:bg-[var(--accent)]"

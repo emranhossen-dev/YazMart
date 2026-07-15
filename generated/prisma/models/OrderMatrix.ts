@@ -252,6 +252,7 @@ export type OrderMatrixWhereInput = {
   items?: Prisma.JsonFilter<"OrderMatrix">
   createdAt?: Prisma.DateTimeFilter<"OrderMatrix"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"OrderMatrix"> | Date | string
+  sub_orders?: Prisma.SubOrderListRelationFilter
 }
 
 export type OrderMatrixOrderByWithRelationInput = {
@@ -265,6 +266,7 @@ export type OrderMatrixOrderByWithRelationInput = {
   items?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  sub_orders?: Prisma.SubOrderOrderByRelationAggregateInput
 }
 
 export type OrderMatrixWhereUniqueInput = Prisma.AtLeast<{
@@ -281,6 +283,7 @@ export type OrderMatrixWhereUniqueInput = Prisma.AtLeast<{
   items?: Prisma.JsonFilter<"OrderMatrix">
   createdAt?: Prisma.DateTimeFilter<"OrderMatrix"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"OrderMatrix"> | Date | string
+  sub_orders?: Prisma.SubOrderListRelationFilter
 }, "id">
 
 export type OrderMatrixOrderByWithAggregationInput = {
@@ -328,6 +331,7 @@ export type OrderMatrixCreateInput = {
   items: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
+  sub_orders?: Prisma.SubOrderCreateNestedManyWithoutParentInput
 }
 
 export type OrderMatrixUncheckedCreateInput = {
@@ -341,6 +345,7 @@ export type OrderMatrixUncheckedCreateInput = {
   items: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
+  sub_orders?: Prisma.SubOrderUncheckedCreateNestedManyWithoutParentInput
 }
 
 export type OrderMatrixUpdateInput = {
@@ -354,6 +359,7 @@ export type OrderMatrixUpdateInput = {
   items?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sub_orders?: Prisma.SubOrderUpdateManyWithoutParentNestedInput
 }
 
 export type OrderMatrixUncheckedUpdateInput = {
@@ -367,6 +373,7 @@ export type OrderMatrixUncheckedUpdateInput = {
   items?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sub_orders?: Prisma.SubOrderUncheckedUpdateManyWithoutParentNestedInput
 }
 
 export type OrderMatrixCreateManyInput = {
@@ -453,6 +460,122 @@ export type OrderMatrixSumOrderByAggregateInput = {
   total_amount?: Prisma.SortOrder
 }
 
+export type OrderMatrixScalarRelationFilter = {
+  is?: Prisma.OrderMatrixWhereInput
+  isNot?: Prisma.OrderMatrixWhereInput
+}
+
+export type OrderMatrixCreateNestedOneWithoutSub_ordersInput = {
+  create?: Prisma.XOR<Prisma.OrderMatrixCreateWithoutSub_ordersInput, Prisma.OrderMatrixUncheckedCreateWithoutSub_ordersInput>
+  connectOrCreate?: Prisma.OrderMatrixCreateOrConnectWithoutSub_ordersInput
+  connect?: Prisma.OrderMatrixWhereUniqueInput
+}
+
+export type OrderMatrixUpdateOneRequiredWithoutSub_ordersNestedInput = {
+  create?: Prisma.XOR<Prisma.OrderMatrixCreateWithoutSub_ordersInput, Prisma.OrderMatrixUncheckedCreateWithoutSub_ordersInput>
+  connectOrCreate?: Prisma.OrderMatrixCreateOrConnectWithoutSub_ordersInput
+  upsert?: Prisma.OrderMatrixUpsertWithoutSub_ordersInput
+  connect?: Prisma.OrderMatrixWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrderMatrixUpdateToOneWithWhereWithoutSub_ordersInput, Prisma.OrderMatrixUpdateWithoutSub_ordersInput>, Prisma.OrderMatrixUncheckedUpdateWithoutSub_ordersInput>
+}
+
+export type OrderMatrixCreateWithoutSub_ordersInput = {
+  id?: string
+  customer_name: string
+  customer_email: string
+  shipping_address: string
+  phone: string
+  total_amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: string
+  items: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type OrderMatrixUncheckedCreateWithoutSub_ordersInput = {
+  id?: string
+  customer_name: string
+  customer_email: string
+  shipping_address: string
+  phone: string
+  total_amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: string
+  items: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type OrderMatrixCreateOrConnectWithoutSub_ordersInput = {
+  where: Prisma.OrderMatrixWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrderMatrixCreateWithoutSub_ordersInput, Prisma.OrderMatrixUncheckedCreateWithoutSub_ordersInput>
+}
+
+export type OrderMatrixUpsertWithoutSub_ordersInput = {
+  update: Prisma.XOR<Prisma.OrderMatrixUpdateWithoutSub_ordersInput, Prisma.OrderMatrixUncheckedUpdateWithoutSub_ordersInput>
+  create: Prisma.XOR<Prisma.OrderMatrixCreateWithoutSub_ordersInput, Prisma.OrderMatrixUncheckedCreateWithoutSub_ordersInput>
+  where?: Prisma.OrderMatrixWhereInput
+}
+
+export type OrderMatrixUpdateToOneWithWhereWithoutSub_ordersInput = {
+  where?: Prisma.OrderMatrixWhereInput
+  data: Prisma.XOR<Prisma.OrderMatrixUpdateWithoutSub_ordersInput, Prisma.OrderMatrixUncheckedUpdateWithoutSub_ordersInput>
+}
+
+export type OrderMatrixUpdateWithoutSub_ordersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  customer_name?: Prisma.StringFieldUpdateOperationsInput | string
+  customer_email?: Prisma.StringFieldUpdateOperationsInput | string
+  shipping_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  total_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  items?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type OrderMatrixUncheckedUpdateWithoutSub_ordersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  customer_name?: Prisma.StringFieldUpdateOperationsInput | string
+  customer_email?: Prisma.StringFieldUpdateOperationsInput | string
+  shipping_address?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  total_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  items?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+
+/**
+ * Count Type OrderMatrixCountOutputType
+ */
+
+export type OrderMatrixCountOutputType = {
+  sub_orders: number
+}
+
+export type OrderMatrixCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  sub_orders?: boolean | OrderMatrixCountOutputTypeCountSub_ordersArgs
+}
+
+/**
+ * OrderMatrixCountOutputType without action
+ */
+export type OrderMatrixCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OrderMatrixCountOutputType
+   */
+  select?: Prisma.OrderMatrixCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * OrderMatrixCountOutputType without action
+ */
+export type OrderMatrixCountOutputTypeCountSub_ordersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SubOrderWhereInput
+}
 
 
 export type OrderMatrixSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -466,6 +589,8 @@ export type OrderMatrixSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   items?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  sub_orders?: boolean | Prisma.OrderMatrix$sub_ordersArgs<ExtArgs>
+  _count?: boolean | Prisma.OrderMatrixCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["orderMatrix"]>
 
 export type OrderMatrixSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -508,10 +633,18 @@ export type OrderMatrixSelectScalar = {
 }
 
 export type OrderMatrixOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "customer_name" | "customer_email" | "shipping_address" | "phone" | "total_amount" | "status" | "items" | "createdAt" | "updatedAt", ExtArgs["result"]["orderMatrix"]>
+export type OrderMatrixInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  sub_orders?: boolean | Prisma.OrderMatrix$sub_ordersArgs<ExtArgs>
+  _count?: boolean | Prisma.OrderMatrixCountOutputTypeDefaultArgs<ExtArgs>
+}
+export type OrderMatrixIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type OrderMatrixIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
 
 export type $OrderMatrixPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "OrderMatrix"
-  objects: {}
+  objects: {
+    sub_orders: Prisma.$SubOrderPayload<ExtArgs>[]
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     customer_name: string
@@ -917,6 +1050,7 @@ readonly fields: OrderMatrixFieldRefs;
  */
 export interface Prisma__OrderMatrixClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  sub_orders<T extends Prisma.OrderMatrix$sub_ordersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrderMatrix$sub_ordersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SubOrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -973,6 +1107,10 @@ export type OrderMatrixFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.I
    */
   omit?: Prisma.OrderMatrixOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrderMatrixInclude<ExtArgs> | null
+  /**
    * Filter, which OrderMatrix to fetch.
    */
   where: Prisma.OrderMatrixWhereUniqueInput
@@ -991,6 +1129,10 @@ export type OrderMatrixFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Exten
    */
   omit?: Prisma.OrderMatrixOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrderMatrixInclude<ExtArgs> | null
+  /**
    * Filter, which OrderMatrix to fetch.
    */
   where: Prisma.OrderMatrixWhereUniqueInput
@@ -1008,6 +1150,10 @@ export type OrderMatrixFindFirstArgs<ExtArgs extends runtime.Types.Extensions.In
    * Omit specific fields from the OrderMatrix
    */
   omit?: Prisma.OrderMatrixOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrderMatrixInclude<ExtArgs> | null
   /**
    * Filter, which OrderMatrix to fetch.
    */
@@ -1057,6 +1203,10 @@ export type OrderMatrixFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Extens
    */
   omit?: Prisma.OrderMatrixOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrderMatrixInclude<ExtArgs> | null
+  /**
    * Filter, which OrderMatrix to fetch.
    */
   where?: Prisma.OrderMatrixWhereInput
@@ -1104,6 +1254,10 @@ export type OrderMatrixFindManyArgs<ExtArgs extends runtime.Types.Extensions.Int
    * Omit specific fields from the OrderMatrix
    */
   omit?: Prisma.OrderMatrixOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrderMatrixInclude<ExtArgs> | null
   /**
    * Filter, which OrderMatrices to fetch.
    */
@@ -1153,6 +1307,10 @@ export type OrderMatrixCreateArgs<ExtArgs extends runtime.Types.Extensions.Inter
    */
   omit?: Prisma.OrderMatrixOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrderMatrixInclude<ExtArgs> | null
+  /**
    * The data needed to create a OrderMatrix.
    */
   data: Prisma.XOR<Prisma.OrderMatrixCreateInput, Prisma.OrderMatrixUncheckedCreateInput>
@@ -1200,6 +1358,10 @@ export type OrderMatrixUpdateArgs<ExtArgs extends runtime.Types.Extensions.Inter
    * Omit specific fields from the OrderMatrix
    */
   omit?: Prisma.OrderMatrixOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrderMatrixInclude<ExtArgs> | null
   /**
    * The data needed to update a OrderMatrix.
    */
@@ -1267,6 +1429,10 @@ export type OrderMatrixUpsertArgs<ExtArgs extends runtime.Types.Extensions.Inter
    */
   omit?: Prisma.OrderMatrixOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrderMatrixInclude<ExtArgs> | null
+  /**
    * The filter to search for the OrderMatrix to update in case it exists.
    */
   where: Prisma.OrderMatrixWhereUniqueInput
@@ -1293,6 +1459,10 @@ export type OrderMatrixDeleteArgs<ExtArgs extends runtime.Types.Extensions.Inter
    */
   omit?: Prisma.OrderMatrixOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrderMatrixInclude<ExtArgs> | null
+  /**
    * Filter which OrderMatrix to delete.
    */
   where: Prisma.OrderMatrixWhereUniqueInput
@@ -1313,6 +1483,30 @@ export type OrderMatrixDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.I
 }
 
 /**
+ * OrderMatrix.sub_orders
+ */
+export type OrderMatrix$sub_ordersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SubOrder
+   */
+  select?: Prisma.SubOrderSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SubOrder
+   */
+  omit?: Prisma.SubOrderOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SubOrderInclude<ExtArgs> | null
+  where?: Prisma.SubOrderWhereInput
+  orderBy?: Prisma.SubOrderOrderByWithRelationInput | Prisma.SubOrderOrderByWithRelationInput[]
+  cursor?: Prisma.SubOrderWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SubOrderScalarFieldEnum | Prisma.SubOrderScalarFieldEnum[]
+}
+
+/**
  * OrderMatrix without action
  */
 export type OrderMatrixDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1324,4 +1518,8 @@ export type OrderMatrixDefaultArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Omit specific fields from the OrderMatrix
    */
   omit?: Prisma.OrderMatrixOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrderMatrixInclude<ExtArgs> | null
 }

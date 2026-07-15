@@ -215,6 +215,7 @@ export default function ProductDetailPageClient({
                   {user.role === "admin" && (
                     <Link href="/admin" className="block rounded-lg px-3 py-2 font-bold hover:bg-[var(--accent)]">Admin Panel</Link>
                   )}
+                  <Link href="/seller" className="block rounded-lg px-3 py-2 font-bold hover:bg-[var(--accent)]">Seller Panel</Link>
                   <button onClick={async () => { await signOutAction(); window.location.reload(); }} className="w-full cursor-pointer rounded-lg px-3 py-2 text-left font-bold text-rose-500 hover:bg-[var(--accent)]">
                     Sign Out
                   </button>
