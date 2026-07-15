@@ -8,10 +8,11 @@ import { useAuthStore } from "@/store/auth-store";
 import { signOutAction } from "@/actions/auth";
 import toast from "react-hot-toast";
 import {
-  ShoppingCart, Heart, ShieldCheck, Package, ShoppingBag, Star,
+  Heart, ShieldCheck, Package, ShoppingBag, Star,
   Frown, Truck, RotateCcw, Share2, ChevronLeft, ChevronRight, X,
-  Minus, Plus, Check
+  Minus, Plus, Check, Info
 } from "lucide-react";
+import ProductQuickViewModal from "@/components/ProductQuickViewModal";
 
 interface ProductDetailPageClientProps {
   initialProduct: any;
@@ -22,7 +23,7 @@ interface ProductDetailPageClientProps {
    Matches the confirmed site-wide card language: rounded corners,
    soft shadow, neutral image tile, outline "Add to Cart" + solid
    "Buy Now" side by side. */
-function ProductCard({ product, wishlist, onToggleWishlist, onAddToCart, onBuyNow }: any) {
+function ProductCard({ product, wishlist, onToggleWishlist, onAddToCart, onBuyNow, onInfoClick }: any) {
   const discount = product.compare_price && product.compare_price > product.selling_price
     ? Math.round(((product.compare_price - product.selling_price) / product.compare_price) * 100)
     : null;
@@ -36,14 +37,32 @@ function ProductCard({ product, wishlist, onToggleWishlist, onAddToCart, onBuyNo
             -{discount}%
           </span>
         )}
-        <button
-          type="button"
-          onClick={() => onToggleWishlist(product)}
-          aria-label="Toggle wishlist"
-          className="absolute top-3 right-3 z-10 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white/95 shadow-sm transition-colors hover:text-rose-500"
-        >
-          <Heart className={`h-4 w-4 ${inWishlist ? "fill-rose-500 text-rose-500" : "text-zinc-500"}`} />
-        </button>
+        
+        <div className="absolute top-3 right-3 z-10 flex gap-1.5">
+          {onInfoClick && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onInfoClick(product);
+              }}
+              aria-label="Quick view"
+              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white/95 shadow-sm text-zinc-500 transition-colors hover:text-zinc-955"
+            >
+              <Info className="h-4 w-4" />
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() => onToggleWishlist(product)}
+            aria-label="Toggle wishlist"
+            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white/95 shadow-sm transition-colors hover:text-rose-500"
+          >
+            <Heart className={`h-4 w-4 ${inWishlist ? "fill-rose-500 text-rose-500" : "text-zinc-500"}`} />
+          </button>
+        </div>
 
         <Link href={`/products/${product.slug}`} className="flex h-52 items-center justify-center bg-[var(--surface-container-low)] p-6">
           <img src={product.featured_image} className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105" />
@@ -80,7 +99,7 @@ function ProductCard({ product, wishlist, onToggleWishlist, onAddToCart, onBuyNo
             onClick={() => onAddToCart(product)}
             className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-zinc-200 py-2 text-[11px] font-semibold text-zinc-700 transition-colors hover:border-zinc-400"
           >
-            <ShoppingCart className="h-3.5 w-3.5" /> Add to Cart
+            <ShoppingBag className="h-3.5 w-3.5" /> Add to Cart
           </button>
           <button
             type="button"
@@ -106,6 +125,7 @@ export default function ProductDetailPageClient({
   const [activeImage, setActiveImage] = useState(product.featured_image || "");
   const [qty, setQty] = useState(1);
   const [descExpanded, setDescExpanded] = useState(false);
+  const [quickViewProduct, setQuickViewProduct] = useState<any>(null);
 
   // Variant selection — derived from real ProductVariants if present
   const variants: any[] = product.variants || [];
@@ -175,7 +195,7 @@ export default function ProductDetailPageClient({
               )}
             </Link>
             <Link href="/cart" className="relative flex h-9 w-9 items-center justify-center rounded-full text-[var(--foreground)] transition-colors hover:bg-[var(--accent)]">
-              <ShoppingCart className="h-[18px] w-[18px]" />
+              <ShoppingBag className="h-[18px] w-[18px]" />
               {cart.length > 0 && (
                 <span className="absolute top-1 right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[var(--primary)] text-[8px] font-bold text-white">
                   {cart.reduce((sum, item) => sum + item.quantity, 0)}
@@ -379,7 +399,7 @@ export default function ProductDetailPageClient({
                 onClick={handleAddToCart}
                 className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-full border-2 border-zinc-900 py-3.5 text-sm font-bold text-zinc-900 transition-colors hover:bg-zinc-50"
               >
-                <ShoppingCart className="h-4 w-4" /> Add to Cart
+                <ShoppingBag className="h-4 w-4" /> Add to Cart
               </button>
               <button
                 type="button"
@@ -627,6 +647,7 @@ export default function ProductDetailPageClient({
                   onToggleWishlist={toggleWishlist}
                   onAddToCart={(prod: any) => { addToCart(prod); setShowSideCart(true); }}
                   onBuyNow={handleBuyNow}
+                  onInfoClick={setQuickViewProduct}
                 />
               ))}
             </div>
@@ -671,7 +692,7 @@ export default function ProductDetailPageClient({
           <div className="relative flex h-full w-full max-w-sm flex-col border-l border-zinc-200 bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-50 p-4">
               <div className="flex items-center gap-2">
-                <ShoppingCart className="h-5 w-5 text-zinc-900" />
+                <ShoppingBag className="h-5 w-5 text-zinc-900" />
                 <h3 className="text-base font-bold text-zinc-900">Your Cart</h3>
                 <span className="rounded-full bg-zinc-900 px-2 py-0.5 text-[10px] font-bold text-white">
                   {cart.reduce((s, i) => s + i.quantity, 0)} items
@@ -722,6 +743,13 @@ export default function ProductDetailPageClient({
             </div>
           </div>
         </div>
+      )}
+
+      {quickViewProduct && (
+        <ProductQuickViewModal
+          product={quickViewProduct}
+          onClose={() => setQuickViewProduct(null)}
+        />
       )}
     </div>
   );

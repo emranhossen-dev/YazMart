@@ -7,11 +7,12 @@ import { useQueryParam } from "@/hooks/use-admin-tab";
 import { getAllProducts } from "@/actions/shop";
 import { useShopStore } from "@/store/shop-store";
 import {
-  ShoppingCart, Heart, Eye, ArrowLeft, Search, Sliders, ShoppingBag,
-  Grid, List, Star, ChevronDown, ChevronLeft, ChevronRight, X, Truck, SlidersHorizontal
+  Heart, Eye, ArrowLeft, Search, Sliders, ShoppingBag,
+  Grid, List, Star, ChevronDown, ChevronLeft, ChevronRight, X, Truck, SlidersHorizontal, Info
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { toast } from "react-hot-toast";
+import ProductQuickViewModal from "@/components/ProductQuickViewModal";
 
 interface ProductsPageClientProps {
   initialProducts: any[];
@@ -34,7 +35,7 @@ const toastStyle = {
 /* homepage ProductCard: rounded-2xl, discount badge, wishlist heart, */
 /* rating, price + compare price, free-shipping line, twin CTAs.      */
 /* ---------------------------------------------------------------- */
-function ProductCard({ product, wishlist, onToggleWishlist, onAddToCart, onBuyNow }: any) {
+function ProductCard({ product, wishlist, onToggleWishlist, onAddToCart, onBuyNow, onInfoClick }: any) {
   const discount = product.compare_price && product.compare_price > product.selling_price
     ? Math.round(((product.compare_price - product.selling_price) / product.compare_price) * 100)
     : null;
@@ -58,13 +59,20 @@ function ProductCard({ product, wishlist, onToggleWishlist, onAddToCart, onBuyNo
           >
             <Heart className={`h-4 w-4 ${inWishlist ? "fill-rose-500 text-rose-500" : "text-zinc-500"}`} />
           </button>
-          <Link
-            href={`/products/${product.slug}`}
-            aria-label="Quick view"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--card)]/95 text-zinc-500 shadow-sm opacity-0 transition-all hover:text-[var(--primary)] group-hover:opacity-100"
-          >
-            <Eye className="h-4 w-4" />
-          </Link>
+          {onInfoClick && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onInfoClick(product);
+              }}
+              aria-label="Quick view"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--card)]/95 text-zinc-500 shadow-sm opacity-0 transition-all hover:text-[var(--primary)] group-hover:opacity-100 cursor-pointer"
+            >
+              <Info className="h-4 w-4" />
+            </button>
+          )}
         </div>
 
         <Link
@@ -124,7 +132,7 @@ function ProductCard({ product, wishlist, onToggleWishlist, onAddToCart, onBuyNo
               onClick={() => onAddToCart(product)}
               className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-[var(--border)] py-2 text-[11px] font-semibold text-[var(--foreground)] transition-colors hover:border-[var(--foreground)] cursor-pointer"
             >
-              <ShoppingCart className="h-3.5 w-3.5" /> Add to Cart
+              <ShoppingBag className="h-3.5 w-3.5" /> Add to Cart
             </button>
             <button
               onClick={() => onBuyNow(product)}
@@ -216,7 +224,7 @@ function ProductRow({ product, wishlist, onToggleWishlist, onAddToCart, onBuyNow
               onClick={() => onAddToCart(product)}
               className="flex items-center justify-center gap-1.5 rounded-full border border-[var(--border)] px-4 py-2 text-[11px] font-semibold text-[var(--foreground)] transition-colors hover:border-[var(--foreground)] cursor-pointer"
             >
-              <ShoppingCart className="h-3.5 w-3.5" /> Add
+              <ShoppingBag className="h-3.5 w-3.5" /> Add
             </button>
             <button
               onClick={() => onBuyNow(product)}
@@ -253,6 +261,7 @@ export default function ProductsPageClient({
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [page, setPage] = useState(1);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [quickViewProduct, setQuickViewProduct] = useState<any>(null);
 
   const { cart, wishlist, addToCart, toggleWishlist } = useShopStore();
 
@@ -513,7 +522,7 @@ export default function ProductsPageClient({
               )}
             </Link>
             <Link href="/cart" className="relative flex h-9 w-9 items-center justify-center text-[var(--foreground)] transition-colors hover:text-[var(--primary)]">
-              <ShoppingCart className="h-[18px] w-[18px]" />
+              <ShoppingBag className="h-[18px] w-[18px]" />
               {cart.length > 0 && (
                 <span className="absolute top-1 right-1 flex h-3.5 w-3.5 items-center justify-center bg-[var(--primary)] font-mono text-[8px] font-bold text-white">
                   {cart.reduce((sum, item) => sum + item.quantity, 0)}
@@ -631,6 +640,7 @@ export default function ProductsPageClient({
                   onToggleWishlist={handleToggleWishlist}
                   onAddToCart={handleAddToCart}
                   onBuyNow={handleBuyNow}
+                  onInfoClick={setQuickViewProduct}
                 />
               ))}
             </div>
@@ -709,6 +719,13 @@ export default function ProductsPageClient({
             </button>
           </div>
         </>
+      )}
+
+      {quickViewProduct && (
+        <ProductQuickViewModal
+          product={quickViewProduct}
+          onClose={() => setQuickViewProduct(null)}
+        />
       )}
     </div>
   );

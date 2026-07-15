@@ -4,15 +4,16 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ShoppingCart, Heart, ArrowRight, Layers, ShoppingBag,
+  Heart, ArrowRight, Layers, ShoppingBag,
   Star, ChevronLeft, ChevronRight, Search, ChevronDown, Mail,
-  Trash2, X, Plus, Minus, Truck
+  Trash2, X, Plus, Minus, Truck, Info
 } from "lucide-react";
 import { ThemeToggle } from "./ui/theme-toggle";
 import { useShopStore } from "../store/shop-store";
 import { useAuthStore } from "../store/auth-store";
 import { signOutAction } from "../actions/auth";
 import { toast } from "react-hot-toast";
+import ProductQuickViewModal from "./ProductQuickViewModal";
 
 interface HomePageClientProps {
   initialShopData: any;
@@ -30,6 +31,7 @@ function ProductCard({
   onToggleWishlist,
   onAddToCart,
   onBuyNow,
+  onInfoClick,
 }: any) {
   const discount = product.compare_price && product.compare_price > product.selling_price
     ? Math.round(((product.compare_price - product.selling_price) / product.compare_price) * 100)
@@ -45,17 +47,34 @@ function ProductCard({
           </span>
         )}
 
-        <button
-          onClick={() => onToggleWishlist(product)}
-          aria-label="Toggle wishlist"
-          className="absolute top-3 right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 shadow-sm transition-colors hover:text-rose-500 cursor-pointer"
-        >
-          <Heart className={`h-4 w-4 ${inWishlist ? "fill-rose-500 text-rose-500" : "text-zinc-500"}`} />
-        </button>
+        <div className="absolute top-3 right-3 z-10 flex gap-1.5">
+          {onInfoClick && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onInfoClick(product);
+              }}
+              aria-label="Quick view"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/95 shadow-sm text-zinc-500 transition-colors hover:text-zinc-950 cursor-pointer"
+            >
+              <Info className="h-4 w-4" />
+            </button>
+          )}
+
+          <button
+            onClick={() => onToggleWishlist(product)}
+            aria-label="Toggle wishlist"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-white/95 shadow-sm transition-colors hover:text-rose-500 cursor-pointer"
+          >
+            <Heart className={`h-4 w-4 ${inWishlist ? "fill-rose-500 text-rose-500" : "text-zinc-500"}`} />
+          </button>
+        </div>
 
         <Link
           href={`/products/${product.slug}`}
-          className="flex h-56 items-center justify-center overflow-hidden bg-[var(--surface-container-low)] p-6"
+          className="flex h-40 items-center justify-center overflow-hidden bg-[var(--surface-container-low)] p-4"
         >
           <img
             src={product.featured_image}
@@ -100,7 +119,7 @@ function ProductCard({
             onClick={() => onAddToCart(product)}
             className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-zinc-200 py-2 text-[11px] font-semibold text-zinc-700 transition-colors hover:border-zinc-400 cursor-pointer"
           >
-            <ShoppingCart className="h-3.5 w-3.5" /> Add to Cart
+            <ShoppingBag className="h-3.5 w-3.5" /> Add to Cart
           </button>
           <button
             onClick={() => onBuyNow(product)}
@@ -135,6 +154,35 @@ export default function HomePageClient({
   const [activeMegaMenu, setActiveMegaMenu] = useState<string | null>(null);
   const [megaMenuLeftOffset, setMegaMenuLeftOffset] = useState<number | null>(null);
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+  const [quickViewProduct, setQuickViewProduct] = useState<any>(null);
+
+  const megaMenuTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleMegaMenuMouseEnter = (catId: string, e?: React.MouseEvent) => {
+    if (megaMenuTimeoutRef.current) {
+      clearTimeout(megaMenuTimeoutRef.current);
+      megaMenuTimeoutRef.current = null;
+    }
+    setActiveMegaMenu(catId);
+    if (e) {
+      const btn = e.currentTarget.querySelector('button');
+      const parent = e.currentTarget.closest('.relative-subbar');
+      if (btn && parent) {
+        const btnRect = btn.getBoundingClientRect();
+        const parentRect = parent.getBoundingClientRect();
+        setMegaMenuLeftOffset(btnRect.left - parentRect.left);
+      }
+    }
+  };
+
+  const handleMegaMenuMouseLeave = () => {
+    if (megaMenuTimeoutRef.current) {
+      clearTimeout(megaMenuTimeoutRef.current);
+    }
+    megaMenuTimeoutRef.current = setTimeout(() => {
+      setActiveMegaMenu(null);
+    }, 150);
+  };
 
   const slideInterval = useRef<NodeJS.Timeout | null>(null);
 
@@ -160,6 +208,14 @@ export default function HomePageClient({
     removeFromWishlist
   } = useShopStore();
   const { user } = useAuthStore();
+
+  useEffect(() => {
+    return () => {
+      if (megaMenuTimeoutRef.current) {
+        clearTimeout(megaMenuTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const calculateTimeLeft = () => {
@@ -255,7 +311,7 @@ export default function HomePageClient({
   };
 
   const quickDealProducts = getQuickDealProducts();
-  const quickDealTotalPages = Math.max(1, Math.ceil(quickDealProducts.length / 4));
+  const quickDealTotalPages = Math.max(1, Math.ceil(quickDealProducts.length / 5));
 
   const searchedProducts = searchQuery
     ? products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -336,7 +392,7 @@ export default function HomePageClient({
             </Link>
 
             <Link href="/cart" className="relative flex h-9 w-9 items-center justify-center text-[var(--foreground)] transition-colors hover:text-[var(--primary)]">
-              <ShoppingCart className="h-[18px] w-[18px]" />
+              <ShoppingBag className="h-[18px] w-[18px]" />
               {cart.length > 0 && (
                 <span className="absolute top-1 right-1 flex h-3.5 w-3.5 items-center justify-center bg-[var(--primary)] font-mono text-[8px] font-bold text-white">
                   {cart.reduce((sum, item) => sum + item.quantity, 0)}
@@ -438,17 +494,8 @@ export default function HomePageClient({
                 {categories.map((cat: any) => (
                   <div
                     key={cat.id}
-                    onMouseEnter={(e) => {
-                      setActiveMegaMenu(cat.id);
-                      const btn = e.currentTarget.querySelector('button');
-                      const parent = e.currentTarget.closest('.relative-subbar');
-                      if (btn && parent) {
-                        const btnRect = btn.getBoundingClientRect();
-                        const parentRect = parent.getBoundingClientRect();
-                        setMegaMenuLeftOffset(btnRect.left - parentRect.left);
-                      }
-                    }}
-                    onMouseLeave={() => setActiveMegaMenu(null)}
+                    onMouseEnter={(e) => handleMegaMenuMouseEnter(cat.id, e)}
+                    onMouseLeave={handleMegaMenuMouseLeave}
                     className="relative flex h-full shrink-0 items-center"
                   >
                     <button type="button" className="flex cursor-pointer items-center gap-1 whitespace-nowrap px-1 text-[11px] font-medium uppercase tracking-wider text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)]">
@@ -473,8 +520,9 @@ export default function HomePageClient({
               if (!cat) return null;
               return (
                 <div
-                  onMouseEnter={() => setActiveMegaMenu(cat.id)}
-                  onMouseLeave={() => setActiveMegaMenu(null)}
+                  // eslint-disable-next-line react-hooks/refs
+                  onMouseEnter={() => handleMegaMenuMouseEnter(cat.id)}
+                  onMouseLeave={handleMegaMenuMouseLeave}
                   className="absolute top-full z-50 grid w-64 gap-2 border border-[var(--border)] bg-[var(--card)] p-4 text-xs text-[var(--foreground)]"
                   style={{ left: megaMenuLeftOffset !== null ? `${megaMenuLeftOffset}px` : '16px' }}
                 >
@@ -705,10 +753,10 @@ export default function HomePageClient({
 
                         <div
                           key={quickDealPage}
-                          className="pagination-fade grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4"
+                          className="pagination-fade grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
                         >
                           {quickDealProducts
-                            .slice((quickDealPage - 1) * 4, quickDealPage * 4)
+                            .slice((quickDealPage - 1) * 5, quickDealPage * 5)
                             .map((product: any) => (
                               <ProductCard
                                 key={product.id}
@@ -717,6 +765,7 @@ export default function HomePageClient({
                                 onToggleWishlist={handleToggleWishlist}
                                 onAddToCart={handleAddToCart}
                                 onBuyNow={handleBuyNow}
+                                onInfoClick={setQuickViewProduct}
                               />
                             ))}
                         </div>
@@ -760,7 +809,7 @@ export default function HomePageClient({
                     </div>
 
                     <div className="relative">
-                      {sections.featured.length > 4 && (
+                      {sections.featured.length > 5 && (
                         <button
                           type="button"
                           onClick={() => setFeaturedPage(p => Math.max(1, p - 1))}
@@ -771,8 +820,8 @@ export default function HomePageClient({
                         </button>
                       )}
 
-                      <div key={featuredPage} className="pagination-fade grid grid-cols-2 gap-5 lg:grid-cols-4">
-                        {sections.featured.slice((featuredPage - 1) * 4, featuredPage * 4).map((product: any) => (
+                      <div key={featuredPage} className="pagination-fade grid grid-cols-2 gap-5 lg:grid-cols-5">
+                        {sections.featured.slice((featuredPage - 1) * 5, featuredPage * 5).map((product: any) => (
                           <ProductCard
                             key={product.id}
                             product={product}
@@ -780,25 +829,26 @@ export default function HomePageClient({
                             onToggleWishlist={handleToggleWishlist}
                             onAddToCart={handleAddToCart}
                             onBuyNow={handleBuyNow}
+                            onInfoClick={setQuickViewProduct}
                           />
                         ))}
                       </div>
 
-                      {sections.featured.length > 4 && (
+                      {sections.featured.length > 5 && (
                         <button
                           type="button"
-                          onClick={() => setFeaturedPage(p => Math.min(Math.ceil(sections.featured.length / 4), p + 1))}
-                          disabled={featuredPage === Math.ceil(sections.featured.length / 4)}
+                          onClick={() => setFeaturedPage(p => Math.min(Math.ceil(sections.featured.length / 5), p + 1))}
+                          disabled={featuredPage === Math.ceil(sections.featured.length / 5)}
                           className="absolute right-0 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 translate-x-1/2 cursor-pointer items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] shadow-sm transition-colors hover:border-[var(--foreground)] disabled:opacity-30"
                         >
                           <ChevronRight className="h-4 w-4" />
                         </button>
                       )}
 
-                      {sections.featured.length > 4 && (
+                      {sections.featured.length > 5 && (
                         <div className="mt-6 flex items-center justify-center">
                           <span className="font-mono text-xs text-[var(--muted-foreground)]">
-                            {featuredPage} / {Math.ceil(sections.featured.length / 4)}
+                            {featuredPage} / {Math.ceil(sections.featured.length / 5)}
                           </span>
                         </div>
                       )}
@@ -810,8 +860,8 @@ export default function HomePageClient({
                     if (catProducts.length === 0) return null;
 
                     const catPage = categoryPageMap[cat.id] || 1;
-                    const catTotalPages = Math.ceil(catProducts.length / 4);
-                    const paginatedCatProducts = catProducts.slice((catPage - 1) * 4, catPage * 4);
+                    const catTotalPages = Math.ceil(catProducts.length / 5);
+                    const paginatedCatProducts = catProducts.slice((catPage - 1) * 5, catPage * 5);
 
                     return (
                       <section key={cat.id} className="mx-auto w-full max-w-7xl space-y-8 border-b border-[var(--border)] px-4 py-16 md:px-6">
@@ -826,7 +876,7 @@ export default function HomePageClient({
                         </div>
 
                         <div className="relative">
-                          {catProducts.length > 4 && (
+                          {catProducts.length > 5 && (
                             <button
                               type="button"
                               onClick={() => setCategoryPageMap(prev => ({ ...prev, [cat.id]: Math.max(1, (prev[cat.id] || 1) - 1) }))}
@@ -837,7 +887,7 @@ export default function HomePageClient({
                             </button>
                           )}
 
-                          <div key={catPage} className="pagination-fade grid grid-cols-2 gap-5 lg:grid-cols-4">
+                          <div key={catPage} className="pagination-fade grid grid-cols-2 gap-5 lg:grid-cols-5">
                             {paginatedCatProducts.map((product: any) => (
                               <ProductCard
                                 key={product.id}
@@ -846,11 +896,12 @@ export default function HomePageClient({
                                 onToggleWishlist={handleToggleWishlist}
                                 onAddToCart={handleAddToCart}
                                 onBuyNow={handleBuyNow}
+                                onInfoClick={setQuickViewProduct}
                               />
                             ))}
                           </div>
 
-                          {catProducts.length > 4 && (
+                          {catProducts.length > 5 && (
                             <button
                               type="button"
                               onClick={() => setCategoryPageMap(prev => ({ ...prev, [cat.id]: Math.min(catTotalPages, (prev[cat.id] || 1) + 1) }))}
@@ -861,7 +912,7 @@ export default function HomePageClient({
                             </button>
                           )}
 
-                          {catProducts.length > 4 && (
+                          {catProducts.length > 5 && (
                             <div className="mt-6 flex items-center justify-center">
                               <span className="font-mono text-xs text-[var(--muted-foreground)]">
                                 {catPage} / {catTotalPages}
@@ -1053,7 +1104,7 @@ export default function HomePageClient({
               {rightSidebar === "cart" ? (
                 cart.length === 0 ? (
                   <div className="flex h-full flex-col items-center justify-center gap-3 py-12 text-center text-[var(--muted-foreground)]">
-                    <ShoppingCart className="h-9 w-9 text-[var(--border)]" />
+                    <ShoppingBag className="h-9 w-9 text-[var(--border)]" />
                     <p className="font-mono text-xs font-semibold uppercase">Your cart is empty</p>
                     <button onClick={() => setRightSidebar(null)} className="cursor-pointer border border-[var(--foreground)] px-4 py-2 font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--foreground)] transition-colors hover:bg-[var(--foreground)] hover:text-[var(--background)]">
                       Continue Shopping
@@ -1102,7 +1153,7 @@ export default function HomePageClient({
                           onClick={() => { addToCart(item); removeFromWishlist(item.id); setRightSidebar("cart"); }}
                           className="mt-2 flex cursor-pointer items-center gap-1.5 bg-[var(--foreground)] px-3 py-1 font-mono text-[9px] font-semibold uppercase tracking-wider text-[var(--background)]"
                         >
-                          <ShoppingCart className="h-3 w-3" /> Add to Cart
+                          <ShoppingBag className="h-3 w-3" /> Add to Cart
                         </button>
                       </div>
                       <button onClick={() => removeFromWishlist(item.id)} className="absolute top-3 right-3 cursor-pointer p-1 text-zinc-400 transition-colors hover:text-[var(--primary)]">
@@ -1134,6 +1185,13 @@ export default function HomePageClient({
             )}
           </div>
         </>
+      )}
+
+      {quickViewProduct && (
+        <ProductQuickViewModal
+          product={quickViewProduct}
+          onClose={() => setQuickViewProduct(null)}
+        />
       )}
     </div>
   );
