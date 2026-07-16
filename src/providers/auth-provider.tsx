@@ -46,6 +46,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (session?.user) {
+          // Synchronize Supabase access token to browser cookies for SSR/Server Components
+          const maxAge = session.expires_in || 3600;
+          const secureFlag = window.location.protocol === "https:" ? "Secure" : "";
+          document.cookie = `sb-access-token=${session.access_token}; path=/; max-age=${maxAge}; SameSite=Lax; ${secureFlag}`;
+
           const user = session.user;
           await getUserProfile(
             user.id,
@@ -53,6 +58,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             user.user_metadata?.full_name || ""
           );
         } else {
+          // Clear cookie on logout
+          document.cookie = "sb-access-token=; path=/; max-age=0; SameSite=Lax";
           setAuth(null);
         }
         setLoading(false);

@@ -7,6 +7,7 @@ import {
   ShoppingBag, ShieldAlert, Clock, CheckCircle2, ChevronRight, Lock, UserCheck 
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { redirect } from "next/navigation";
 
 export const unstable_instant = false;
 
@@ -85,36 +86,7 @@ export default async function SellerCenterPage() {
       </div>
     );
   } else if (store.status === "ACTIVE") {
-    // Show store is active screen
-    contentBlock = (
-      <div className="mx-auto max-w-md p-8 rounded-3xl border border-[var(--border)] bg-[var(--card)] shadow-xl text-center space-y-6">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
-          <CheckCircle2 className="h-6 w-6" />
-        </div>
-        
-        <div className="space-y-1.5">
-          <h2 className="text-xl font-extrabold tracking-tight">Storefront is Active</h2>
-          <p className="text-xs text-[var(--muted-foreground)] leading-relaxed">
-            Your store <strong className="text-[var(--foreground)]">{store.name}</strong> is fully active! You have seller privileges and can access the dashboard.
-          </p>
-        </div>
-
-        <div className="space-y-2.5">
-          <Link
-            href="/seller"
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-zinc-950 py-3 text-xs font-bold uppercase tracking-wider text-white transition-opacity hover:opacity-90"
-          >
-            Enter Seller Hub <ChevronRight className="h-4 w-4" />
-          </Link>
-          <Link
-            href={`/stores/${store.slug}`}
-            className="flex w-full items-center justify-center gap-2 rounded-full border border-[var(--border)] py-3 text-xs font-bold uppercase tracking-wider text-zinc-700 transition-colors hover:bg-zinc-100"
-          >
-            Browse My Storefront
-          </Link>
-        </div>
-      </div>
-    );
+    redirect("/seller");
   } else {
     // Show disabled/inactive screen
     contentBlock = (

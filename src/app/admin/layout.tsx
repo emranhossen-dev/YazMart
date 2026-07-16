@@ -12,7 +12,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     notFound();
   }
 
-  if (session.role === "customer" || !session.role) {
+  const roleLower = session.role?.toLowerCase() || "";
+  const isAdminOrStaff = roleLower.includes("admin") || roleLower.includes("staff");
+
+  if (!isAdminOrStaff) {
     notFound();
   }
 

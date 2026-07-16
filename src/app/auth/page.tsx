@@ -24,12 +24,16 @@ export default function AuthPage() {
         if (res.error) {
           setMessage({ type: "error", text: res.error });
         } else {
-          const isStaff = res.role && res.role !== "customer";
-          const destination = isStaff ? "/admin" : "/";
+          const roleLower = res.role?.toLowerCase() || "";
+          const isAdminOrStaff = roleLower.includes("admin") || roleLower.includes("staff");
+          const isSeller = roleLower === "seller";
+          const destination = isAdminOrStaff ? "/admin" : isSeller ? "/seller" : "/";
 
           setMessage({
             type: "success",
-            text: `Login successful! Redirecting to ${isStaff ? "admin dashboard" : "storefront"}...`,
+            text: `Login successful! Redirecting to ${
+              isAdminOrStaff ? "admin dashboard" : isSeller ? "seller hub" : "storefront"
+            }...`,
           });
 
           window.location.href = destination;

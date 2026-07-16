@@ -32,7 +32,8 @@ export async function getActiveSellerStore(overrideStoreId?: string | null): Pro
       return null;
     }
 
-    const isAdmin = session.role === "admin" || session.role === "Super Admin" || session.role === "Admin";
+    const roleLower = session.role?.toLowerCase() || "";
+    const isAdmin = roleLower.includes("admin") || roleLower.includes("staff");
 
     // 1. If overrideStoreId is requested and user is an administrator, return target store
     if (overrideStoreId && isAdmin) {
@@ -53,6 +54,11 @@ export async function getActiveSellerStore(overrideStoreId?: string | null): Pro
     }
 
     // 2. Otherwise return the store owned by the logged-in user
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!session.user.id || !uuidRegex.test(session.user.id)) {
+      return null;
+    }
+
     let store = await prisma.store.findFirst({
       where: { owner_id: session.user.id }
     });

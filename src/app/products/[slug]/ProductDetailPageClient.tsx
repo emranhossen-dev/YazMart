@@ -305,7 +305,17 @@ export default function ProductDetailPageClient({
           {/* Purchase panel */}
           <div className="flex flex-col gap-5">
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">{product.brand?.name || "General"}</p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">{product.brand?.name || "General"}</p>
+                {product.store && (
+                  <>
+                    <span className="text-zinc-300">•</span>
+                    <p className="text-xs font-semibold text-zinc-500">
+                      Sold by: <Link href={`/stores/${product.store.slug}`} className="text-blue-600 hover:underline font-extrabold">{product.store.name}</Link>
+                    </p>
+                  </>
+                )}
+              </div>
               <h1 className="text-2xl font-bold leading-snug text-zinc-900">{product.name}</h1>
 
               <div className="flex items-center justify-between">

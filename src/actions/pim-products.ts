@@ -69,7 +69,6 @@ export async function createEnterpriseProduct(data: any) {
       warranty: data.warranty || null,
       usability: data.usability || null,
       package_includes: data.package_includes || null,
-      store_id: data.store_id || null,
     };
 
     let savedProduct;
@@ -81,6 +80,7 @@ export async function createEnterpriseProduct(data: any) {
           slug: data.slug || undefined, // keep existing slug if edit doesn't change it
           category: { connect: { id: data.category_id } },
           brand: data.brand_id ? { connect: { id: data.brand_id } } : { disconnect: true },
+          store: data.store_id ? { connect: { id: data.store_id } } : { disconnect: true },
         }
       });
     } else {
@@ -90,6 +90,7 @@ export async function createEnterpriseProduct(data: any) {
           slug: cleanSlug,
           category: { connect: { id: data.category_id } },
           brand: data.brand_id ? { connect: { id: data.brand_id } } : undefined,
+          store: data.store_id ? { connect: { id: data.store_id } } : undefined,
         }
       });
     }

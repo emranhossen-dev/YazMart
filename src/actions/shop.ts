@@ -186,7 +186,7 @@ export async function getProductDetails(slug: string) {
   try {
     const rawProduct = await prisma.pimProducts.findUnique({
       where: { slug },
-      include: { category: true, brand: true, variants: true }
+      include: { category: true, brand: true, variants: true, store: true }
     });
 
     if (!rawProduct) {
