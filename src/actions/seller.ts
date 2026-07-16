@@ -147,10 +147,15 @@ export async function getSellerOrders(storeId: string) {
 
     return {
       orders: orders.map(o => ({
-        ...o,
+        id: o.id,
+        parent_id: o.parent_id,
+        store_id: o.store_id,
         total_amount: Number(o.total_amount),
+        status: o.status,
+        items: o.items,
         createdAt: o.createdAt.toISOString(),
         updatedAt: o.updatedAt.toISOString(),
+        parent: o.parent,
       })),
       error: null
     };
