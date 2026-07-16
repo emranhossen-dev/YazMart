@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const sessionToken = request.cookies.get("sb-access-token")?.value;
+  const sessionToken = request.cookies.get("yazmart-session-token")?.value;
 
   // ১. প্রটেক্টেড অ্যাডমিন রাউট সিকিউরিটি
   if (pathname.startsWith("/admin")) {

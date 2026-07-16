@@ -47,7 +47,7 @@ export async function signInAction(formData: FormData) {
 
   if (data.session && data.user) {
     const cookieStore = await cookies();
-    cookieStore.set("sb-access-token", data.session.access_token, {
+    cookieStore.set("yazmart-session-token", data.session.access_token, {
       path: "/",
       secure: false, // Set to false to support both HTTP and HTTPS staging/live environments
       sameSite: "lax",
@@ -76,7 +76,7 @@ export async function signOutAction() {
   if (error) return { error: error.message };
 
   const cookieStore = await cookies();
-  cookieStore.delete("sb-access-token");
+  cookieStore.delete("yazmart-session-token");
 
   return { success: "Logged out successfully!" };
 }

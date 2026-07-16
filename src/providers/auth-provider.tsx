@@ -34,6 +34,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
+        // Synchronize Supabase access token to browser cookies for SSR/Server Components on mount
+        const maxAge = session.expires_in || 3600;
+        const secureFlag = window.location.protocol === "https:" ? "Secure" : "";
+        document.cookie = `yazmart-session-token=${session.access_token}; path=/; max-age=${maxAge}; SameSite=Lax; ${secureFlag}`;
+
         getUserProfile(
           session.user.id,
           session.user.email,
@@ -51,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Synchronize Supabase access token to browser cookies for SSR/Server Components
           const maxAge = session.expires_in || 3600;
           const secureFlag = window.location.protocol === "https:" ? "Secure" : "";
-          document.cookie = `sb-access-token=${session.access_token}; path=/; max-age=${maxAge}; SameSite=Lax; ${secureFlag}`;
+          document.cookie = `yazmart-session-token=${session.access_token}; path=/; max-age=${maxAge}; SameSite=Lax; ${secureFlag}`;
 
           const user = session.user;
           await getUserProfile(
@@ -61,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           );
         } else {
           // Clear cookie on logout
-          document.cookie = "sb-access-token=; path=/; max-age=0; SameSite=Lax";
+          document.cookie = "yazmart-session-token=; path=/; max-age=0; SameSite=Lax";
           setAuth(null);
         }
         setLoading(false);

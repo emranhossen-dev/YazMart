@@ -19,7 +19,7 @@ async function getOrCreateRoleId(roleName: string) {
 export async function getEnterpriseUserSession() {
   const cookieStore = await cookies();
   try {
-    const sessionToken = cookieStore.get("sb-access-token")?.value;
+    const sessionToken = cookieStore.get("yazmart-session-token")?.value;
 
     if (!sessionToken) {
       return { user: null, role: null, authenticated: false };
