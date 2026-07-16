@@ -49,7 +49,7 @@ export async function signInAction(formData: FormData) {
     const cookieStore = await cookies();
     cookieStore.set("sb-access-token", data.session.access_token, {
       path: "/",
-      secure: process.env.NODE_ENV === "production",
+      secure: false, // Set to false to support both HTTP and HTTPS staging/live environments
       sameSite: "lax",
       maxAge: data.session.expires_in,
     });
