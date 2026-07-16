@@ -106,14 +106,25 @@ export async function syncAndGetUserProfile(userId: string, email?: string, full
       const roleName = (totalProfiles === 0 || isAdminEmail) ? "admin" : "customer";
       const roleId = await getOrCreateRoleId(roleName);
 
-      profile = await prisma.profiles.create({
-        data: {
-          id: userId,
-          full_name: fullName || email?.split("@")[0] || "User",
-          role_id: roleId
-        },
-        include: { roles: true }
-      });
+      try {
+        profile = await prisma.profiles.create({
+          data: {
+            id: userId,
+            full_name: fullName || email?.split("@")[0] || "User",
+            role_id: roleId
+          },
+          include: { roles: true }
+        });
+      } catch (createErr: any) {
+        if (createErr.code === "P2002") {
+          profile = await prisma.profiles.findUnique({
+            where: { id: userId },
+            include: { roles: true }
+          });
+        } else {
+          throw createErr;
+        }
+      }
     }
 
     const roleName = profile.roles ? profile.roles.name : "customer";
