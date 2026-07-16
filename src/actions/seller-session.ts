@@ -53,9 +53,17 @@ export async function getActiveSellerStore(overrideStoreId?: string | null): Pro
     }
 
     // 2. Otherwise return the store owned by the logged-in user
-    const store = await prisma.store.findFirst({
+    let store = await prisma.store.findFirst({
       where: { owner_id: session.user.id }
     });
+
+    let isImpersonating = false;
+    if (!store && isAdmin) {
+      store = await prisma.store.findFirst({
+        where: { status: "ACTIVE" }
+      });
+      isImpersonating = true;
+    }
 
     if (!store || store.status !== "ACTIVE") {
       return null;
@@ -67,7 +75,7 @@ export async function getActiveSellerStore(overrideStoreId?: string | null): Pro
         createdAt: store.createdAt.toISOString(),
         updatedAt: store.updatedAt.toISOString(),
       },
-      isImpersonating: false,
+      isImpersonating,
       user: session.user,
     };
   } catch (error) {
