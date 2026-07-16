@@ -4,26 +4,28 @@ import { notFound } from "next/navigation";
 import { getEnterpriseUserSession } from "@/actions/auth-enterprise";
 import { getSellerStore, getSellerDashboardData } from "@/actions/seller";
 import SellerOnboarding from "@/components/SellerOnboarding";
-import { 
-  IndianRupee, ShoppingBag, Receipt, Truck, ArrowUpRight, Plus, Settings, Store 
+import {
+  IndianRupee, ShoppingBag, Receipt, Truck, ArrowUpRight, Plus, Settings, Store
 } from "lucide-react";
 
 export const unstable_instant = false;
 
-export default async function SellerDashboardPage() {
-  const session = await getEnterpriseUserSession();
+import { getActiveSellerStore } from "@/actions/seller-session";
 
-  if (!session.authenticated || !session.user) {
+export default async function SellerDashboardPage({
+  searchParams
+}: {
+  searchParams: Promise<{ store_id?: string }>;
+}) {
+  const resolvedParams = await searchParams;
+  const storeSession = await getActiveSellerStore(resolvedParams.store_id);
+
+  if (!storeSession) {
     notFound();
   }
 
-  // Get seller store
-  const storeRes = await getSellerStore(session.user.id);
-  const store = storeRes.store;
-
-  if (!store) {
-    return <SellerOnboarding userId={session.user.id} />;
-  }
+  const { store, user: sessionUser } = storeSession;
+  const session = { user: sessionUser, role: storeSession.isImpersonating ? "Admin Impersonator" : "Seller Merchant" };
 
   // Fetch dashboard metrics
   const statsRes = await getSellerDashboardData(store.id);

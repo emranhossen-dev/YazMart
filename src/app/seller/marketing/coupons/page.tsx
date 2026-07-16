@@ -1,12 +1,12 @@
 import React from "react";
 import { notFound } from "next/navigation";
 import { getActiveSellerStore } from "@/actions/seller-session";
-import { getSellerOrders } from "@/actions/seller";
-import SellerOrdersClient from "./SellerOrdersClient";
+import { getStoreCoupons } from "@/actions/seller";
+import CouponsClient from "./CouponsClient";
 
 export const unstable_instant = false;
 
-export default async function SellerOrdersPage({
+export default async function SellerCouponsPage({
   searchParams
 }: {
   searchParams: Promise<{ store_id?: string }>;
@@ -19,13 +19,12 @@ export default async function SellerOrdersPage({
   }
 
   const { store } = storeSession;
-
-  // Fetch store's sub-orders
-  const ordersRes = await getSellerOrders(store.id);
+  const couponsRes = await getStoreCoupons(store.slug);
 
   return (
-    <SellerOrdersClient
-      initialOrders={ordersRes.orders || []}
+    <CouponsClient
+      storeSlug={store.slug}
+      initialCoupons={couponsRes.coupons || []}
     />
   );
 }

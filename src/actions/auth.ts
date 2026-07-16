@@ -26,7 +26,7 @@ export async function signUpAction(formData: FormData) {
   });
 
   if (error) return { error: error.message };
-  return { success: "Registration successful! Please check your email for confirmation." };
+  return { success: "Registration successful! You can now Sign In." };
 }
 
 // ২. লগইন বা সাইন-ইন অ্যাকশন

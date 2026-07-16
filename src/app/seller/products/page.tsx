@@ -1,7 +1,6 @@
 import React from "react";
-import { notFound, redirect } from "next/navigation";
-import { getEnterpriseUserSession } from "@/actions/auth-enterprise";
-import { getSellerStore } from "@/actions/seller";
+import { notFound } from "next/navigation";
+import { getActiveSellerStore } from "@/actions/seller-session";
 import { prisma } from "@/lib/prisma";
 import SellerProductsClient from "./SellerProductsClient";
 
@@ -26,19 +25,19 @@ function serializePimProduct(p: any) {
   };
 }
 
-export default async function SellerProductsPage() {
-  const session = await getEnterpriseUserSession();
+export default async function SellerProductsPage({
+  searchParams
+}: {
+  searchParams: Promise<{ store_id?: string }>;
+}) {
+  const resolvedParams = await searchParams;
+  const storeSession = await getActiveSellerStore(resolvedParams.store_id);
 
-  if (!session.authenticated || !session.user) {
+  if (!storeSession) {
     notFound();
   }
 
-  const storeRes = await getSellerStore(session.user.id);
-  const store = storeRes.store;
-
-  if (!store) {
-    redirect("/seller");
-  }
+  const { store } = storeSession;
 
   // Fetch store's products
   const products = await prisma.pimProducts.findMany({

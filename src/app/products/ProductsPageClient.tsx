@@ -512,6 +512,12 @@ export default function ProductsPageClient({
           </Link>
 
           <div className="flex shrink-0 items-center gap-1">
+            <Link 
+              href="/seller-center" 
+              className="text-[10px] font-extrabold uppercase tracking-wider text-[var(--foreground)] transition-colors hover:text-[var(--primary)] px-3.5 py-2 border border-[var(--border)] rounded-full hover:border-[var(--foreground)] mr-1 hidden sm:inline-block cursor-pointer"
+            >
+              Seller Center
+            </Link>
             <ThemeToggle />
             <Link href="/wishlist" className="relative flex h-9 w-9 items-center justify-center text-[var(--foreground)] transition-colors hover:text-[var(--primary)]">
               <Heart className="h-[18px] w-[18px]" />

@@ -41,6 +41,7 @@ const PATH_PERMISSION_MAP: Record<string, string> = {
   "/admin/content": "content",
   "/admin/reports": "reports",
   "/admin/staff": "staff",
+  "/admin/stores": "staff",
   "/admin/settings": "settings",
 };
 
@@ -337,6 +338,35 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
           }
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "Store" },
+        (payload) => {
+          const newStore = payload.new as any;
+          if (newStore) {
+            playNotificationSound();
+            toast.success(`New seller store request: ${newStore.name}!`, {
+              icon: "🏪",
+              duration: 8000,
+            });
+
+            const notification: NotificationItem = {
+              id: newStore.id || Math.random().toString(),
+              title: "New Store Application",
+              message: `Store "${newStore.name}" (slug: ${newStore.slug}) is awaiting admin verification.`,
+              time: new Date().toLocaleTimeString(),
+              read: false,
+              type: "system"
+            };
+
+            setNotifications((prev) => {
+              const updated = [notification, ...prev];
+              localStorage.setItem("yazmart_notifications", JSON.stringify(updated));
+              return updated;
+            });
+          }
+        }
+      )
       .subscribe();
 
     return () => {
@@ -374,6 +404,8 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
       router.push("/admin/orders");
     } else if (n.type === "stock") {
       router.push("/admin/products");
+    } else if (n.title.includes("Store") || n.title.includes("Seller")) {
+      router.push("/admin/stores");
     }
     
     // 3. Close panel
@@ -516,6 +548,13 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
         { name: "Users Directory", href: "/admin/staff" },
         { name: "Roles & RBAC", href: "/admin/staff/roles" },
         { name: "Activity Logs", href: "/admin/staff/logs" },
+      ]
+    },
+    {
+      name: "Sellers",
+      icon: Users,
+      subItems: [
+        { name: "Sellers Directory", href: "/admin/stores" },
       ]
     },
     {

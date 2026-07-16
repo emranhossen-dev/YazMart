@@ -380,6 +380,12 @@ export default function HomePageClient({
           </div>
 
           <div className="flex shrink-0 items-center gap-1">
+            <Link 
+              href="/seller-center" 
+              className="text-[10px] font-extrabold uppercase tracking-wider text-[var(--foreground)] transition-colors hover:text-[var(--primary)] px-3.5 py-2 border border-[var(--border)] rounded-full hover:border-[var(--foreground)] mr-1 hidden sm:inline-block cursor-pointer"
+            >
+              Seller Center
+            </Link>
             <ThemeToggle />
 
             <Link href="/wishlist" className="relative flex h-9 w-9 items-center justify-center text-[var(--foreground)] transition-colors hover:text-[var(--primary)]">
@@ -414,9 +420,11 @@ export default function HomePageClient({
                       Admin Panel
                     </Link>
                   )}
-                  <Link href="/seller" className="block w-full px-3 py-2 text-left font-semibold transition-colors hover:bg-[var(--accent)]">
-                    Seller Panel
-                  </Link>
+                  {(user.role === "seller" || user.role === "admin") && (
+                    <Link href="/seller" className="block w-full px-3 py-2 text-left font-semibold transition-colors hover:bg-[var(--accent)]">
+                      Seller Panel
+                    </Link>
+                  )}
                   <button
                     onClick={async () => { await signOutAction(); window.location.reload(); }}
                     className="w-full cursor-pointer px-3 py-2 text-left font-semibold text-[var(--primary)] transition-colors hover:bg-[var(--accent)]"

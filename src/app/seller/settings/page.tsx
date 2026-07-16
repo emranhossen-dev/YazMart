@@ -1,24 +1,23 @@
 import React from "react";
-import { notFound, redirect } from "next/navigation";
-import { getEnterpriseUserSession } from "@/actions/auth-enterprise";
-import { getSellerStore } from "@/actions/seller";
+import { notFound } from "next/navigation";
+import { getActiveSellerStore } from "@/actions/seller-session";
 import SettingsClient from "./SettingsClient";
 
 export const unstable_instant = false;
 
-export default async function SellerSettingsPage() {
-  const session = await getEnterpriseUserSession();
+export default async function SellerSettingsPage({
+  searchParams
+}: {
+  searchParams: Promise<{ store_id?: string }>;
+}) {
+  const resolvedParams = await searchParams;
+  const storeSession = await getActiveSellerStore(resolvedParams.store_id);
 
-  if (!session.authenticated || !session.user) {
+  if (!storeSession) {
     notFound();
   }
 
-  const storeRes = await getSellerStore(session.user.id);
-  const store = storeRes.store;
-
-  if (!store) {
-    redirect("/seller");
-  }
+  const { store } = storeSession;
 
   return <SettingsClient store={store} />;
 }

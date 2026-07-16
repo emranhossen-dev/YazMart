@@ -186,6 +186,12 @@ export default function ProductDetailPageClient({
           </Link>
 
           <div className="flex shrink-0 items-center gap-1">
+            <Link 
+              href="/seller-center" 
+              className="text-[10px] font-extrabold uppercase tracking-wider text-[var(--foreground)] transition-colors hover:text-[var(--primary)] px-3.5 py-2 border border-[var(--border)] rounded-full hover:border-[var(--foreground)] mr-1 hidden sm:inline-block cursor-pointer"
+            >
+              Seller Center
+            </Link>
             <Link href="/wishlist" className="relative flex h-9 w-9 items-center justify-center rounded-full text-[var(--foreground)] transition-colors hover:bg-[var(--accent)]">
               <Heart className="h-[18px] w-[18px]" />
               {wishlist.length > 0 && (
@@ -215,7 +221,9 @@ export default function ProductDetailPageClient({
                   {user.role === "admin" && (
                     <Link href="/admin" className="block rounded-lg px-3 py-2 font-bold hover:bg-[var(--accent)]">Admin Panel</Link>
                   )}
-                  <Link href="/seller" className="block rounded-lg px-3 py-2 font-bold hover:bg-[var(--accent)]">Seller Panel</Link>
+                  {(user.role === "seller" || user.role === "admin") && (
+                    <Link href="/seller" className="block rounded-lg px-3 py-2 font-bold hover:bg-[var(--accent)]">Seller Panel</Link>
+                  )}
                   <button onClick={async () => { await signOutAction(); window.location.reload(); }} className="w-full cursor-pointer rounded-lg px-3 py-2 text-left font-bold text-rose-500 hover:bg-[var(--accent)]">
                     Sign Out
                   </button>
