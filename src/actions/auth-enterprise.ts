@@ -67,6 +67,10 @@ export async function getEnterpriseUserSession() {
       }
     }
 
+    if (!profile) {
+      return { user: null, role: null, permissions: [], authenticated: false };
+    }
+
     const roleName = profile.roles ? profile.roles.name : "customer";
     const rawPerms = profile.roles ? (profile.roles.permissions as any) : null;
     let permissions: string[] = [];

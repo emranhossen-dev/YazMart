@@ -127,6 +127,10 @@ export async function syncAndGetUserProfile(userId: string, email?: string, full
       }
     }
 
+    if (!profile) {
+      return null;
+    }
+
     const roleName = profile.roles ? profile.roles.name : "customer";
 
     return {
