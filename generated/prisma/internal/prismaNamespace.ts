@@ -419,6 +419,7 @@ export const ModelName = {
   HomepageConfig: 'HomepageConfig',
   StockItem: 'StockItem',
   coupons: 'coupons',
+  ProductReview: 'ProductReview',
   Store: 'Store',
   SubOrder: 'SubOrder'
 } as const
@@ -436,7 +437,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "audit_log_entries" | "custom_oauth_providers" | "flow_state" | "identities" | "instances" | "mfa_amr_claims" | "mfa_challenges" | "mfa_factors" | "oauth_authorizations" | "oauth_client_states" | "oauth_clients" | "oauth_consents" | "one_time_tokens" | "refresh_tokens" | "saml_providers" | "saml_relay_states" | "schema_migrations" | "sessions" | "sso_domains" | "sso_providers" | "users" | "webauthn_challenges" | "webauthn_credentials" | "categories" | "products" | "profiles" | "roles" | "categoryMatrix" | "brandMatrix" | "pimProducts" | "productVariants" | "orderMatrix" | "homepageConfig" | "stockItem" | "coupons" | "store" | "subOrder"
+    modelProps: "audit_log_entries" | "custom_oauth_providers" | "flow_state" | "identities" | "instances" | "mfa_amr_claims" | "mfa_challenges" | "mfa_factors" | "oauth_authorizations" | "oauth_client_states" | "oauth_clients" | "oauth_consents" | "one_time_tokens" | "refresh_tokens" | "saml_providers" | "saml_relay_states" | "schema_migrations" | "sessions" | "sso_domains" | "sso_providers" | "users" | "webauthn_challenges" | "webauthn_credentials" | "categories" | "products" | "profiles" | "roles" | "categoryMatrix" | "brandMatrix" | "pimProducts" | "productVariants" | "orderMatrix" | "homepageConfig" | "stockItem" | "coupons" | "productReview" | "store" | "subOrder"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3030,6 +3031,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ProductReview: {
+      payload: Prisma.$ProductReviewPayload<ExtArgs>
+      fields: Prisma.ProductReviewFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProductReviewFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductReviewPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProductReviewFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductReviewPayload>
+        }
+        findFirst: {
+          args: Prisma.ProductReviewFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductReviewPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProductReviewFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductReviewPayload>
+        }
+        findMany: {
+          args: Prisma.ProductReviewFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductReviewPayload>[]
+        }
+        create: {
+          args: Prisma.ProductReviewCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductReviewPayload>
+        }
+        createMany: {
+          args: Prisma.ProductReviewCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProductReviewCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductReviewPayload>[]
+        }
+        delete: {
+          args: Prisma.ProductReviewDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductReviewPayload>
+        }
+        update: {
+          args: Prisma.ProductReviewUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductReviewPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProductReviewDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProductReviewUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProductReviewUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductReviewPayload>[]
+        }
+        upsert: {
+          args: Prisma.ProductReviewUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductReviewPayload>
+        }
+        aggregate: {
+          args: Prisma.ProductReviewAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProductReview>
+        }
+        groupBy: {
+          args: Prisma.ProductReviewGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProductReviewGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProductReviewCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProductReviewCountAggregateOutputType> | number
+        }
+      }
+    }
     Store: {
       payload: Prisma.$StorePayload<ExtArgs>
       fields: Prisma.StoreFieldRefs
@@ -3626,6 +3701,8 @@ export const ProfilesScalarFieldEnum = {
   full_name: 'full_name',
   avatar_url: 'avatar_url',
   role_id: 'role_id',
+  coins: 'coins',
+  phone: 'phone',
   created_at: 'created_at'
 } as const
 
@@ -3750,6 +3827,7 @@ export type ProductVariantsScalarFieldEnum = (typeof ProductVariantsScalarFieldE
 
 export const OrderMatrixScalarFieldEnum = {
   id: 'id',
+  customer_id: 'customer_id',
   customer_name: 'customer_name',
   customer_email: 'customer_email',
   shipping_address: 'shipping_address',
@@ -3799,6 +3877,8 @@ export const CouponsScalarFieldEnum = {
   discount_type: 'discount_type',
   discount_value: 'discount_value',
   min_order_amount: 'min_order_amount',
+  store_id: 'store_id',
+  product_id: 'product_id',
   valid_until: 'valid_until',
   is_active: 'is_active',
   created_at: 'created_at',
@@ -3806,6 +3886,22 @@ export const CouponsScalarFieldEnum = {
 } as const
 
 export type CouponsScalarFieldEnum = (typeof CouponsScalarFieldEnum)[keyof typeof CouponsScalarFieldEnum]
+
+
+export const ProductReviewScalarFieldEnum = {
+  id: 'id',
+  product_id: 'product_id',
+  user_id: 'user_id',
+  user_name: 'user_name',
+  user_email: 'user_email',
+  order_id: 'order_id',
+  rating: 'rating',
+  comment: 'comment',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProductReviewScalarFieldEnum = (typeof ProductReviewScalarFieldEnum)[keyof typeof ProductReviewScalarFieldEnum]
 
 
 export const StoreScalarFieldEnum = {
@@ -4282,6 +4378,7 @@ export type GlobalOmitConfig = {
   homepageConfig?: Prisma.HomepageConfigOmit
   stockItem?: Prisma.StockItemOmit
   coupons?: Prisma.couponsOmit
+  productReview?: Prisma.ProductReviewOmit
   store?: Prisma.StoreOmit
   subOrder?: Prisma.SubOrderOmit
 }

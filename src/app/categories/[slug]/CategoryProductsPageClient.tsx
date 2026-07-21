@@ -3,9 +3,10 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { getCategoryProducts } from "@/actions/shop";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { useShopStore } from "@/store/shop-store";
 import { ShoppingCart, Heart, Eye, ArrowLeft, Search, Sliders, ShoppingBag } from "lucide-react";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface CategoryProductsPageClientProps {
   slug: string;
@@ -39,55 +40,24 @@ export default function CategoryProductsPageClient({
       sortBy
     };
     const res = await getCategoryProducts(slug, filterObj);
-    if (res.category) setCategory(res.category);
     if (res.products) setProducts(res.products);
+    if (res.category) setCategory(res.category);
     setLoading(false);
   };
 
   useEffect(() => {
     loadCategoryData();
-  }, [slug, search, minPrice, maxPrice, sortBy]);
+  }, [search, minPrice, maxPrice, sortBy]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--background)] text-[var(--foreground)] font-sans">
-      {/* Global Header */}
-      <header className="h-16 border-b border-[var(--border)] bg-[var(--card)] px-6 flex items-center justify-between sticky top-0 z-50 shadow-sm">
-        <Link href="/" className="text-xl font-black tracking-tight flex items-center gap-2">
-          <div className="p-1.5 bg-blue-600 rounded-lg text-white">
-            <ShoppingBag className="h-5 w-5" />
-          </div>
-          Yaz<span className="text-blue-500">Mart</span>
-        </Link>
-        
-        <div className="flex items-center gap-4">
-          <ThemeToggle />
-          <Link href="/wishlist" className="relative p-2 hover:text-blue-500 transition-colors">
-            <Heart className="h-5 w-5" />
-            {wishlist.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">
-                {wishlist.length}
-              </span>
-            )}
-          </Link>
-          <Link href="/cart" className="relative p-2 hover:text-blue-500 transition-colors">
-            <ShoppingCart className="h-5 w-5" />
-            {cart.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">
-                {cart.reduce((sum, item) => sum + item.quantity, 0)}
-              </span>
-            )}
-          </Link>
-        </div>
-      </header>
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans">
+      <Header />
 
       {/* Category Banner */}
       {category && (
         <div className="bg-gradient-to-r from-blue-900/15 via-zinc-950/20 to-zinc-900/10 border-b border-[var(--border)] py-12 px-6">
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-3">
-              <Link href="/" className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-500 hover:underline">
-                <ArrowLeft className="h-3 w-3" /> Back to Storefront
-              </Link>
               <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tight flex items-center gap-3">
                 {category.name}
               </h1>
@@ -268,6 +238,7 @@ export default function CategoryProductsPageClient({
           )}
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

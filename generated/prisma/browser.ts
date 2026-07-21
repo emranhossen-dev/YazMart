@@ -218,6 +218,11 @@ export type StockItem = Prisma.StockItemModel
  */
 export type coupons = Prisma.couponsModel
 /**
+ * Model ProductReview
+ * 
+ */
+export type ProductReview = Prisma.ProductReviewModel
+/**
  * Model Store
  * 
  */

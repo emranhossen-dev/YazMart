@@ -9,6 +9,7 @@ import {
   Settings, ChevronDown, ChevronRight, Menu, X, LogOut, Home, Store as StoreIcon, ShieldAlert 
 } from "lucide-react";
 import { signOutAction } from "@/actions/auth";
+import { supabase } from "@/lib/supabase";
 
 interface SubMenuItem {
   name: string;
@@ -162,6 +163,7 @@ export default function SellerLayoutClient({
   const secondaryColor = store.colors?.secondary || "#71717a";
 
   const handleLogout = async () => {
+    await supabase.auth.signOut();
     await signOutAction();
     router.push("/auth");
   };
@@ -182,12 +184,10 @@ export default function SellerLayoutClient({
         {/* Sidebar Header */}
         <div className="h-16 flex items-center justify-between px-5 border-b border-zinc-100 bg-zinc-50/50">
           <Link href={getLinkHref("/seller")} className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-950 text-white font-black text-xs shadow-sm">
-              YM
-            </div>
+            <img src="/logo yazmart.png" alt="YazMart Logo" className="h-8 w-auto object-contain max-w-[120px]" />
             <div>
               <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest leading-none">Seller Hub</span>
-              <h2 className="text-xs font-black text-zinc-950 truncate max-w-[120px]">{store.name}</h2>
+              <h2 className="text-xs font-black text-zinc-950 truncate max-w-[100px]">{store.name}</h2>
             </div>
           </Link>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1 text-zinc-500 hover:bg-zinc-100 rounded-lg">

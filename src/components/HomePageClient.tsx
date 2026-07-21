@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Heart, ArrowRight, Layers, ShoppingBag,
+  Heart, ArrowRight, Layers, ShoppingBag, ShoppingCart, User, Package, Coins, ShieldCheck, Store, LogOut,
   Star, ChevronLeft, ChevronRight, Search, ChevronDown, Mail,
   Trash2, X, Plus, Minus, Truck, Info
 } from "lucide-react";
@@ -13,6 +13,7 @@ import { useShopStore } from "../store/shop-store";
 import { useAuthStore } from "../store/auth-store";
 import { signOutAction } from "../actions/auth";
 import { toast } from "react-hot-toast";
+import { supabase } from "@/lib/supabase";
 import ProductQuickViewModal from "./ProductQuickViewModal";
 
 interface HomePageClientProps {
@@ -117,13 +118,13 @@ function ProductCard({
         <div className="mt-1 flex gap-2">
           <button
             onClick={() => onAddToCart(product)}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-zinc-200 py-2 text-[11px] font-semibold text-zinc-700 transition-colors hover:border-zinc-400 cursor-pointer"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-[#ff6600]/30 hover:bg-orange-50 py-2 text-[11px] font-bold text-slate-800 hover:text-[#ff6600] transition-all cursor-pointer"
           >
-            <ShoppingBag className="h-3.5 w-3.5" /> Add to Cart
+            <ShoppingBag className="h-3.5 w-3.5 text-[#ff6600]" /> Add to Cart
           </button>
           <button
             onClick={() => onBuyNow(product)}
-            className="flex-1 rounded-full bg-zinc-900 py-2 text-[11px] font-semibold text-white transition-colors hover:bg-zinc-700 cursor-pointer"
+            className="flex-1 rounded-full bg-[#ff6600] hover:bg-orange-700 py-2 text-[11px] font-extrabold text-white transition-colors cursor-pointer shadow-2xs"
           >
             Buy Now
           </button>
@@ -143,7 +144,17 @@ export default function HomePageClient({
     featured: [], newArrivals: [], bestSelling: [], trending: [], flashSale: []
   });
 
-  const [config] = useState<any>(initialConfig);
+  const fallbackConfig = {
+    section_order: ["hero", "categories", "quick_deal", "featured", "trending", "new_arrivals", "best_selling"],
+    disabled_sections: [],
+    slider_images: [],
+    right_banners: [],
+    promo_banners: [],
+    colors: { primary: "#2563eb", secondary: "#3b82f6" },
+    brand_logos: [],
+    testimonials: [],
+  };
+  const [config] = useState<any>(initialConfig || fallbackConfig);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeQuickDealTab, setActiveQuickDealTab] = useState("sale");
   const [quickDealPage, setQuickDealPage] = useState(1);
@@ -155,6 +166,7 @@ export default function HomePageClient({
   const [megaMenuLeftOffset, setMegaMenuLeftOffset] = useState<number | null>(null);
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const [quickViewProduct, setQuickViewProduct] = useState<any>(null);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const megaMenuTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -333,11 +345,12 @@ export default function HomePageClient({
       <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]">
         <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-4 px-4 md:px-6">
 
-          <Link href="/" className="flex shrink-0 items-center gap-2 font-display text-xl font-bold uppercase tracking-tight text-[var(--foreground)]">
-            <span className="flex h-8 w-8 items-center justify-center bg-[var(--foreground)] text-[var(--background)]">
-              <ShoppingBag className="h-4 w-4" />
-            </span>
-            Yaz<span style={{ color: config?.colors?.primary || "var(--primary)" }}>Mart</span>
+          <Link href="/" className="flex shrink-0 items-center gap-2">
+            <img
+              src="/logo yazmart.png"
+              alt="YazMart Logo"
+              className="h-10 w-auto object-contain max-w-[160px]"
+            />
           </Link>
 
           <div className="relative hidden max-w-xl flex-1 md:block">
@@ -386,57 +399,104 @@ export default function HomePageClient({
             >
               Seller Center
             </Link>
-            <ThemeToggle />
-
-            <Link href="/wishlist" className="relative flex h-9 w-9 items-center justify-center text-[var(--foreground)] transition-colors hover:text-[var(--primary)]">
+            <Link href="/wishlist" className="relative flex h-9 w-9 items-center justify-center text-slate-700 hover:bg-orange-50 hover:text-[#ff6600] rounded-full transition-colors">
               <Heart className="h-[18px] w-[18px]" />
               {wishlist.length > 0 && (
-                <span className="absolute top-1 right-1 flex h-3.5 w-3.5 items-center justify-center bg-[var(--primary)] font-mono text-[8px] font-bold text-white">
+                <span className="absolute top-0.5 right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 font-mono text-[9px] font-bold text-white shadow-2xs">
                   {wishlist.length}
                 </span>
               )}
             </Link>
 
-            <Link href="/cart" className="relative flex h-9 w-9 items-center justify-center text-[var(--foreground)] transition-colors hover:text-[var(--primary)]">
+            <Link href="/cart" className="relative flex h-9 w-9 items-center justify-center text-slate-700 hover:bg-orange-50 hover:text-[#ff6600] rounded-full transition-colors">
               <ShoppingBag className="h-[18px] w-[18px]" />
               {cart.length > 0 && (
-                <span className="absolute top-1 right-1 flex h-3.5 w-3.5 items-center justify-center bg-[var(--primary)] font-mono text-[8px] font-bold text-white">
+                <span className="absolute top-0.5 right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#ff6600] font-mono text-[9px] font-bold text-white shadow-2xs">
                   {cart.reduce((sum, item) => sum + item.quantity, 0)}
                 </span>
               )}
             </Link>
 
             {user ? (
-              <div className="group relative ml-1">
-                <button className="flex cursor-pointer items-center gap-2 border border-[var(--border)] px-3 py-1.5 text-xs font-semibold text-[var(--foreground)] transition-colors hover:border-[var(--foreground)]">
-                  <span className="flex h-5 w-5 items-center justify-center bg-[var(--foreground)] font-mono text-[9px] font-bold uppercase text-[var(--background)]">
+              <div 
+                className="group relative ml-1"
+                onMouseEnter={() => setUserMenuOpen(true)}
+                onMouseLeave={() => setUserMenuOpen(false)}
+              >
+                <button 
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-900 hover:border-[#ff6600] hover:bg-orange-50 transition-all shadow-2xs"
+                >
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#ff6600] text-[10px] font-black uppercase text-white shadow-xs">
                     {user.fullName?.charAt(0) || "U"}
                   </span>
-                  <span className="hidden max-w-[70px] truncate md:inline">{user.fullName || "Account"}</span>
+                  <span className="hidden max-w-[100px] truncate md:inline">{user.fullName || "My Account"}</span>
+                  <ChevronDown className="h-3.5 w-3.5 text-slate-500 group-hover:text-[#ff6600] transition-colors" />
                 </button>
-                <div className="absolute right-0 top-full z-50 hidden w-40 border border-[var(--border)] bg-[var(--card)] p-1 text-xs text-[var(--foreground)] group-hover:block">
-                  {user.role === "admin" && (
-                    <Link href="/admin" className="block w-full px-3 py-2 text-left font-semibold transition-colors hover:bg-[var(--accent)]">
-                      Admin Panel
+
+                {/* Seamless Zero-Gap Hover & Click Dropdown Menu */}
+                <div className={`absolute right-0 top-full pt-1.5 z-50 ${userMenuOpen ? "block" : "hidden group-hover:block"}`}>
+                  <div className="w-60 rounded-2xl border border-slate-200 bg-white p-2 text-xs shadow-2xl space-y-1 animate-in fade-in slide-in-from-top-2">
+                    <div className="px-3.5 py-2.5 border-b border-slate-100 bg-orange-50/50 rounded-xl mb-1">
+                      <p className="font-black text-slate-900 truncate">{user.fullName || "Customer"}</p>
+                      <p className="text-[10px] text-slate-500 truncate">{user.email || "Verified User"}</p>
+                    </div>
+
+                    <Link href="/profile" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2 font-bold text-slate-800 hover:bg-orange-50 hover:text-[#ff6600] transition-colors">
+                      <User className="h-4 w-4 text-[#ff6600]" /> My Profile
                     </Link>
-                  )}
-                  {(user.role === "seller" || user.role === "admin") && (
-                    <Link href="/seller" className="block w-full px-3 py-2 text-left font-semibold transition-colors hover:bg-[var(--accent)]">
-                      Seller Panel
+
+                    <Link href="/profile?tab=orders" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2 font-bold text-slate-800 hover:bg-orange-50 hover:text-[#ff6600] transition-colors">
+                      <Package className="h-4 w-4 text-[#ff6600]" /> My Orders
                     </Link>
-                  )}
-                  <button
-                    onClick={async () => { await signOutAction(); window.location.reload(); }}
-                    className="w-full cursor-pointer px-3 py-2 text-left font-semibold text-[var(--primary)] transition-colors hover:bg-[var(--accent)]"
-                  >
-                    Sign Out
-                  </button>
+
+                    <Link href="/profile?tab=tracking" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2 font-bold text-slate-800 hover:bg-orange-50 hover:text-[#ff6600] transition-colors">
+                      <Truck className="h-4 w-4 text-emerald-600" /> Track Parcel
+                    </Link>
+
+                    <Link href="/cart" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2 font-bold text-slate-800 hover:bg-orange-50 hover:text-[#ff6600] transition-colors">
+                      <ShoppingCart className="h-4 w-4 text-blue-600" /> Shopping Cart ({cart.reduce((sum, item) => sum + item.quantity, 0)})
+                    </Link>
+
+                    <Link href="/wishlist" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2 font-bold text-slate-800 hover:bg-orange-50 hover:text-[#ff6600] transition-colors">
+                      <Heart className="h-4 w-4 text-rose-500" /> Saved Wishlist ({wishlist.length})
+                    </Link>
+
+                    <Link href="/profile?tab=coins" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2 font-bold text-slate-800 hover:bg-orange-50 hover:text-[#ff6600] transition-colors">
+                      <Coins className="h-4 w-4 text-amber-500" /> Reward Coins Balance
+                    </Link>
+
+                    {user.role === "admin" && (
+                      <Link href="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2 font-bold text-slate-800 hover:bg-slate-100 transition-colors border-t border-slate-100">
+                        <ShieldCheck className="h-4 w-4 text-indigo-600" /> Admin Panel
+                      </Link>
+                    )}
+
+                    {user.role === "seller" && (
+                      <Link href="/seller" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2 font-bold text-slate-800 hover:bg-slate-100 transition-colors border-t border-slate-100">
+                        <Store className="h-4 w-4 text-purple-600" /> Seller Center
+                      </Link>
+                    )}
+
+                    <div className="pt-1 border-t border-slate-100">
+                      <button
+                        onClick={async () => {
+                          await supabase.auth.signOut();
+                          await signOutAction();
+                          window.location.reload();
+                        }}
+                        className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-left font-bold text-rose-600 hover:bg-rose-50 cursor-pointer transition-colors"
+                      >
+                        <LogOut className="h-4 w-4" /> Sign Out
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             ) : (
               <Link
                 href="/auth"
-                className="ml-1 flex items-center gap-1.5 border border-[var(--foreground)] px-4 py-2 text-xs font-semibold text-[var(--foreground)] transition-colors hover:bg-[var(--foreground)] hover:text-[var(--background)]"
+                className="ml-1 flex items-center gap-1.5 rounded-full bg-[#ff6600] hover:bg-orange-700 px-5 py-2 text-xs font-extrabold text-white transition-all shadow-xs"
               >
                 Sign In
               </Link>
@@ -1038,7 +1098,13 @@ export default function HomePageClient({
         <div className="mx-auto grid max-w-7xl gap-12 px-4 py-16 text-left text-xs font-medium sm:grid-cols-2 md:grid-cols-3 md:px-6 lg:grid-cols-6">
 
           <div className="space-y-6 lg:col-span-2">
-            <Link href="/" className="font-display text-xl font-bold uppercase tracking-tight text-white">YazMart</Link>
+            <Link href="/" className="inline-block">
+              <img
+                src="/logo yazmart.png"
+                alt="YazMart Logo"
+                className="h-10 w-auto object-contain max-w-[160px] bg-white/90 rounded-lg p-1"
+              />
+            </Link>
             <p className="max-w-xs font-normal leading-relaxed text-zinc-500">Curated shopping for people who care about the details.</p>
           </div>
 

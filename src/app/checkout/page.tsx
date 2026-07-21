@@ -5,13 +5,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useShopStore } from "@/store/shop-store";
 import { useAuthStore } from "@/store/auth-store";
-import { signOutAction } from "@/actions/auth";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { createOrder } from "@/actions/orders";
 import {
   CreditCard, ShoppingBag, ShieldCheck, Heart, ShoppingCart,
   Lock, Ticket, Truck, MapPin, Banknote, Smartphone
 } from "lucide-react";
-import { validateCoupon } from "@/actions/marketing";
+import { validateCoupon } from "@/actions/coupons";
+import { getUserCoins } from "@/actions/reviews";
 
 // ───────────────────────────────────────────────
 // Bangladesh full location data
@@ -150,8 +152,6 @@ const BD_THANAS: Record<string, string[]> = {
   Sherpur: ["Sherpur Sadar", "Jhenaigati", "Nakla", "Nalitabari", "Sreebardi"],
 };
 
-// Dhaka district = inside Dhaka city → ৳60
-// Everything else → ৳120
 function calcDeliveryCharge(district: string): number {
   return district === "Dhaka" ? 60 : 120;
 }
@@ -170,6 +170,10 @@ export default function CheckoutPage() {
   const [couponError, setCouponError] = useState<string | null>(null);
   const [applyingCoupon, setApplyingCoupon] = useState(false);
 
+  // Coins
+  const [userCoins, setUserCoins] = useState(0);
+  const [useCoins, setUseCoins] = useState(false);
+
   // Form fields
   const [name, setName] = useState(user?.fullName || "");
   const [email, setEmail] = useState(user?.email || "");
@@ -184,10 +188,27 @@ export default function CheckoutPage() {
   // Payment
   const [paymentMethod, setPaymentMethod] = useState<"COD" | "ONLINE">("COD");
 
+  // Fetch user coins
+  React.useEffect(() => {
+    if (user?.id) {
+      getUserCoins(user.id).then(res => {
+        if (res.coins) setUserCoins(res.coins);
+      });
+    }
+  }, [user]);
+
   // Derived values
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const deliveryCharge = district ? calcDeliveryCharge(district) : 0;
-  const total = subtotal + deliveryCharge - discountAmount;
+  const customShippingSum = cart.reduce((sum, item) => sum + ((item.shipping_charge || 0) * item.quantity), 0);
+  const defaultDeliveryCharge = district ? calcDeliveryCharge(district) : 0;
+  const deliveryCharge = customShippingSum > 0 ? customShippingSum : defaultDeliveryCharge;
+  
+  // Coins discount (1 coin = 1 Taka discount)
+  const coinsDiscount = useCoins ? Math.min(subtotal, userCoins) : 0;
+  const coinsRedeemed = coinsDiscount;
+
+  const totalDiscount = discountAmount + coinsDiscount;
+  const total = Math.max(0, subtotal + deliveryCharge - totalDiscount);
 
   const availableDistricts = division ? (BD_DISTRICTS[division] || []) : [];
   const availableThanas = district ? (BD_THANAS[district] || [`${district} Sadar`]) : [];
@@ -200,8 +221,8 @@ export default function CheckoutPage() {
     if (res.error) {
       setCouponError(res.error);
       setDiscountAmount(0);
-    } else if (res.success && res.discountAmount) {
-      setDiscountAmount(res.discountAmount);
+    } else if (res.success && res.coupon) {
+      setDiscountAmount(res.coupon.discount_amount);
       setCouponError(null);
     }
     setApplyingCoupon(false);
@@ -223,13 +244,18 @@ export default function CheckoutPage() {
     setLoading(true);
 
     const payload = {
+      customer_id: user?.id,
       customer_name: name,
       customer_email: email,
       shipping_address: `${addressLine}, ${thana}, ${district}, ${division}`,
       phone,
       total_amount: total,
-      payment_method: paymentMethod,
+      subtotal,
       delivery_charge: deliveryCharge,
+      discount: totalDiscount,
+      coupon_code: discountAmount > 0 ? couponCode : undefined,
+      coins_redeemed: coinsRedeemed,
+      payment_method: paymentMethod,
       items: cart.map((item) => ({
         id: item.id,
         name: item.name,
@@ -260,57 +286,8 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--background)] text-[var(--foreground)] font-sans">
-      {/* Navbar */}
-      <header className="sticky top-0 z-50 bg-[var(--card)] border-b border-[var(--border)]">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-2 font-display text-xl font-bold tracking-tight text-[var(--foreground)] flex-shrink-0">
-            <span className="flex h-8 w-8 items-center justify-center bg-[var(--foreground)] text-[var(--background)]">
-              <ShoppingBag className="h-4 w-4" />
-            </span>
-            Yaz<span style={{ color: "var(--primary)" }}>Mart</span>
-          </Link>
-
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <Link href="/wishlist" className="relative flex h-9 w-9 items-center justify-center text-[var(--foreground)] hover:bg-[var(--accent)] rounded-full transition-colors">
-              <Heart className="h-[18px] w-[18px]" />
-              {wishlist.length > 0 && (
-                <span className="absolute top-1 right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-rose-500 text-[8px] font-bold text-white">
-                  {wishlist.length}
-                </span>
-              )}
-            </Link>
-            <Link href="/cart" className="relative flex h-9 w-9 items-center justify-center text-[var(--foreground)] hover:bg-[var(--accent)] rounded-full transition-colors">
-              <ShoppingCart className="h-[18px] w-[18px]" />
-              {cart.length > 0 && (
-                <span className="absolute top-1 right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[var(--primary)] text-[8px] font-bold text-white">
-                  {cart.reduce((s, i) => s + i.quantity, 0)}
-                </span>
-              )}
-            </Link>
-            {user ? (
-              <div className="group relative ml-1">
-                <button className="flex cursor-pointer items-center gap-1.5 rounded-full bg-[var(--accent)] px-3 py-1.5 text-xs font-semibold text-[var(--foreground)]">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--primary)] text-[9px] font-bold uppercase text-white">
-                    {user.fullName?.charAt(0) || "U"}
-                  </span>
-                  <span className="hidden max-w-[70px] truncate md:inline">{user.fullName || "Account"}</span>
-                </button>
-                <div className="absolute right-0 top-full z-50 hidden w-40 rounded-xl border border-[var(--border)] bg-[var(--card)] p-1.5 text-xs shadow-lg group-hover:block">
-                  {user.role === "admin" && (
-                    <Link href="/admin" className="block rounded-lg px-3 py-2 font-bold hover:bg-[var(--accent)]">Admin Panel</Link>
-                  )}
-                  <button onClick={async () => { await signOutAction(); window.location.reload(); }} className="w-full cursor-pointer rounded-lg px-3 py-2 text-left font-bold text-rose-500 hover:bg-[var(--accent)]">
-                    Sign Out
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <Link href="/auth" className="ml-1 rounded-full bg-[var(--foreground)] px-4 py-2 text-xs font-semibold text-[var(--background)]">Sign In</Link>
-            )}
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans">
+      <Header />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 md:px-6 py-8 space-y-8">
         {/* Steps */}
@@ -599,6 +576,25 @@ export default function CheckoutPage() {
                 )}
               </div>
 
+              {/* Reward Coins */}
+              {user && userCoins > 0 && (
+                <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-amber-500 font-bold text-sm">🪙</span>
+                    <div>
+                      <p className="font-bold text-amber-900 dark:text-amber-200 text-[11px]">Use Reward Coins</p>
+                      <p className="text-[9px] text-amber-700 dark:text-amber-400 font-medium">You have {userCoins} coins (Save up to ৳{Math.min(subtotal, userCoins)})</p>
+                    </div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={useCoins}
+                    onChange={(e) => setUseCoins(e.target.checked)}
+                    className="h-4 w-4 rounded accent-amber-500 cursor-pointer"
+                  />
+                </div>
+              )}
+
               {/* Price breakdown */}
               <div className="divide-y divide-[var(--border)] text-xs font-medium border-t border-[var(--border)] pt-1">
                 <div className="py-3 flex justify-between text-[var(--muted-foreground)]">
@@ -640,6 +636,7 @@ export default function CheckoutPage() {
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

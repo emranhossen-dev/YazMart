@@ -10,7 +10,8 @@ import {
   Heart, Eye, ArrowLeft, Search, Sliders, ShoppingBag,
   Grid, List, Star, ChevronDown, ChevronLeft, ChevronRight, X, Truck, SlidersHorizontal, Info
 } from "lucide-react";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { toast } from "react-hot-toast";
 import ProductQuickViewModal from "@/components/ProductQuickViewModal";
 
@@ -490,7 +491,7 @@ export default function ProductsPageClient({
   );
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-[var(--background)] text-[var(--foreground)] font-sans antialiased">
+    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900 font-sans antialiased">
       <style jsx global>{`
         @keyframes productsFadeIn {
           0% { opacity: 0; transform: translateY(8px); }
@@ -501,53 +502,17 @@ export default function ProductsPageClient({
         }
       `}</style>
 
-      {/* ============ HEADER ============ */}
-      <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]">
-        <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-4 px-4 md:px-6">
-          <Link href="/" className="flex shrink-0 items-center gap-2 font-display text-xl font-bold uppercase tracking-tight text-[var(--foreground)]">
-            <span className="flex h-8 w-8 items-center justify-center bg-[var(--foreground)] text-[var(--background)]">
-              <ShoppingBag className="h-4 w-4" />
-            </span>
-            Yaz<span style={{ color: "var(--primary)" }}>Mart</span>
-          </Link>
-
-          <div className="flex shrink-0 items-center gap-1">
-            <Link 
-              href="/seller-center" 
-              className="text-[10px] font-extrabold uppercase tracking-wider text-[var(--foreground)] transition-colors hover:text-[var(--primary)] px-3.5 py-2 border border-[var(--border)] rounded-full hover:border-[var(--foreground)] mr-1 hidden sm:inline-block cursor-pointer"
-            >
-              Seller Center
-            </Link>
-            <ThemeToggle />
-            <Link href="/wishlist" className="relative flex h-9 w-9 items-center justify-center text-[var(--foreground)] transition-colors hover:text-[var(--primary)]">
-              <Heart className="h-[18px] w-[18px]" />
-              {wishlist.length > 0 && (
-                <span className="absolute top-1 right-1 flex h-3.5 w-3.5 items-center justify-center bg-[var(--primary)] font-mono text-[8px] font-bold text-white">
-                  {wishlist.length}
-                </span>
-              )}
-            </Link>
-            <Link href="/cart" className="relative flex h-9 w-9 items-center justify-center text-[var(--foreground)] transition-colors hover:text-[var(--primary)]">
-              <ShoppingBag className="h-[18px] w-[18px]" />
-              {cart.length > 0 && (
-                <span className="absolute top-1 right-1 flex h-3.5 w-3.5 items-center justify-center bg-[var(--primary)] font-mono text-[8px] font-bold text-white">
-                  {cart.reduce((sum, item) => sum + item.quantity, 0)}
-                </span>
-              )}
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* ============ MAIN LAYOUT ============ */}
-      <main className="mx-auto grid w-full max-w-7xl flex-1 gap-0 overflow-hidden px-4 md:px-6 lg:grid-cols-[260px_1fr]">
-        {/* Sidebar — desktop, independently scrollable */}
-        <aside className="hidden overflow-y-auto border-r border-[var(--border)] bg-[var(--card)] px-5 py-6 lg:block">
+      <main className="mx-auto grid w-full max-w-7xl flex-1 gap-8 px-4 md:px-6 py-8 lg:grid-cols-[260px_1fr]">
+        {/* Sidebar — desktop, sticky filter panel */}
+        <aside className="hidden border border-slate-200 bg-white p-5 rounded-2xl shadow-xs lg:block self-start sticky top-20 max-h-[calc(100vh-100px)] overflow-y-auto">
           {filterPanel}
         </aside>
 
-        {/* Product column — toolbar fixed at top, only grid scrolls */}
-        <div className="flex min-w-0 flex-col overflow-hidden">
+        {/* Product column */}
+        <div className="flex min-w-0 flex-col space-y-6">
           {/* ── Toolbar (fixed, does not scroll) ── */}
           <div className="flex shrink-0 flex-col justify-between gap-3 border-b border-[var(--border)] px-4 py-3 sm:flex-row sm:items-center">
             <p className="font-mono text-[11px] text-[var(--muted-foreground)]">
@@ -615,8 +580,8 @@ export default function ProductsPageClient({
             </div>
           )}
 
-          {/* ── Scrollable product area ── */}
-          <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
+          {/* ── Product area ── */}
+          <div className="flex-1 py-5 space-y-5">
           {/* Grid / list / empty / loading states */}
           {loading ? (
             <div className={viewMode === "grid" ? "grid grid-cols-2 gap-5 lg:grid-cols-3" : "space-y-4"}>
@@ -733,6 +698,7 @@ export default function ProductsPageClient({
           onClose={() => setQuickViewProduct(null)}
         />
       )}
+      <Footer />
     </div>
   );
 }

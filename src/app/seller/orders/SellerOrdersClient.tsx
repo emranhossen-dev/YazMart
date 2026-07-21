@@ -43,16 +43,23 @@ export default function SellerOrdersClient({ initialOrders }: SellerOrdersClient
     switch (status) {
       case "AWAITING_PAYMENT":
         return <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-bold text-zinc-600">Awaiting Payment</span>;
+      case "TAKEN":
       case "PENDING":
-        return <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold text-amber-600">Pending</span>;
+        return <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold text-amber-600">1. Taken</span>;
+      case "CONFIRMED":
+        return <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold text-amber-800">2. Confirmed</span>;
+      case "PROCESSED":
       case "PROCESSING":
-        return <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-bold text-blue-600">Processing</span>;
+        return <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-bold text-blue-600">3. Processed</span>;
       case "SHIPPED":
-        return <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-[10px] font-bold text-indigo-600">Shipped</span>;
+        return <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-[10px] font-bold text-indigo-600">4. Shipped</span>;
+      case "IN_TRANSIT":
+        return <span className="rounded-full bg-purple-50 px-2.5 py-1 text-[10px] font-bold text-purple-600">5. In Transit</span>;
+      case "DELIVERED":
       case "COMPLETED":
-        return <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-600">Completed</span>;
+        return <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-600">6. Delivered</span>;
       case "CANCELLED":
-        return <span className="rounded-full bg-rose-50/10 px-2.5 py-1 text-[10px] font-bold text-rose-500">Cancelled</span>;
+        return <span className="rounded-full bg-rose-50 px-2.5 py-1 text-[10px] font-bold text-rose-500">Cancelled</span>;
       default:
         return <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-bold text-zinc-600">{status}</span>;
     }
@@ -126,41 +133,25 @@ export default function SellerOrdersClient({ initialOrders }: SellerOrdersClient
                             {isProcessing ? (
                               <Loader2 className="h-5 w-5 animate-spin text-zinc-500" />
                             ) : (
-                              <>
-                                {order.status === "PENDING" && (
-                                  <button
-                                    onClick={() => handleUpdateStatus(order.id, "PROCESSING")}
-                                    className="flex items-center gap-1 rounded-xl border border-zinc-200 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-700 hover:bg-zinc-100 cursor-pointer"
-                                  >
-                                    Accept
-                                  </button>
-                                )}
-                                {order.status === "PROCESSING" && (
-                                  <button
-                                    onClick={() => handleUpdateStatus(order.id, "SHIPPED")}
-                                    className="flex items-center gap-1 rounded-xl border border-zinc-200 bg-zinc-950 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white hover:opacity-90 cursor-pointer"
-                                  >
-                                    <Truck className="h-3 w-3" /> Ship Order
-                                  </button>
-                                )}
-                                {order.status === "SHIPPED" && (
-                                  <button
-                                    onClick={() => handleUpdateStatus(order.id, "COMPLETED")}
-                                    className="flex items-center gap-1 rounded-xl bg-emerald-600 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white hover:bg-emerald-700 cursor-pointer"
-                                  >
-                                    <Check className="h-3 w-3" /> Complete
-                                  </button>
-                                )}
-                                {order.status !== "COMPLETED" && order.status !== "CANCELLED" && (
-                                  <button
-                                    onClick={() => handleUpdateStatus(order.id, "CANCELLED")}
-                                    className="rounded-xl border border-zinc-200 p-2 text-zinc-400 transition-colors hover:border-rose-500 hover:text-rose-500 cursor-pointer"
-                                    aria-label="Cancel order"
-                                  >
-                                    <X className="h-3.5 w-3.5" />
-                                  </button>
-                                )}
-                              </>
+                              <select
+                                value={order.status}
+                                onChange={(e) => handleUpdateStatus(order.id, e.target.value)}
+                                className={`px-2.5 py-1.5 rounded-xl text-[10px] font-black uppercase border focus:outline-none cursor-pointer ${
+                                  order.status === "DELIVERED" || order.status === "COMPLETED" ? "bg-emerald-50 text-emerald-700 border-emerald-300" :
+                                  order.status === "CANCELLED" ? "bg-rose-50 text-rose-700 border-rose-300" :
+                                  order.status === "SHIPPED" || order.status === "IN_TRANSIT" ? "bg-indigo-50 text-indigo-700 border-indigo-300" :
+                                  order.status === "PROCESSED" || order.status === "PROCESSING" ? "bg-blue-50 text-blue-700 border-blue-300" :
+                                  "bg-amber-50 text-amber-700 border-amber-300"
+                                }`}
+                              >
+                                <option value="TAKEN">1. TAKEN</option>
+                                <option value="CONFIRMED">2. CONFIRMED</option>
+                                <option value="PROCESSED">3. PROCESSED</option>
+                                <option value="SHIPPED">4. SHIPPED</option>
+                                <option value="IN_TRANSIT">5. IN_TRANSIT</option>
+                                <option value="DELIVERED">6. DELIVERED</option>
+                                <option value="CANCELLED">CANCELLED</option>
+                              </select>
                             )}
                           </div>
                         </td>

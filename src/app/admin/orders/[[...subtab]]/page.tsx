@@ -232,16 +232,20 @@ export default function Page() {
                             value={ord.status}
                             disabled={updatingStatusId === ord.id}
                             onChange={(e) => handleStatusChange(ord.id, e.target.value)}
-                            className={`px-2 py-0.5 rounded text-[10px] font-black uppercase bg-[var(--background)] border border-[var(--border)] focus:outline-none cursor-pointer ${
-                              ord.status === "DELIVERED" ? "text-emerald-500 border-emerald-500/20 bg-emerald-500/5" :
+                            className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase bg-[var(--background)] border border-[var(--border)] focus:outline-none cursor-pointer ${
+                              ord.status === "DELIVERED" || ord.status === "COMPLETED" ? "text-emerald-500 border-emerald-500/20 bg-emerald-500/5" :
                               ord.status === "CANCELLED" ? "text-rose-500 border-rose-500/20 bg-rose-500/5" :
-                              ord.status === "PROCESSING" ? "text-blue-500 border-blue-500/20 bg-blue-500/5" :
+                              ord.status === "SHIPPED" || ord.status === "IN_TRANSIT" ? "text-indigo-500 border-indigo-500/20 bg-indigo-500/5" :
+                              ord.status === "PROCESSED" || ord.status === "PROCESSING" ? "text-blue-500 border-blue-500/20 bg-blue-500/5" :
                               "text-amber-500 border-amber-500/20 bg-amber-500/5"
                             }`}
                           >
-                            <option value="PENDING" className="bg-[var(--card)] text-amber-500">PENDING</option>
-                            <option value="PROCESSING" className="bg-[var(--card)] text-blue-500">PROCESSING</option>
-                            <option value="DELIVERED" className="bg-[var(--card)] text-emerald-500">DELIVERED</option>
+                            <option value="TAKEN" className="bg-[var(--card)] text-amber-500">1. TAKEN (Order Placed)</option>
+                            <option value="CONFIRMED" className="bg-[var(--card)] text-amber-600">2. CONFIRMED</option>
+                            <option value="PROCESSED" className="bg-[var(--card)] text-blue-500">3. PROCESSED (Packaged)</option>
+                            <option value="SHIPPED" className="bg-[var(--card)] text-indigo-500">4. SHIPPED (Handed Over)</option>
+                            <option value="IN_TRANSIT" className="bg-[var(--card)] text-indigo-600">5. IN_TRANSIT</option>
+                            <option value="DELIVERED" className="bg-[var(--card)] text-emerald-500">6. DELIVERED</option>
                             <option value="CANCELLED" className="bg-[var(--card)] text-rose-500">CANCELLED</option>
                           </select>
                         </td>
@@ -465,15 +469,19 @@ export default function Page() {
                     value={selectedOrder.status}
                     onChange={(e) => handleStatusChange(selectedOrder.id, e.target.value)}
                     className={`px-2 py-1 rounded text-[10px] font-black uppercase bg-[var(--background)] border border-[var(--border)] focus:outline-none cursor-pointer ${
-                      selectedOrder.status === "DELIVERED" ? "text-emerald-500 border-emerald-500/20 bg-emerald-500/5" :
+                      selectedOrder.status === "DELIVERED" || selectedOrder.status === "COMPLETED" ? "text-emerald-500 border-emerald-500/20 bg-emerald-500/5" :
                       selectedOrder.status === "CANCELLED" ? "text-rose-500 border-rose-500/20 bg-rose-500/5" :
-                      selectedOrder.status === "PROCESSING" ? "text-blue-500 border-blue-500/20 bg-blue-500/5" :
+                      selectedOrder.status === "SHIPPED" || selectedOrder.status === "IN_TRANSIT" ? "text-indigo-500 border-indigo-500/20 bg-indigo-500/5" :
+                      selectedOrder.status === "PROCESSED" || selectedOrder.status === "PROCESSING" ? "text-blue-500 border-blue-500/20 bg-blue-500/5" :
                       "text-amber-500 border-amber-500/20 bg-amber-500/5"
                     }`}
                   >
-                    <option value="PENDING">PENDING</option>
-                    <option value="PROCESSING">PROCESSING</option>
-                    <option value="DELIVERED">DELIVERED</option>
+                    <option value="TAKEN">1. TAKEN (Order Placed)</option>
+                    <option value="CONFIRMED">2. CONFIRMED</option>
+                    <option value="PROCESSED">3. PROCESSED (Packaged)</option>
+                    <option value="SHIPPED">4. SHIPPED (Handed Over)</option>
+                    <option value="IN_TRANSIT">5. IN_TRANSIT</option>
+                    <option value="DELIVERED">6. DELIVERED</option>
                     <option value="CANCELLED">CANCELLED</option>
                   </select>
                 </div>

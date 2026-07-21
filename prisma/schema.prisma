@@ -531,6 +531,8 @@ model profiles {
   full_name  String?
   avatar_url String?
   role_id    String?   @db.Uuid
+  coins      Int       @default(0)
+  phone      String?
   created_at DateTime? @default(dbgenerated("timezone('utc'::text, now())")) @db.Timestamptz(6)
   users      users     @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   roles      roles?    @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -732,6 +734,7 @@ model PimProducts {
   stock_items     StockItem[]
   store_id        String?
   store           Store?            @relation(fields: [store_id], references: [id], onDelete: Cascade)
+  reviews         ProductReview[]
 
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
@@ -760,6 +763,7 @@ model ProductVariants {
 // ৫. অর্ডার টেবিল (Order Matrix)
 model OrderMatrix {
   id               String      @id @default(uuid())
+  customer_id      String?     @db.Uuid
   customer_name    String
   customer_email   String
   shipping_address String
@@ -808,10 +812,28 @@ model coupons {
   discount_type    String    @default("percentage") @db.VarChar(50)
   discount_value   Float
   min_order_amount Float     @default(0)
+  store_id         String?
+  product_id       String?
   valid_until      DateTime? @db.Timestamptz(6)
   is_active        Boolean   @default(true)
   created_at       DateTime? @default(now()) @db.Timestamptz(6)
   updated_at       DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@schema("public")
+}
+
+model ProductReview {
+  id         String      @id @default(uuid())
+  product_id String
+  product    PimProducts @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  user_id    String      @db.Uuid
+  user_name  String
+  user_email String?
+  order_id   String
+  rating     Int         @default(5)
+  comment    String      @db.Text
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 
   @@schema("public")
 }

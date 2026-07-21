@@ -2,15 +2,21 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { sendOrderInvoiceEmail } from "@/lib/email";
 
 export async function createOrder(data: {
+  customer_id?: string;
   customer_name: string;
   customer_email: string;
   shipping_address: string;
   phone: string;
   total_amount: number;
-  payment_method?: string;
+  subtotal?: number;
   delivery_charge?: number;
+  discount?: number;
+  coupon_code?: string;
+  coins_redeemed?: number;
+  payment_method?: string;
   items: any[];
 }) {
   try {
@@ -19,24 +25,41 @@ export async function createOrder(data: {
     }
 
     const result = await prisma.$transaction(async (tx) => {
+      // Create the main order with TAKEN / PENDING initial status
+      const initialStatus = data.payment_method === "ONLINE" ? "AWAITING_PAYMENT" : "TAKEN";
+
       const order = await tx.orderMatrix.create({
         data: {
+          customer_id: data.customer_id || null,
           customer_name: data.customer_name,
           customer_email: data.customer_email,
           shipping_address: data.shipping_address,
           phone: data.phone,
           total_amount: data.total_amount,
-          // Store payment metadata inside items JSON blob
           items: {
             __meta: {
               payment_method: data.payment_method || "COD",
               delivery_charge: data.delivery_charge || 0,
+              subtotal: data.subtotal || data.total_amount,
+              discount: data.discount || 0,
+              coupon_code: data.coupon_code || null,
+              coins_redeemed: data.coins_redeemed || 0,
             },
             list: data.items,
           },
-          status: data.payment_method === "ONLINE" ? "AWAITING_PAYMENT" : "PENDING",
+          status: initialStatus,
         },
       });
+
+      // If coins were redeemed, deduct from customer profile
+      if (data.customer_id && data.coins_redeemed && data.coins_redeemed > 0) {
+        await tx.profiles.update({
+          where: { id: data.customer_id },
+          data: {
+            coins: { decrement: data.coins_redeemed },
+          },
+        });
+      }
 
       // Group items by store_id and decrement stock
       const storeItemsMap = new Map<string | null, any[]>();
@@ -89,7 +112,24 @@ export async function createOrder(data: {
       return order;
     });
 
+    // Send email invoice asynchronously via Resend (shop@yazmart.com)
+    sendOrderInvoiceEmail({
+      orderId: result.id,
+      customerName: data.customer_name,
+      customerEmail: data.customer_email,
+      shippingAddress: data.shipping_address,
+      phone: data.phone,
+      totalAmount: data.total_amount,
+      subtotal: data.subtotal,
+      deliveryCharge: data.delivery_charge,
+      discount: data.discount,
+      paymentMethod: data.payment_method,
+      items: data.items,
+      createdAt: result.createdAt,
+    }).catch(err => console.error("Async invoice error:", err));
+
     revalidatePath("/admin/products");
+    revalidatePath("/profile");
     return { success: true, orderId: result.id };
   } catch (error: any) {
     console.error("❌ CREATE ORDER ERROR:", error);
@@ -121,19 +161,20 @@ export async function submitOnlinePayment(orderId: string, trxId: string) {
         where: { id: orderId },
         data: {
           items: updatedItems,
-          status: "PAYMENT_RECEIVED",
+          status: "TAKEN",
         },
       });
 
       await tx.subOrder.updateMany({
         where: { parent_id: orderId },
         data: {
-          status: "PAYMENT_RECEIVED",
+          status: "TAKEN",
         },
       });
     });
 
     revalidatePath("/admin/orders");
+    revalidatePath("/profile");
     return { success: true };
   } catch (error: any) {
     console.error("❌ SUBMIT PAYMENT ERROR:", error);
@@ -144,21 +185,99 @@ export async function submitOnlinePayment(orderId: string, trxId: string) {
 export async function getOrders() {
   try {
     const orders = await prisma.orderMatrix.findMany({
+      include: {
+        sub_orders: {
+          include: {
+            store: {
+              select: { name: true, slug: true }
+            }
+          }
+        }
+      },
       orderBy: { createdAt: "desc" },
     });
-    return { orders: orders.map(o => ({ ...o, total_amount: Number(o.total_amount) })) };
+    return {
+      orders: orders.map(o => ({
+        ...o,
+        total_amount: Number(o.total_amount)
+      }))
+    };
   } catch (error) {
     console.error("❌ GET ORDERS ERROR:", error);
     return { error: "Failed to fetch orders ledger.", orders: [] };
   }
 }
 
+export async function getCustomerOrders(identifier: { userId?: string; email?: string }) {
+  try {
+    if (!identifier.userId && !identifier.email) {
+      return { orders: [] };
+    }
+
+    const whereConditions: any[] = [];
+    if (identifier.userId) whereConditions.push({ customer_id: identifier.userId });
+    if (identifier.email) whereConditions.push({ customer_email: identifier.email });
+
+    const orders = await prisma.orderMatrix.findMany({
+      where: { OR: whereConditions },
+      include: {
+        sub_orders: {
+          include: {
+            store: {
+              select: { name: true, logo_url: true }
+            }
+          }
+        }
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return {
+      orders: orders.map((o) => {
+        const raw = o.items as any;
+        const itemList: any[] = Array.isArray(raw) ? raw : (raw?.list || []);
+        const meta = raw?.__meta || {};
+
+        return {
+          id: o.id,
+          customer_name: o.customer_name,
+          customer_email: o.customer_email,
+          shipping_address: o.shipping_address,
+          phone: o.phone,
+          total_amount: Number(o.total_amount),
+          status: o.status,
+          createdAt: o.createdAt,
+          items: itemList,
+          payment_method: meta.payment_method || "COD",
+          delivery_charge: meta.delivery_charge || 0,
+          discount: meta.discount || 0,
+          sub_orders: o.sub_orders.map(so => ({
+            ...so,
+            total_amount: Number(so.total_amount)
+          }))
+        };
+      })
+    };
+  } catch (error) {
+    console.error("❌ GET CUSTOMER ORDERS ERROR:", error);
+    return { orders: [], error: "Failed to fetch customer orders." };
+  }
+}
+
 export async function getOrderById(id: string) {
   try {
-    const order = await prisma.orderMatrix.findUnique({ where: { id } });
+    const order = await prisma.orderMatrix.findUnique({
+      where: { id },
+      include: {
+        sub_orders: {
+          include: {
+            store: true
+          }
+        }
+      }
+    });
     if (!order) return { error: "Order not found." };
 
-    // Flatten stored JSON — handle both old flat array and new { __meta, list } shape
     const raw = order.items as any;
     const itemList: any[] = Array.isArray(raw) ? raw : (raw?.list || []);
     const meta = raw?.__meta || {};
@@ -170,7 +289,13 @@ export async function getOrderById(id: string) {
         items: itemList,
         payment_method: meta.payment_method || "COD",
         delivery_charge: meta.delivery_charge || 0,
+        subtotal: meta.subtotal || Number(order.total_amount),
+        discount: meta.discount || 0,
         trx_id: meta.trx_id || null,
+        sub_orders: order.sub_orders.map(so => ({
+          ...so,
+          total_amount: Number(so.total_amount)
+        }))
       },
     };
   } catch (error) {
@@ -194,6 +319,8 @@ export async function updateOrderStatus(id: string, status: string) {
       return updated;
     });
     revalidatePath("/admin/orders");
+    revalidatePath("/seller/orders");
+    revalidatePath("/profile");
     return { success: true, order };
   } catch (error: any) {
     console.error("Update order status error:", error);

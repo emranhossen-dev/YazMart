@@ -9,6 +9,7 @@ interface CartItem {
   quantity: number;
   image: string | null;
   sku: string;
+  shipping_charge?: number;
 }
 
 interface WishlistItem {
@@ -56,10 +57,11 @@ export const useShopStore = create<ShopState>()(
               {
                 id: product.id,
                 name: product.name,
-                price: Number(product.selling_price),
+                price: Number(product.selling_price || product.price || 0),
                 quantity: 1,
-                image: product.featured_image || null,
-                sku: product.sku,
+                image: product.featured_image || product.image || null,
+                sku: product.sku || product.id,
+                shipping_charge: product.shipping_charge !== undefined && product.shipping_charge !== null ? Number(product.shipping_charge) : undefined,
               },
             ],
           });

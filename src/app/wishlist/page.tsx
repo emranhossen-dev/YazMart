@@ -2,41 +2,29 @@
 
 import React from "react";
 import Link from "next/link";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { useShopStore } from "@/store/shop-store";
 import { Heart, Trash2, ArrowLeft, ShoppingCart, ShoppingBag } from "lucide-react";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export default function WishlistPage() {
   const { wishlist, removeFromWishlist, addToCart } = useShopStore();
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--background)] text-[var(--foreground)] font-sans">
-      {/* Header */}
-      <header className="h-16 border-b border-[var(--border)] bg-[var(--card)] px-6 flex items-center justify-between sticky top-0 z-50 shadow-sm">
-        <Link href="/" className="text-xl font-black tracking-tight flex items-center gap-2">
-          <div className="p-1.5 bg-blue-600 rounded-lg text-white">
-            <ShoppingBag className="h-5 w-5" />
-          </div>
-          Yaz<span className="text-blue-500">Mart</span>
-        </Link>
-        <ThemeToggle />
-      </header>
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans">
+      <Header />
 
       <main className="flex-1 max-w-5xl w-full mx-auto p-6 md:p-8 space-y-6">
-        <Link href="/" className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-500 hover:underline">
-          <ArrowLeft className="h-3 w-3" /> Continue Shopping
-        </Link>
-
         <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight flex items-center gap-3">
           <Heart className="h-6 w-6 text-rose-500" /> Saved Wishlist
         </h1>
 
         {wishlist.length === 0 ? (
-          <div className="p-16 border border-dashed border-[var(--border)] rounded-2xl bg-[var(--card)] text-center space-y-3">
-            <Heart className="h-12 w-12 mx-auto text-[var(--muted-foreground)] animate-pulse" />
+          <div className="p-16 border border-dashed border-slate-200 rounded-2xl bg-white text-center space-y-3">
+            <Heart className="h-12 w-12 mx-auto text-slate-300 animate-pulse" />
             <h3 className="font-bold text-sm uppercase">Your wishlist is empty</h3>
-            <p className="text-xs text-[var(--muted-foreground)]">Save items you like here to purchase them later.</p>
-            <Link href="/" className="inline-block px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold uppercase cursor-pointer">Explore Catalog</Link>
+            <p className="text-xs text-slate-500">Save items you like here to purchase them later.</p>
+            <Link href="/" className="inline-block px-5 py-2.5 bg-[#ff6600] hover:bg-orange-700 text-white rounded-xl text-xs font-bold uppercase cursor-pointer">Explore Catalog</Link>
           </div>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
@@ -66,7 +54,7 @@ export default function WishlistPage() {
                       addToCart(item);
                       removeFromWishlist(item.id);
                     }}
-                    className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold uppercase cursor-pointer flex items-center justify-center gap-1 transition-colors"
+                    className="flex-1 py-2 bg-[#ff6600] hover:bg-orange-700 text-white rounded-lg text-xs font-bold uppercase cursor-pointer flex items-center justify-center gap-1 transition-colors"
                   >
                     <ShoppingCart className="h-3.5 w-3.5" /> Buy Now
                   </button>
@@ -82,6 +70,7 @@ export default function WishlistPage() {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

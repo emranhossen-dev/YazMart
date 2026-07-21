@@ -12,17 +12,17 @@ import {
   Frown, Truck, RotateCcw, Share2, ChevronLeft, ChevronRight, X,
   Minus, Plus, Check, Info
 } from "lucide-react";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import ProductQuickViewModal from "@/components/ProductQuickViewModal";
+
+import { getProductReviews } from "@/actions/reviews";
 
 interface ProductDetailPageClientProps {
   initialProduct: any;
   initialRelated: any[];
 }
 
-/* Shared rounded product card — used for "You may also like".
-   Matches the confirmed site-wide card language: rounded corners,
-   soft shadow, neutral image tile, outline "Add to Cart" + solid
-   "Buy Now" side by side. */
 function ProductCard({ product, wishlist, onToggleWishlist, onAddToCart, onBuyNow, onInfoClick }: any) {
   const discount = product.compare_price && product.compare_price > product.selling_price
     ? Math.round(((product.compare_price - product.selling_price) / product.compare_price) * 100)
@@ -138,6 +138,21 @@ export default function ProductDetailPageClient({
     { author: "Rahat H.", rating: 5, content: "Exactly as described. Fast delivery and great packaging.", date: "2026-06-25" },
     { author: "Milon K.", rating: 4, content: "Good quality for the price. Would order again.", date: "2026-06-28" }
   ]);
+
+  React.useEffect(() => {
+    if (product?.id) {
+      getProductReviews(product.id).then(res => {
+        if (res.reviews && res.reviews.length > 0) {
+          setReviews(res.reviews.map(r => ({
+            author: r.user_name,
+            rating: r.rating,
+            content: r.comment,
+            date: new Date(r.createdAt).toLocaleDateString()
+          })));
+        }
+      });
+    }
+  }, [product?.id]);
   const [newReviewText, setNewReviewText] = useState("");
   const [newReviewRating, setNewReviewRating] = useState(5);
 
@@ -173,70 +188,8 @@ export default function ProductDetailPageClient({
   const avgScore = reviews.length === 0 ? "0.0" : (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1);
 
   return (
-    <div className="flex min-h-screen flex-col bg-[var(--background)] text-[var(--foreground)] font-sans">
-
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--card)]">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 md:px-6">
-          <Link href="/" className="flex shrink-0 items-center gap-2 font-display text-xl font-bold tracking-tight text-[var(--foreground)]">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--foreground)] text-[var(--background)]">
-              <ShoppingBag className="h-4 w-4" />
-            </span>
-            Yaz<span style={{ color: "var(--primary)" }}>Mart</span>
-          </Link>
-
-          <div className="flex shrink-0 items-center gap-1">
-            <Link 
-              href="/seller-center" 
-              className="text-[10px] font-extrabold uppercase tracking-wider text-[var(--foreground)] transition-colors hover:text-[var(--primary)] px-3.5 py-2 border border-[var(--border)] rounded-full hover:border-[var(--foreground)] mr-1 hidden sm:inline-block cursor-pointer"
-            >
-              Seller Center
-            </Link>
-            <Link href="/wishlist" className="relative flex h-9 w-9 items-center justify-center rounded-full text-[var(--foreground)] transition-colors hover:bg-[var(--accent)]">
-              <Heart className="h-[18px] w-[18px]" />
-              {wishlist.length > 0 && (
-                <span className="absolute top-1 right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[var(--primary)] text-[8px] font-bold text-white">
-                  {wishlist.length}
-                </span>
-              )}
-            </Link>
-            <Link href="/cart" className="relative flex h-9 w-9 items-center justify-center rounded-full text-[var(--foreground)] transition-colors hover:bg-[var(--accent)]">
-              <ShoppingBag className="h-[18px] w-[18px]" />
-              {cart.length > 0 && (
-                <span className="absolute top-1 right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[var(--primary)] text-[8px] font-bold text-white">
-                  {cart.reduce((sum, item) => sum + item.quantity, 0)}
-                </span>
-              )}
-            </Link>
-
-            {user ? (
-              <div className="group relative ml-1">
-                <button className="flex cursor-pointer items-center gap-1.5 rounded-full bg-[var(--accent)] px-3 py-1.5 text-xs font-bold text-[var(--foreground)]">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--primary)] text-[9px] font-bold uppercase text-white">
-                    {user.fullName?.charAt(0) || "U"}
-                  </span>
-                  <span className="hidden max-w-[70px] truncate md:inline">{user.fullName || "Account"}</span>
-                </button>
-                <div className="absolute right-0 top-full z-50 hidden w-40 rounded-xl border border-[var(--border)] bg-[var(--card)] p-1.5 text-xs shadow-lg group-hover:block">
-                  {user.role === "admin" && (
-                    <Link href="/admin" className="block rounded-lg px-3 py-2 font-bold hover:bg-[var(--accent)]">Admin Panel</Link>
-                  )}
-                  {(user.role === "seller" || user.role === "admin") && (
-                    <Link href="/seller" className="block rounded-lg px-3 py-2 font-bold hover:bg-[var(--accent)]">Seller Panel</Link>
-                  )}
-                  <button onClick={async () => { await signOutAction(); window.location.reload(); }} className="w-full cursor-pointer rounded-lg px-3 py-2 text-left font-bold text-rose-500 hover:bg-[var(--accent)]">
-                    Sign Out
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <Link href="/auth" className="ml-1 rounded-full bg-[var(--foreground)] px-4 py-2 text-xs font-bold text-[var(--background)]">
-                Sign In
-              </Link>
-            )}
-          </div>
-        </div>
-      </header>
+    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900 font-sans">
+      <Header />
 
       <main className="mx-auto w-full max-w-7xl flex-1 space-y-10 px-4 py-8 md:px-6">
 
@@ -770,6 +723,7 @@ export default function ProductDetailPageClient({
           onClose={() => setQuickViewProduct(null)}
         />
       )}
+      <Footer />
     </div>
   );
 }

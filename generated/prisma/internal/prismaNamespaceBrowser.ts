@@ -86,6 +86,7 @@ export const ModelName = {
   HomepageConfig: 'HomepageConfig',
   StockItem: 'StockItem',
   coupons: 'coupons',
+  ProductReview: 'ProductReview',
   Store: 'Store',
   SubOrder: 'SubOrder'
 } as const
@@ -515,6 +516,8 @@ export const ProfilesScalarFieldEnum = {
   full_name: 'full_name',
   avatar_url: 'avatar_url',
   role_id: 'role_id',
+  coins: 'coins',
+  phone: 'phone',
   created_at: 'created_at'
 } as const
 
@@ -639,6 +642,7 @@ export type ProductVariantsScalarFieldEnum = (typeof ProductVariantsScalarFieldE
 
 export const OrderMatrixScalarFieldEnum = {
   id: 'id',
+  customer_id: 'customer_id',
   customer_name: 'customer_name',
   customer_email: 'customer_email',
   shipping_address: 'shipping_address',
@@ -688,6 +692,8 @@ export const CouponsScalarFieldEnum = {
   discount_type: 'discount_type',
   discount_value: 'discount_value',
   min_order_amount: 'min_order_amount',
+  store_id: 'store_id',
+  product_id: 'product_id',
   valid_until: 'valid_until',
   is_active: 'is_active',
   created_at: 'created_at',
@@ -695,6 +701,22 @@ export const CouponsScalarFieldEnum = {
 } as const
 
 export type CouponsScalarFieldEnum = (typeof CouponsScalarFieldEnum)[keyof typeof CouponsScalarFieldEnum]
+
+
+export const ProductReviewScalarFieldEnum = {
+  id: 'id',
+  product_id: 'product_id',
+  user_id: 'user_id',
+  user_name: 'user_name',
+  user_email: 'user_email',
+  order_id: 'order_id',
+  rating: 'rating',
+  comment: 'comment',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProductReviewScalarFieldEnum = (typeof ProductReviewScalarFieldEnum)[keyof typeof ProductReviewScalarFieldEnum]
 
 
 export const StoreScalarFieldEnum = {

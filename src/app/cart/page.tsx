@@ -2,101 +2,29 @@
 
 import React from "react";
 import Link from "next/link";
-
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { useShopStore } from "@/store/shop-store";
-import { useAuthStore } from "@/store/auth-store";
-import { signOutAction } from "@/actions/auth";
-import { ShoppingCart, Trash2, ArrowLeft, CreditCard, ShoppingBag, Heart, ShieldCheck, Check } from "lucide-react";
+import { ShoppingCart, Trash2, ArrowLeft, CreditCard, ShoppingBag, ShieldCheck } from "lucide-react";
 
 export default function CartPage() {
-  const { cart, removeFromCart, updateQuantity, clearCart, wishlist } = useShopStore();
-  const { user } = useAuthStore();
+  const { cart, removeFromCart, updateQuantity, clearCart } = useShopStore();
 
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = cart.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
   const shipping = subtotal > 100 || subtotal === 0 ? 0 : 15;
   const total = subtotal + shipping;
 
-
-
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--background)] text-[var(--foreground)] font-sans">
-      {/* Premium Consistent Navbar */}
-      <header className="sticky top-0 z-50 bg-[var(--card)]/90 backdrop-blur-md border-b border-[var(--border)] shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between gap-4">
-          <Link href="/" className="text-2xl font-black tracking-tight flex items-center gap-2 flex-shrink-0">
-            <div className="p-1.5 bg-blue-600 rounded-lg text-white">
-              <ShoppingBag className="h-5.5 w-5.5" />
-            </div>
-            Yaz<span className="text-blue-500">Mart</span>
-          </Link>
-
-          {/* Action Links */}
-          <div className="flex items-center gap-4 flex-shrink-0">
-            <Link href="/wishlist" className="relative p-2 text-[var(--foreground)] hover:text-blue-500 transition-colors">
-              <Heart className="h-5 w-5" />
-              {wishlist.length > 0 && (
-                <span className="absolute top-0 right-0 bg-rose-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center">
-                  {wishlist.length}
-                </span>
-              )}
-            </Link>
-
-            <Link href="/cart" className="relative p-2 text-blue-500 transition-colors">
-              <ShoppingCart className="h-5 w-5" />
-              {cart.length > 0 && (
-                <span className="absolute top-0 right-0 bg-blue-500 text-white text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center">
-                  {cart.reduce((sum, item) => sum + item.quantity, 0)}
-                </span>
-              )}
-            </Link>
-
-            {user ? (
-              <div className="relative group">
-                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--accent)] hover:opacity-90 text-[var(--foreground)] text-xs font-bold transition-all border border-[var(--outline-variant)]/30 cursor-pointer">
-                  <div className="w-4.5 h-4.5 rounded-full bg-blue-500 text-white flex items-center justify-center font-black text-[9px] uppercase">
-                    {user.fullName?.charAt(0) || "U"}
-                  </div>
-                  <span className="max-w-[70px] truncate hidden md:inline">{user.fullName || "Account"}</span>
-                </button>
-                <div className="absolute right-0 top-full mt-1 w-40 bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-xl p-1.5 hidden group-hover:block z-50 text-xs text-[var(--foreground)] animate-fade-in">
-                  {user.role === "admin" && (
-                    <Link 
-                      href="/admin" 
-                      className="block w-full text-left px-3 py-2 hover:bg-[var(--accent)] rounded-xl font-bold transition-colors"
-                    >
-                      Admin Panel
-                    </Link>
-                  )}
-                  <button 
-                    onClick={async () => {
-                      await signOutAction();
-                      window.location.reload();
-                    }}
-                    className="w-full text-left px-3 py-2 hover:bg-[var(--accent)] rounded-xl text-rose-500 font-bold transition-colors cursor-pointer"
-                  >
-                    Sign Out
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <Link 
-                href="/auth" 
-                className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all"
-              >
-                Sign In
-              </Link>
-            )}
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans">
+      <Header />
 
       {/* Main content grid */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 md:px-6 py-8 space-y-8">
         
         {/* Step Indicator */}
-        <div className="max-w-xl mx-auto flex items-center justify-between text-xs font-bold uppercase tracking-wider text-zinc-400">
-          <div className="flex items-center gap-2 text-blue-600">
-            <span className="w-6 h-6 rounded-full border-2 border-blue-600 flex items-center justify-center text-[10px] font-black">1</span>
+        <div className="max-w-xl mx-auto flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-400">
+          <div className="flex items-center gap-2 text-[#ff6600]">
+            <span className="w-6 h-6 rounded-full border-2 border-[#ff6600] flex items-center justify-center text-[10px] font-black">1</span>
             <span>Shopping Bag</span>
           </div>
           <div className="flex-1 h-0.5 bg-zinc-200 mx-4" />
@@ -111,16 +39,11 @@ export default function CartPage() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-b border-[var(--border)]/40 pb-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight flex items-center gap-3">
-              <ShoppingCart className="h-7 w-7 text-blue-500" /> Shopping Cart
-            </h1>
-            <p className="text-xs text-zinc-500 mt-1">Review the itemized ledger of premium products selected for checkout.</p>
-          </div>
-          <Link href="/" className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-500 hover:underline">
-            <ArrowLeft className="h-3.5 w-3.5" /> Continue Shopping
-          </Link>
+        <div className="border-b border-slate-200 pb-4">
+          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight flex items-center gap-3">
+            <ShoppingCart className="h-7 w-7 text-[#ff6600]" /> Shopping Cart
+          </h1>
+          <p className="text-xs text-slate-500 mt-1">Review the itemized ledger of premium products selected for checkout.</p>
         </div>
 
         {cart.length === 0 ? (
@@ -212,12 +135,12 @@ export default function CartPage() {
                 </div>
                 <div className="py-4.5 flex justify-between text-sm font-black border-t border-[var(--border)] text-[var(--foreground)]">
                   <span>Net Amount Due</span>
-                  <span className="text-blue-500 text-base">৳{total.toFixed(2)}</span>
+                  <span className="text-[#ff6600] text-base font-mono">৳{total.toFixed(2)}</span>
                 </div>
               </div>
 
               {shipping > 0 && (
-                <div className="text-[10px] text-zinc-500 bg-blue-500/5 p-3 rounded-xl border border-blue-500/10 text-center font-normal">
+                <div className="text-[10px] text-slate-500 bg-orange-50 p-3 rounded-xl border border-orange-200 text-center font-normal">
                   Add just <span className="font-bold">৳{(100 - subtotal).toFixed(2)}</span> more to unlock <span className="text-emerald-600 font-bold">Free Shipping</span>!
                 </div>
               )}
@@ -225,7 +148,7 @@ export default function CartPage() {
               <div className="space-y-3">
                 <Link 
                   href="/checkout"
-                  className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-sm cursor-pointer flex items-center justify-center gap-2 transition-colors"
+                  className="w-full py-3 bg-[#ff6600] hover:bg-orange-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-sm cursor-pointer flex items-center justify-center gap-2 transition-colors"
                 >
                   <CreditCard className="h-4 w-4" /> Proceed to Checkout
                 </Link>
@@ -239,6 +162,7 @@ export default function CartPage() {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

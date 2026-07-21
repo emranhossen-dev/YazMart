@@ -10,6 +10,9 @@ import {
   Clock, PhoneCall, ShieldCheck, Star, Copy, Check
 } from "lucide-react";
 
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+
 export default function OrderConfirmationPageClient() {
   const params = useParams();
   const id = params.id as string;
@@ -60,17 +63,8 @@ export default function OrderConfirmationPageClient() {
   const shortId = order.id.slice(-8).toUpperCase();
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--background)] text-[var(--foreground)] font-sans">
-      {/* Navbar */}
-      <header className="h-16 border-b border-[var(--border)] bg-[var(--card)] px-6 flex items-center justify-between sticky top-0 z-50">
-        <Link href="/" className="flex items-center gap-2 font-bold text-lg tracking-tight">
-          <span className="flex h-8 w-8 items-center justify-center bg-[var(--foreground)] text-[var(--background)]">
-            <ShoppingBag className="h-4 w-4" />
-          </span>
-          Yaz<span style={{ color: "var(--primary)" }}>Mart</span>
-        </Link>
-        <span className="text-[10px] uppercase tracking-widest font-semibold text-[var(--muted-foreground)]">Order Confirmation</span>
-      </header>
+    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-sans">
+      <Header />
 
       <main className="flex-1 max-w-2xl w-full mx-auto px-4 py-10 space-y-6">
 
@@ -271,6 +265,7 @@ export default function OrderConfirmationPageClient() {
           Order reference: <span className="font-mono font-bold">{order.id}</span>
         </p>
       </main>
+      <Footer />
     </div>
   );
 }

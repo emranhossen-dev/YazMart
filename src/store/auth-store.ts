@@ -1,6 +1,7 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
-interface UserProfile {
+export interface UserProfile {
   id: string;
   fullName: string | null;
   avatarUrl: string | null;
@@ -17,10 +18,17 @@ interface AuthState {
   logout: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  isLoading: true,
-  setAuth: (user) => set({ user, isLoading: false }),
-  setLoading: (isLoading) => set({ isLoading }),
-  logout: () => set({ user: null, isLoading: false }),
-}));
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      user: null,
+      isLoading: true,
+      setAuth: (user) => set({ user, isLoading: false }),
+      setLoading: (isLoading) => set({ isLoading }),
+      logout: () => set({ user: null, isLoading: false }),
+    }),
+    {
+      name: 'yazmart-auth-user',
+    }
+  )
+);

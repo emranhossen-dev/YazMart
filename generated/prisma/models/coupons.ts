@@ -42,6 +42,8 @@ export type CouponsMinAggregateOutputType = {
   discount_type: string | null
   discount_value: number | null
   min_order_amount: number | null
+  store_id: string | null
+  product_id: string | null
   valid_until: Date | null
   is_active: boolean | null
   created_at: Date | null
@@ -54,6 +56,8 @@ export type CouponsMaxAggregateOutputType = {
   discount_type: string | null
   discount_value: number | null
   min_order_amount: number | null
+  store_id: string | null
+  product_id: string | null
   valid_until: Date | null
   is_active: boolean | null
   created_at: Date | null
@@ -66,6 +70,8 @@ export type CouponsCountAggregateOutputType = {
   discount_type: number
   discount_value: number
   min_order_amount: number
+  store_id: number
+  product_id: number
   valid_until: number
   is_active: number
   created_at: number
@@ -90,6 +96,8 @@ export type CouponsMinAggregateInputType = {
   discount_type?: true
   discount_value?: true
   min_order_amount?: true
+  store_id?: true
+  product_id?: true
   valid_until?: true
   is_active?: true
   created_at?: true
@@ -102,6 +110,8 @@ export type CouponsMaxAggregateInputType = {
   discount_type?: true
   discount_value?: true
   min_order_amount?: true
+  store_id?: true
+  product_id?: true
   valid_until?: true
   is_active?: true
   created_at?: true
@@ -114,6 +124,8 @@ export type CouponsCountAggregateInputType = {
   discount_type?: true
   discount_value?: true
   min_order_amount?: true
+  store_id?: true
+  product_id?: true
   valid_until?: true
   is_active?: true
   created_at?: true
@@ -213,6 +225,8 @@ export type CouponsGroupByOutputType = {
   discount_type: string
   discount_value: number
   min_order_amount: number
+  store_id: string | null
+  product_id: string | null
   valid_until: Date | null
   is_active: boolean
   created_at: Date | null
@@ -248,6 +262,8 @@ export type couponsWhereInput = {
   discount_type?: Prisma.StringFilter<"coupons"> | string
   discount_value?: Prisma.FloatFilter<"coupons"> | number
   min_order_amount?: Prisma.FloatFilter<"coupons"> | number
+  store_id?: Prisma.StringNullableFilter<"coupons"> | string | null
+  product_id?: Prisma.StringNullableFilter<"coupons"> | string | null
   valid_until?: Prisma.DateTimeNullableFilter<"coupons"> | Date | string | null
   is_active?: Prisma.BoolFilter<"coupons"> | boolean
   created_at?: Prisma.DateTimeNullableFilter<"coupons"> | Date | string | null
@@ -260,6 +276,8 @@ export type couponsOrderByWithRelationInput = {
   discount_type?: Prisma.SortOrder
   discount_value?: Prisma.SortOrder
   min_order_amount?: Prisma.SortOrder
+  store_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  product_id?: Prisma.SortOrderInput | Prisma.SortOrder
   valid_until?: Prisma.SortOrderInput | Prisma.SortOrder
   is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -275,6 +293,8 @@ export type couponsWhereUniqueInput = Prisma.AtLeast<{
   discount_type?: Prisma.StringFilter<"coupons"> | string
   discount_value?: Prisma.FloatFilter<"coupons"> | number
   min_order_amount?: Prisma.FloatFilter<"coupons"> | number
+  store_id?: Prisma.StringNullableFilter<"coupons"> | string | null
+  product_id?: Prisma.StringNullableFilter<"coupons"> | string | null
   valid_until?: Prisma.DateTimeNullableFilter<"coupons"> | Date | string | null
   is_active?: Prisma.BoolFilter<"coupons"> | boolean
   created_at?: Prisma.DateTimeNullableFilter<"coupons"> | Date | string | null
@@ -287,6 +307,8 @@ export type couponsOrderByWithAggregationInput = {
   discount_type?: Prisma.SortOrder
   discount_value?: Prisma.SortOrder
   min_order_amount?: Prisma.SortOrder
+  store_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  product_id?: Prisma.SortOrderInput | Prisma.SortOrder
   valid_until?: Prisma.SortOrderInput | Prisma.SortOrder
   is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -307,6 +329,8 @@ export type couponsScalarWhereWithAggregatesInput = {
   discount_type?: Prisma.StringWithAggregatesFilter<"coupons"> | string
   discount_value?: Prisma.FloatWithAggregatesFilter<"coupons"> | number
   min_order_amount?: Prisma.FloatWithAggregatesFilter<"coupons"> | number
+  store_id?: Prisma.StringNullableWithAggregatesFilter<"coupons"> | string | null
+  product_id?: Prisma.StringNullableWithAggregatesFilter<"coupons"> | string | null
   valid_until?: Prisma.DateTimeNullableWithAggregatesFilter<"coupons"> | Date | string | null
   is_active?: Prisma.BoolWithAggregatesFilter<"coupons"> | boolean
   created_at?: Prisma.DateTimeNullableWithAggregatesFilter<"coupons"> | Date | string | null
@@ -319,6 +343,8 @@ export type couponsCreateInput = {
   discount_type?: string
   discount_value: number
   min_order_amount?: number
+  store_id?: string | null
+  product_id?: string | null
   valid_until?: Date | string | null
   is_active?: boolean
   created_at?: Date | string | null
@@ -331,6 +357,8 @@ export type couponsUncheckedCreateInput = {
   discount_type?: string
   discount_value: number
   min_order_amount?: number
+  store_id?: string | null
+  product_id?: string | null
   valid_until?: Date | string | null
   is_active?: boolean
   created_at?: Date | string | null
@@ -343,6 +371,8 @@ export type couponsUpdateInput = {
   discount_type?: Prisma.StringFieldUpdateOperationsInput | string
   discount_value?: Prisma.FloatFieldUpdateOperationsInput | number
   min_order_amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  store_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  product_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   valid_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -355,6 +385,8 @@ export type couponsUncheckedUpdateInput = {
   discount_type?: Prisma.StringFieldUpdateOperationsInput | string
   discount_value?: Prisma.FloatFieldUpdateOperationsInput | number
   min_order_amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  store_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  product_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   valid_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -367,6 +399,8 @@ export type couponsCreateManyInput = {
   discount_type?: string
   discount_value: number
   min_order_amount?: number
+  store_id?: string | null
+  product_id?: string | null
   valid_until?: Date | string | null
   is_active?: boolean
   created_at?: Date | string | null
@@ -379,6 +413,8 @@ export type couponsUpdateManyMutationInput = {
   discount_type?: Prisma.StringFieldUpdateOperationsInput | string
   discount_value?: Prisma.FloatFieldUpdateOperationsInput | number
   min_order_amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  store_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  product_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   valid_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -391,6 +427,8 @@ export type couponsUncheckedUpdateManyInput = {
   discount_type?: Prisma.StringFieldUpdateOperationsInput | string
   discount_value?: Prisma.FloatFieldUpdateOperationsInput | number
   min_order_amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  store_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  product_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   valid_until?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -403,6 +441,8 @@ export type couponsCountOrderByAggregateInput = {
   discount_type?: Prisma.SortOrder
   discount_value?: Prisma.SortOrder
   min_order_amount?: Prisma.SortOrder
+  store_id?: Prisma.SortOrder
+  product_id?: Prisma.SortOrder
   valid_until?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -420,6 +460,8 @@ export type couponsMaxOrderByAggregateInput = {
   discount_type?: Prisma.SortOrder
   discount_value?: Prisma.SortOrder
   min_order_amount?: Prisma.SortOrder
+  store_id?: Prisma.SortOrder
+  product_id?: Prisma.SortOrder
   valid_until?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -432,6 +474,8 @@ export type couponsMinOrderByAggregateInput = {
   discount_type?: Prisma.SortOrder
   discount_value?: Prisma.SortOrder
   min_order_amount?: Prisma.SortOrder
+  store_id?: Prisma.SortOrder
+  product_id?: Prisma.SortOrder
   valid_until?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
@@ -459,6 +503,8 @@ export type couponsSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   discount_type?: boolean
   discount_value?: boolean
   min_order_amount?: boolean
+  store_id?: boolean
+  product_id?: boolean
   valid_until?: boolean
   is_active?: boolean
   created_at?: boolean
@@ -471,6 +517,8 @@ export type couponsSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   discount_type?: boolean
   discount_value?: boolean
   min_order_amount?: boolean
+  store_id?: boolean
+  product_id?: boolean
   valid_until?: boolean
   is_active?: boolean
   created_at?: boolean
@@ -483,6 +531,8 @@ export type couponsSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   discount_type?: boolean
   discount_value?: boolean
   min_order_amount?: boolean
+  store_id?: boolean
+  product_id?: boolean
   valid_until?: boolean
   is_active?: boolean
   created_at?: boolean
@@ -495,13 +545,15 @@ export type couponsSelectScalar = {
   discount_type?: boolean
   discount_value?: boolean
   min_order_amount?: boolean
+  store_id?: boolean
+  product_id?: boolean
   valid_until?: boolean
   is_active?: boolean
   created_at?: boolean
   updated_at?: boolean
 }
 
-export type couponsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "discount_type" | "discount_value" | "min_order_amount" | "valid_until" | "is_active" | "created_at" | "updated_at", ExtArgs["result"]["coupons"]>
+export type couponsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "discount_type" | "discount_value" | "min_order_amount" | "store_id" | "product_id" | "valid_until" | "is_active" | "created_at" | "updated_at", ExtArgs["result"]["coupons"]>
 
 export type $couponsPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "coupons"
@@ -512,6 +564,8 @@ export type $couponsPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     discount_type: string
     discount_value: number
     min_order_amount: number
+    store_id: string | null
+    product_id: string | null
     valid_until: Date | null
     is_active: boolean
     created_at: Date | null
@@ -944,6 +998,8 @@ export interface couponsFieldRefs {
   readonly discount_type: Prisma.FieldRef<"coupons", 'String'>
   readonly discount_value: Prisma.FieldRef<"coupons", 'Float'>
   readonly min_order_amount: Prisma.FieldRef<"coupons", 'Float'>
+  readonly store_id: Prisma.FieldRef<"coupons", 'String'>
+  readonly product_id: Prisma.FieldRef<"coupons", 'String'>
   readonly valid_until: Prisma.FieldRef<"coupons", 'DateTime'>
   readonly is_active: Prisma.FieldRef<"coupons", 'Boolean'>
   readonly created_at: Prisma.FieldRef<"coupons", 'DateTime'>

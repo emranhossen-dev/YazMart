@@ -39,11 +39,11 @@ export default function AdminDashboardPage() {
       // If no orders exist in DB, create some beautiful fallback mock data
       if (!hasRealOrders) {
         dbOrders = [
-          { id: "ORD-9801", customer_name: "Mahmud Hasan", customer_email: "mahmud@example.com", total_amount: 320, status: "PENDING", createdAt: new Date(Date.now() - 1000 * 60 * 30), phone: "+8801700000000", shipping_address: "Dhaka, Bangladesh", items: [], updatedAt: new Date() },
-          { id: "ORD-9754", customer_name: "Farhana Yasmin", customer_email: "farhana@example.com", total_amount: 145, status: "PROCESSING", createdAt: new Date(Date.now() - 1000 * 60 * 120), phone: "+8801700000000", shipping_address: "Dhaka, Bangladesh", items: [], updatedAt: new Date() },
-          { id: "ORD-9721", customer_name: "Tanvir Ahmed", customer_email: "tanvir@example.com", total_amount: 650, status: "COMPLETED", createdAt: new Date(Date.now() - 1000 * 60 * 300), phone: "+8801700000000", shipping_address: "Dhaka, Bangladesh", items: [], updatedAt: new Date() },
-          { id: "ORD-9699", customer_name: "Sajid Khan", customer_email: "sajid@example.com", total_amount: 85, status: "CANCELLED", createdAt: new Date(Date.now() - 1000 * 60 * 600), phone: "+8801700000000", shipping_address: "Dhaka, Bangladesh", items: [], updatedAt: new Date() }
-        ];
+          { id: "ORD-9801", customer_id: null, customer_name: "Mahmud Hasan", customer_email: "mahmud@example.com", total_amount: 320, status: "PENDING", createdAt: new Date(Date.now() - 1000 * 60 * 30), phone: "+8801700000000", shipping_address: "Dhaka, Bangladesh", items: [], sub_orders: [], updatedAt: new Date() },
+          { id: "ORD-9754", customer_id: null, customer_name: "Farhana Yasmin", customer_email: "farhana@example.com", total_amount: 145, status: "PROCESSING", createdAt: new Date(Date.now() - 1000 * 60 * 120), phone: "+8801700000000", shipping_address: "Dhaka, Bangladesh", items: [], sub_orders: [], updatedAt: new Date() },
+          { id: "ORD-9721", customer_id: null, customer_name: "Tanvir Ahmed", customer_email: "tanvir@example.com", total_amount: 650, status: "COMPLETED", createdAt: new Date(Date.now() - 1000 * 60 * 300), phone: "+8801700000000", shipping_address: "Dhaka, Bangladesh", items: [], sub_orders: [], updatedAt: new Date() },
+          { id: "ORD-9699", customer_id: null, customer_name: "Sajid Khan", customer_email: "sajid@example.com", total_amount: 85, status: "CANCELLED", createdAt: new Date(Date.now() - 1000 * 60 * 600), phone: "+8801700000000", shipping_address: "Dhaka, Bangladesh", items: [], sub_orders: [], updatedAt: new Date() }
+        ] as any;
       }
 
       // Calculate total sales value logically (exclude CANCELLED orders)

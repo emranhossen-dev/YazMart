@@ -669,14 +669,6 @@ export type CategoryMatrixUncheckedCreateNestedManyWithoutParentInput = {
   connect?: Prisma.CategoryMatrixWhereUniqueInput | Prisma.CategoryMatrixWhereUniqueInput[]
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type CategoryMatrixUpdateOneWithoutSub_categoriesNestedInput = {
   create?: Prisma.XOR<Prisma.CategoryMatrixCreateWithoutSub_categoriesInput, Prisma.CategoryMatrixUncheckedCreateWithoutSub_categoriesInput>
   connectOrCreate?: Prisma.CategoryMatrixCreateOrConnectWithoutSub_categoriesInput

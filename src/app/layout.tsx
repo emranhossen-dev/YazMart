@@ -6,8 +6,13 @@ import { Toaster } from "react-hot-toast";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Enterprise E-commerce Platform",
-  description: "Production-Ready ERP Lite + E-commerce",
+  title: "YazMart | Bangladesh's Premier E-Commerce Marketplace",
+  description: "Shop quality electronics, fashion, and everyday essentials on YazMart with live order tracking and fast delivery.",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
@@ -20,9 +25,8 @@ export default function RootLayout({
       <body className="antialiased">
         <ThemeProvider
           attribute="data-theme"
-          defaultTheme="light"
+          forcedTheme="light"
           enableSystem={false}
-          storageKey="ecommerce-theme"
         >
           <AuthProvider>
             <Suspense fallback={null}>

@@ -29,14 +29,14 @@
   --card-foreground: #f8fafc;
   --popover: #090a0f;
   --popover-foreground: #f8fafc;
-  --primary: #3b82f6;
+  --primary: #ff6600;
   --primary-foreground: #ffffff;
   --secondary: #171b2d;
   --secondary-foreground: #f8fafc;
   --muted: #171b2d;
   --muted-foreground: #94a3b8;
-  --accent: #171b2d;
-  --accent-foreground: #f8fafc;
+  --accent: #271c18;
+  --accent-foreground: #ff6600;
   --border: #1e2235;
   --input: #1e2235;
 
@@ -53,33 +53,33 @@
   --glass-blur: 16px;
 }
 
-:root[data-theme="light"] {
-  --background: #f8fafc;
+:root[data-theme="light"], :root {
+  --background: #ffffff;
   --foreground: #0f172a;
   --card: #ffffff;
   --card-foreground: #0f172a;
   --popover: #ffffff;
   --popover-foreground: #0f172a;
-  --primary: #1e40af;
+  --primary: #ff6600;
   --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #334155;
+  --secondary: #fff7ed;
+  --secondary-foreground: #0f172a;
   --muted: #f8fafc;
   --muted-foreground: #64748b;
-  --accent: #f1f5f9;
-  --accent-foreground: #0f172a;
+  --accent: #fff7ed;
+  --accent-foreground: #ea580c;
   --border: #e2e8f0;
   --input: #e2e8f0;
 
   /* Custom Color Tokens for LUXE theme */
   --surface-container-lowest: #ffffff;
   --surface-container-low: #f8fafc;
-  --surface-container: #f1f5f9;
-  --surface-container-high: #e2e8f0;
-  --surface-container-highest: #cbd5e1;
+  --surface-container: #fff7ed;
+  --surface-container-high: #fed7aa;
+  --surface-container-highest: #fdba74;
   --outline-variant: #e2e8f0;
   --on-surface-variant: #475569;
-  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-bg: rgba(255, 255, 255, 0.90);
   --glass-border: rgba(15, 23, 42, 0.06);
   --glass-blur: 12px;
 }

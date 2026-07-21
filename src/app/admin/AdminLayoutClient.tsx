@@ -570,6 +570,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
   ];
 
   const handleLogout = async () => {
+    await supabase.auth.signOut();
     const res = await signOutAction();
     if (!res.error) router.push("/auth");
   };
@@ -581,11 +582,9 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
       <div className="admin-theme h-screen flex bg-[var(--background)] text-[var(--foreground)] font-sans antialiased overflow-hidden">
         {/* Advanced Sidebar */}
         <aside className="fixed inset-y-0 left-0 z-50 w-68 bg-[var(--card)] border-r border-[var(--border)] flex flex-col transform translate-x-0 lg:translate-x-0">
-          <div className="h-16 flex items-center justify-between px-5 border-b border-[var(--border)] bg-[var(--background)]/40 backdrop-blur-md">
-            <Link href="/admin" className="text-[15px] font-black tracking-widest uppercase bg-gradient-to-r from-[#00d2ff] to-[#0066ff] bg-clip-text text-transparent">
-              YazMart // OS
-            </Link>
-          </div>
+          <Link href="/admin" className="flex items-center gap-2">
+            <img src="/logo yazmart.png" alt="YazMart Logo" className="h-8 w-auto object-contain max-w-[130px]" />
+          </Link>
 
           <nav className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto custom-scrollbar select-none">
             <AdminSidebarNav
@@ -651,8 +650,8 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       }`}>
         <div className="h-16 flex items-center justify-between px-5 border-b border-[var(--border)] bg-[var(--background)]/40 backdrop-blur-md">
-          <Link href="/admin" className="text-[15px] font-black tracking-widest uppercase bg-gradient-to-r from-[#00d2ff] to-[#0066ff] bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(0,210,255,0.35)]">
-            YazMart // OS
+          <Link href="/admin" className="flex items-center gap-2">
+            <img src="/logo yazmart.png" alt="YazMart Logo" className="h-8 w-auto object-contain max-w-[130px]" />
           </Link>
           <button type="button" className="lg:hidden p-1.5 rounded hover:bg-[var(--accent)]" onClick={() => setSidebarOpen(false)}>
             <X className="h-4 w-4" />

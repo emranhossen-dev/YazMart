@@ -20,8 +20,18 @@ export type profilesModel = runtime.Types.Result.DefaultSelection<Prisma.$profil
 
 export type AggregateProfiles = {
   _count: ProfilesCountAggregateOutputType | null
+  _avg: ProfilesAvgAggregateOutputType | null
+  _sum: ProfilesSumAggregateOutputType | null
   _min: ProfilesMinAggregateOutputType | null
   _max: ProfilesMaxAggregateOutputType | null
+}
+
+export type ProfilesAvgAggregateOutputType = {
+  coins: number | null
+}
+
+export type ProfilesSumAggregateOutputType = {
+  coins: number | null
 }
 
 export type ProfilesMinAggregateOutputType = {
@@ -29,6 +39,8 @@ export type ProfilesMinAggregateOutputType = {
   full_name: string | null
   avatar_url: string | null
   role_id: string | null
+  coins: number | null
+  phone: string | null
   created_at: Date | null
 }
 
@@ -37,6 +49,8 @@ export type ProfilesMaxAggregateOutputType = {
   full_name: string | null
   avatar_url: string | null
   role_id: string | null
+  coins: number | null
+  phone: string | null
   created_at: Date | null
 }
 
@@ -45,16 +59,28 @@ export type ProfilesCountAggregateOutputType = {
   full_name: number
   avatar_url: number
   role_id: number
+  coins: number
+  phone: number
   created_at: number
   _all: number
 }
 
+
+export type ProfilesAvgAggregateInputType = {
+  coins?: true
+}
+
+export type ProfilesSumAggregateInputType = {
+  coins?: true
+}
 
 export type ProfilesMinAggregateInputType = {
   id?: true
   full_name?: true
   avatar_url?: true
   role_id?: true
+  coins?: true
+  phone?: true
   created_at?: true
 }
 
@@ -63,6 +89,8 @@ export type ProfilesMaxAggregateInputType = {
   full_name?: true
   avatar_url?: true
   role_id?: true
+  coins?: true
+  phone?: true
   created_at?: true
 }
 
@@ -71,6 +99,8 @@ export type ProfilesCountAggregateInputType = {
   full_name?: true
   avatar_url?: true
   role_id?: true
+  coins?: true
+  phone?: true
   created_at?: true
   _all?: true
 }
@@ -113,6 +143,18 @@ export type ProfilesAggregateArgs<ExtArgs extends runtime.Types.Extensions.Inter
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: ProfilesAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: ProfilesSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: ProfilesMinAggregateInputType
@@ -143,6 +185,8 @@ export type profilesGroupByArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   _count?: ProfilesCountAggregateInputType | true
+  _avg?: ProfilesAvgAggregateInputType
+  _sum?: ProfilesSumAggregateInputType
   _min?: ProfilesMinAggregateInputType
   _max?: ProfilesMaxAggregateInputType
 }
@@ -152,8 +196,12 @@ export type ProfilesGroupByOutputType = {
   full_name: string | null
   avatar_url: string | null
   role_id: string | null
+  coins: number
+  phone: string | null
   created_at: Date | null
   _count: ProfilesCountAggregateOutputType | null
+  _avg: ProfilesAvgAggregateOutputType | null
+  _sum: ProfilesSumAggregateOutputType | null
   _min: ProfilesMinAggregateOutputType | null
   _max: ProfilesMaxAggregateOutputType | null
 }
@@ -181,6 +229,8 @@ export type profilesWhereInput = {
   full_name?: Prisma.StringNullableFilter<"profiles"> | string | null
   avatar_url?: Prisma.StringNullableFilter<"profiles"> | string | null
   role_id?: Prisma.UuidNullableFilter<"profiles"> | string | null
+  coins?: Prisma.IntFilter<"profiles"> | number
+  phone?: Prisma.StringNullableFilter<"profiles"> | string | null
   created_at?: Prisma.DateTimeNullableFilter<"profiles"> | Date | string | null
   users?: Prisma.XOR<Prisma.UsersScalarRelationFilter, Prisma.usersWhereInput>
   roles?: Prisma.XOR<Prisma.RolesNullableScalarRelationFilter, Prisma.rolesWhereInput> | null
@@ -191,6 +241,8 @@ export type profilesOrderByWithRelationInput = {
   full_name?: Prisma.SortOrderInput | Prisma.SortOrder
   avatar_url?: Prisma.SortOrderInput | Prisma.SortOrder
   role_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  coins?: Prisma.SortOrder
+  phone?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrderInput | Prisma.SortOrder
   users?: Prisma.usersOrderByWithRelationInput
   roles?: Prisma.rolesOrderByWithRelationInput
@@ -204,6 +256,8 @@ export type profilesWhereUniqueInput = Prisma.AtLeast<{
   full_name?: Prisma.StringNullableFilter<"profiles"> | string | null
   avatar_url?: Prisma.StringNullableFilter<"profiles"> | string | null
   role_id?: Prisma.UuidNullableFilter<"profiles"> | string | null
+  coins?: Prisma.IntFilter<"profiles"> | number
+  phone?: Prisma.StringNullableFilter<"profiles"> | string | null
   created_at?: Prisma.DateTimeNullableFilter<"profiles"> | Date | string | null
   users?: Prisma.XOR<Prisma.UsersScalarRelationFilter, Prisma.usersWhereInput>
   roles?: Prisma.XOR<Prisma.RolesNullableScalarRelationFilter, Prisma.rolesWhereInput> | null
@@ -214,10 +268,14 @@ export type profilesOrderByWithAggregationInput = {
   full_name?: Prisma.SortOrderInput | Prisma.SortOrder
   avatar_url?: Prisma.SortOrderInput | Prisma.SortOrder
   role_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  coins?: Prisma.SortOrder
+  phone?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.profilesCountOrderByAggregateInput
+  _avg?: Prisma.profilesAvgOrderByAggregateInput
   _max?: Prisma.profilesMaxOrderByAggregateInput
   _min?: Prisma.profilesMinOrderByAggregateInput
+  _sum?: Prisma.profilesSumOrderByAggregateInput
 }
 
 export type profilesScalarWhereWithAggregatesInput = {
@@ -228,12 +286,16 @@ export type profilesScalarWhereWithAggregatesInput = {
   full_name?: Prisma.StringNullableWithAggregatesFilter<"profiles"> | string | null
   avatar_url?: Prisma.StringNullableWithAggregatesFilter<"profiles"> | string | null
   role_id?: Prisma.UuidNullableWithAggregatesFilter<"profiles"> | string | null
+  coins?: Prisma.IntWithAggregatesFilter<"profiles"> | number
+  phone?: Prisma.StringNullableWithAggregatesFilter<"profiles"> | string | null
   created_at?: Prisma.DateTimeNullableWithAggregatesFilter<"profiles"> | Date | string | null
 }
 
 export type profilesCreateInput = {
   full_name?: string | null
   avatar_url?: string | null
+  coins?: number
+  phone?: string | null
   created_at?: Date | string | null
   users: Prisma.usersCreateNestedOneWithoutProfilesInput
   roles?: Prisma.rolesCreateNestedOneWithoutProfilesInput
@@ -244,12 +306,16 @@ export type profilesUncheckedCreateInput = {
   full_name?: string | null
   avatar_url?: string | null
   role_id?: string | null
+  coins?: number
+  phone?: string | null
   created_at?: Date | string | null
 }
 
 export type profilesUpdateInput = {
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coins?: Prisma.IntFieldUpdateOperationsInput | number
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   users?: Prisma.usersUpdateOneRequiredWithoutProfilesNestedInput
   roles?: Prisma.rolesUpdateOneWithoutProfilesNestedInput
@@ -260,6 +326,8 @@ export type profilesUncheckedUpdateInput = {
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coins?: Prisma.IntFieldUpdateOperationsInput | number
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
@@ -268,12 +336,16 @@ export type profilesCreateManyInput = {
   full_name?: string | null
   avatar_url?: string | null
   role_id?: string | null
+  coins?: number
+  phone?: string | null
   created_at?: Date | string | null
 }
 
 export type profilesUpdateManyMutationInput = {
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coins?: Prisma.IntFieldUpdateOperationsInput | number
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
@@ -282,6 +354,8 @@ export type profilesUncheckedUpdateManyInput = {
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coins?: Prisma.IntFieldUpdateOperationsInput | number
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
@@ -295,7 +369,13 @@ export type profilesCountOrderByAggregateInput = {
   full_name?: Prisma.SortOrder
   avatar_url?: Prisma.SortOrder
   role_id?: Prisma.SortOrder
+  coins?: Prisma.SortOrder
+  phone?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+}
+
+export type profilesAvgOrderByAggregateInput = {
+  coins?: Prisma.SortOrder
 }
 
 export type profilesMaxOrderByAggregateInput = {
@@ -303,6 +383,8 @@ export type profilesMaxOrderByAggregateInput = {
   full_name?: Prisma.SortOrder
   avatar_url?: Prisma.SortOrder
   role_id?: Prisma.SortOrder
+  coins?: Prisma.SortOrder
+  phone?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
 }
 
@@ -311,7 +393,13 @@ export type profilesMinOrderByAggregateInput = {
   full_name?: Prisma.SortOrder
   avatar_url?: Prisma.SortOrder
   role_id?: Prisma.SortOrder
+  coins?: Prisma.SortOrder
+  phone?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
+}
+
+export type profilesSumOrderByAggregateInput = {
+  coins?: Prisma.SortOrder
 }
 
 export type ProfilesListRelationFilter = {
@@ -354,6 +442,14 @@ export type profilesUncheckedUpdateOneWithoutUsersNestedInput = {
   delete?: Prisma.profilesWhereInput | boolean
   connect?: Prisma.profilesWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.profilesUpdateToOneWithWhereWithoutUsersInput, Prisma.profilesUpdateWithoutUsersInput>, Prisma.profilesUncheckedUpdateWithoutUsersInput>
+}
+
+export type IntFieldUpdateOperationsInput = {
+  set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
 }
 
 export type profilesCreateNestedManyWithoutRolesInput = {
@@ -401,6 +497,8 @@ export type profilesUncheckedUpdateManyWithoutRolesNestedInput = {
 export type profilesCreateWithoutUsersInput = {
   full_name?: string | null
   avatar_url?: string | null
+  coins?: number
+  phone?: string | null
   created_at?: Date | string | null
   roles?: Prisma.rolesCreateNestedOneWithoutProfilesInput
 }
@@ -409,6 +507,8 @@ export type profilesUncheckedCreateWithoutUsersInput = {
   full_name?: string | null
   avatar_url?: string | null
   role_id?: string | null
+  coins?: number
+  phone?: string | null
   created_at?: Date | string | null
 }
 
@@ -431,6 +531,8 @@ export type profilesUpdateToOneWithWhereWithoutUsersInput = {
 export type profilesUpdateWithoutUsersInput = {
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coins?: Prisma.IntFieldUpdateOperationsInput | number
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   roles?: Prisma.rolesUpdateOneWithoutProfilesNestedInput
 }
@@ -439,12 +541,16 @@ export type profilesUncheckedUpdateWithoutUsersInput = {
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coins?: Prisma.IntFieldUpdateOperationsInput | number
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type profilesCreateWithoutRolesInput = {
   full_name?: string | null
   avatar_url?: string | null
+  coins?: number
+  phone?: string | null
   created_at?: Date | string | null
   users: Prisma.usersCreateNestedOneWithoutProfilesInput
 }
@@ -453,6 +559,8 @@ export type profilesUncheckedCreateWithoutRolesInput = {
   id: string
   full_name?: string | null
   avatar_url?: string | null
+  coins?: number
+  phone?: string | null
   created_at?: Date | string | null
 }
 
@@ -490,6 +598,8 @@ export type profilesScalarWhereInput = {
   full_name?: Prisma.StringNullableFilter<"profiles"> | string | null
   avatar_url?: Prisma.StringNullableFilter<"profiles"> | string | null
   role_id?: Prisma.UuidNullableFilter<"profiles"> | string | null
+  coins?: Prisma.IntFilter<"profiles"> | number
+  phone?: Prisma.StringNullableFilter<"profiles"> | string | null
   created_at?: Prisma.DateTimeNullableFilter<"profiles"> | Date | string | null
 }
 
@@ -497,12 +607,16 @@ export type profilesCreateManyRolesInput = {
   id: string
   full_name?: string | null
   avatar_url?: string | null
+  coins?: number
+  phone?: string | null
   created_at?: Date | string | null
 }
 
 export type profilesUpdateWithoutRolesInput = {
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coins?: Prisma.IntFieldUpdateOperationsInput | number
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   users?: Prisma.usersUpdateOneRequiredWithoutProfilesNestedInput
 }
@@ -511,6 +625,8 @@ export type profilesUncheckedUpdateWithoutRolesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coins?: Prisma.IntFieldUpdateOperationsInput | number
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
@@ -518,6 +634,8 @@ export type profilesUncheckedUpdateManyWithoutRolesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   full_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coins?: Prisma.IntFieldUpdateOperationsInput | number
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   created_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
@@ -528,6 +646,8 @@ export type profilesSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   full_name?: boolean
   avatar_url?: boolean
   role_id?: boolean
+  coins?: boolean
+  phone?: boolean
   created_at?: boolean
   users?: boolean | Prisma.usersDefaultArgs<ExtArgs>
   roles?: boolean | Prisma.profiles$rolesArgs<ExtArgs>
@@ -538,6 +658,8 @@ export type profilesSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   full_name?: boolean
   avatar_url?: boolean
   role_id?: boolean
+  coins?: boolean
+  phone?: boolean
   created_at?: boolean
   users?: boolean | Prisma.usersDefaultArgs<ExtArgs>
   roles?: boolean | Prisma.profiles$rolesArgs<ExtArgs>
@@ -548,6 +670,8 @@ export type profilesSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   full_name?: boolean
   avatar_url?: boolean
   role_id?: boolean
+  coins?: boolean
+  phone?: boolean
   created_at?: boolean
   users?: boolean | Prisma.usersDefaultArgs<ExtArgs>
   roles?: boolean | Prisma.profiles$rolesArgs<ExtArgs>
@@ -558,10 +682,12 @@ export type profilesSelectScalar = {
   full_name?: boolean
   avatar_url?: boolean
   role_id?: boolean
+  coins?: boolean
+  phone?: boolean
   created_at?: boolean
 }
 
-export type profilesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "full_name" | "avatar_url" | "role_id" | "created_at", ExtArgs["result"]["profiles"]>
+export type profilesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "full_name" | "avatar_url" | "role_id" | "coins" | "phone" | "created_at", ExtArgs["result"]["profiles"]>
 export type profilesInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   users?: boolean | Prisma.usersDefaultArgs<ExtArgs>
   roles?: boolean | Prisma.profiles$rolesArgs<ExtArgs>
@@ -586,6 +712,8 @@ export type $profilesPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     full_name: string | null
     avatar_url: string | null
     role_id: string | null
+    coins: number
+    phone: string | null
     created_at: Date | null
   }, ExtArgs["result"]["profiles"]>
   composites: {}
@@ -1016,6 +1144,8 @@ export interface profilesFieldRefs {
   readonly full_name: Prisma.FieldRef<"profiles", 'String'>
   readonly avatar_url: Prisma.FieldRef<"profiles", 'String'>
   readonly role_id: Prisma.FieldRef<"profiles", 'String'>
+  readonly coins: Prisma.FieldRef<"profiles", 'Int'>
+  readonly phone: Prisma.FieldRef<"profiles", 'String'>
   readonly created_at: Prisma.FieldRef<"profiles", 'DateTime'>
 }
     

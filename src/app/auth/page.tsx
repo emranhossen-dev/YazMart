@@ -5,6 +5,8 @@ import { signInAction, signUpAction } from "@/actions/auth";
 import Link from "next/link";
 import { ShoppingBag, Lock, Mail, User, ArrowLeft } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { supabase } from "@/lib/supabase";
+import { useAuthStore } from "@/store/auth-store";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -21,18 +23,38 @@ export default function AuthPage() {
     try {
       if (isLogin) {
         const res = await signInAction(formData);
-        if (res.error) {
-          setMessage({ type: "error", text: res.error });
+        const loginRes = res as any;
+        if (loginRes.error) {
+          setMessage({ type: "error", text: loginRes.error });
         } else {
-          const roleLower = res.role?.toLowerCase() || "";
+          // Set session client-side
+          if (loginRes.session) {
+            await supabase.auth.setSession({
+              access_token: loginRes.session.access_token,
+              refresh_token: loginRes.session.refresh_token,
+            });
+          }
+
+          if (loginRes.user) {
+            useAuthStore.getState().setAuth({
+              id: loginRes.user.id,
+              fullName: loginRes.user.user_metadata?.full_name || loginRes.user.email?.split("@")[0] || "User",
+              avatarUrl: null,
+              role: loginRes.role || "customer",
+              email: loginRes.user.email,
+              phone: null,
+            });
+          }
+
+          const roleLower = loginRes.role?.toLowerCase() || "";
           const isAdminOrStaff = roleLower.includes("admin") || roleLower.includes("staff");
           const isSeller = roleLower === "seller";
-          const destination = isAdminOrStaff ? "/admin" : isSeller ? "/seller" : "/";
+          const destination = isAdminOrStaff ? "/admin" : isSeller ? "/seller" : "/profile";
 
           setMessage({
             type: "success",
             text: `Login successful! Redirecting to ${
-              isAdminOrStaff ? "admin dashboard" : isSeller ? "seller hub" : "storefront"
+              isAdminOrStaff ? "admin dashboard" : isSeller ? "seller hub" : "customer profile"
             }...`,
           });
 
@@ -40,11 +62,45 @@ export default function AuthPage() {
         }
       } else {
         const res = await signUpAction(formData);
-        if (res.error) {
-          setMessage({ type: "error", text: res.error });
+        const signUpRes = res as any;
+        if (signUpRes.error) {
+          setMessage({ type: "error", text: signUpRes.error });
         } else {
-          setMessage({ type: "success", text: res.success || "Registration successful! You can now Sign In." });
-          setIsLogin(true);
+          // Check if registration returned session (auto-login succeeded)
+          if (signUpRes.session) {
+            await supabase.auth.setSession({
+              access_token: signUpRes.session.access_token,
+              refresh_token: signUpRes.session.refresh_token,
+            });
+
+            if (signUpRes.user) {
+              useAuthStore.getState().setAuth({
+                id: signUpRes.user.id,
+                fullName: signUpRes.user.user_metadata?.full_name || signUpRes.user.email?.split("@")[0] || "User",
+                avatarUrl: null,
+                role: signUpRes.role || "customer",
+                email: signUpRes.user.email,
+                phone: null,
+              });
+            }
+
+            const roleLower = signUpRes.role?.toLowerCase() || "";
+            const isAdminOrStaff = roleLower.includes("admin") || roleLower.includes("staff");
+            const isSeller = roleLower === "seller";
+            const destination = isAdminOrStaff ? "/admin" : isSeller ? "/seller" : "/profile";
+
+            setMessage({
+              type: "success",
+              text: `Registration successful! Redirecting to ${
+                isAdminOrStaff ? "admin dashboard" : isSeller ? "seller hub" : "customer profile"
+              }...`,
+            });
+
+            window.location.href = destination;
+          } else {
+            setMessage({ type: "success", text: signUpRes.success || "Registration successful! You can now Sign In." });
+            setIsLogin(true);
+          }
         }
       }
     } catch (err) {
@@ -58,11 +114,12 @@ export default function AuthPage() {
     <div className="min-h-screen flex flex-col bg-[var(--background)] text-[var(--foreground)] font-sans antialiased">
       {/* Header */}
       <header className="h-16 border-b border-[var(--border)] bg-[var(--card)] px-6 flex items-center justify-between sticky top-0 z-50 shadow-sm">
-        <Link href="/" className="text-xl font-black tracking-tight flex items-center gap-2">
-          <div className="p-1.5 bg-blue-600 rounded-lg text-white">
-            <ShoppingBag className="h-5 w-5" />
-          </div>
-          Yaz<span className="text-blue-500">Mart</span>
+        <Link href="/" className="inline-block">
+          <img
+            src="/logo yazmart.png"
+            alt="YazMart Logo"
+            className="h-10 w-auto object-contain max-w-[150px]"
+          />
         </Link>
         <ThemeToggle />
       </header>

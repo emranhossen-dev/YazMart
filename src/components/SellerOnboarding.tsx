@@ -57,25 +57,25 @@ export default function SellerOnboarding({ userId }: SellerOnboardingProps) {
   };
 
   return (
-    <div className="mx-auto max-w-xl py-12 md:py-16">
-      <div className="rounded-3xl border border-zinc-200 bg-white p-8 shadow-xl md:p-10">
+    <div className="mx-auto max-w-xl py-6">
+      <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-xl md:p-10 space-y-6">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-zinc-950 text-white">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#ff6600] text-white shadow-xs">
             <Store className="h-6 w-6" />
           </div>
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Launch a Store</span>
-            <h2 className="text-xl font-extrabold text-zinc-950 tracking-tight">Onboard as a Seller</h2>
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#ff6600]">Merchant Store Onboarding</span>
+            <h2 className="text-xl font-black text-slate-900 tracking-tight">Register Your Store</h2>
           </div>
         </div>
 
-        <p className="mt-4 text-xs font-medium leading-relaxed text-zinc-500">
-          Create your personalized shop profile on YazMart. Upload products, configure custom brand themes, and manage customer orders under your own dedicated URL storefront.
+        <p className="text-xs font-medium leading-relaxed text-slate-500">
+          Create your shop profile on YazMart. Upload products, configure custom brand details, and manage customer orders under your own dedicated URL storefront.
         </p>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label htmlFor="shopName" className="block text-xs font-bold uppercase tracking-wider text-zinc-500">
+            <label htmlFor="shopName" className="block text-xs font-bold uppercase tracking-wider text-slate-600">
               Store Name
             </label>
             <input
@@ -85,16 +85,16 @@ export default function SellerOnboarding({ userId }: SellerOnboardingProps) {
               value={name}
               onChange={handleNameChange}
               placeholder="e.g. Apex Official Store"
-              className="mt-2 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-semibold focus:border-zinc-900 focus:bg-white focus:outline-none"
+              className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-[#ff6600] focus:bg-white focus:outline-none"
             />
           </div>
 
           <div>
-            <label htmlFor="shopSlug" className="block text-xs font-bold uppercase tracking-wider text-zinc-500">
+            <label htmlFor="shopSlug" className="block text-xs font-bold uppercase tracking-wider text-slate-600">
               Storefront URL Slug
             </label>
-            <div className="mt-2 flex rounded-2xl border border-zinc-200 bg-zinc-50 overflow-hidden focus-within:border-zinc-900 focus-within:bg-white">
-              <span className="flex items-center bg-zinc-100 px-4 text-xs font-bold text-zinc-400 select-none">
+            <div className="mt-2 flex rounded-2xl border border-slate-200 bg-slate-50 overflow-hidden focus-within:border-[#ff6600] focus-within:bg-white">
+              <span className="flex items-center bg-slate-100 px-4 text-xs font-bold text-slate-400 select-none">
                 yazmart.com/stores/
               </span>
               <input
@@ -107,13 +107,13 @@ export default function SellerOnboarding({ userId }: SellerOnboardingProps) {
                 className="flex-1 px-4 py-3 text-sm font-semibold bg-transparent focus:outline-none"
               />
             </div>
-            <p className="mt-1.5 text-[10px] font-semibold text-zinc-400">
+            <p className="mt-1.5 text-[10px] font-semibold text-slate-400">
               Only letters, numbers, and dashes are allowed.
             </p>
           </div>
 
           <div>
-            <label htmlFor="shopDesc" className="block text-xs font-bold uppercase tracking-wider text-zinc-500">
+            <label htmlFor="shopDesc" className="block text-xs font-bold uppercase tracking-wider text-slate-600">
               Store Description
             </label>
             <textarea
@@ -121,15 +121,15 @@ export default function SellerOnboarding({ userId }: SellerOnboardingProps) {
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe your brand, return policies, or physical location..."
-              className="mt-2 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-semibold focus:border-zinc-900 focus:bg-white focus:outline-none resize-none"
+              placeholder="Describe your brand, products, return policies, or physical location..."
+              className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-[#ff6600] focus:bg-white focus:outline-none resize-none"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-zinc-950 py-3.5 text-xs font-bold uppercase tracking-wider text-white transition-opacity hover:opacity-90 disabled:opacity-50 cursor-pointer"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#ff6600] hover:bg-orange-700 py-3.5 text-xs font-black uppercase tracking-wider text-white transition-all shadow-md disabled:opacity-50 cursor-pointer"
           >
             {loading ? (
               <>
@@ -137,11 +137,26 @@ export default function SellerOnboarding({ userId }: SellerOnboardingProps) {
               </>
             ) : (
               <>
-                <Sparkles className="h-4 w-4" /> Create My Store
+                <Sparkles className="h-4 w-4" /> Submit Store Registration
               </>
             )}
           </button>
         </form>
+
+        {/* Instant Approval Manual & Support */}
+        <div className="pt-4 border-t border-slate-100 bg-orange-50/50 p-4 rounded-2xl border border-orange-200 space-y-3">
+          <p className="text-[11px] font-bold text-slate-800">
+            💡 Need Instant Approval? Call or Message Admin:
+          </p>
+          <div className="flex flex-wrap gap-2 text-[11px] font-bold">
+            <a href="tel:+8801700000000" className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
+              📞 Call: +880 1700-000000
+            </a>
+            <a href="mailto:shop@yazmart.com?subject=Store%20Approval%20Request" className="px-3 py-1.5 bg-slate-900 text-white rounded-lg hover:bg-slate-800">
+              ✉️ Email: shop@yazmart.com
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 "use server";
 
-import { supabase } from "@/lib/supabase";
+import { supabase, supabaseAdmin } from "@/lib/supabase";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 
@@ -15,18 +15,60 @@ export async function signUpAction(formData: FormData) {
     return { error: "Email and password are required." };
   }
 
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
+  // 1. Check if email already exists in users table (prevent duplicate signup and rate limit issues)
+  try {
+    const existingUser = await prisma.users.findFirst({
+      where: {
+        email: email.toLowerCase(),
+      },
+    });
+
+    if (existingUser) {
+      return { error: "This email is already registered. Please Sign In." };
+    }
+  } catch (dbErr) {
+    console.error("Error checking existing user:", dbErr);
+  }
+
+  // 2. Register user in Supabase Auth
+  let signUpError = null;
+
+  if (supabaseAdmin) {
+    // If admin client is available, create pre-verified user
+    const { data: adminData, error: adminErr } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true, // AUTO-CONFIRM email so they don't need manual verification
+      user_metadata: {
         full_name: fullName || "",
       },
-    },
-  });
+    });
+    signUpError = adminErr;
+  } else {
+    // Fallback: normal signup
+    const { data: clientData, error: clientErr } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName || "",
+        },
+      },
+    });
+    signUpError = clientErr;
+  }
 
-  if (error) return { error: error.message };
-  return { success: "Registration successful! You can now Sign In." };
+  if (signUpError) {
+    return { error: signUpError.message };
+  }
+
+  // 3. Auto-login immediately after successful registration
+  try {
+    return await signInAction(formData);
+  } catch (loginErr) {
+    console.error("Auto-login failed:", loginErr);
+    return { success: "Registration successful! You can now Sign In." };
+  }
 }
 
 // ২. লগইন বা সাইন-ইন অ্যাকশন
@@ -62,12 +104,13 @@ export async function signInAction(formData: FormData) {
 
     return {
       success: "Login successful!",
+      session: data.session,
       user: data.user,
       role: profile?.role ?? "customer",
     };
   }
 
-  return { success: "Login successful!", user: data.user, role: "customer" };
+  return { success: "Login successful!", session: data.session, user: data.user, role: "customer" };
 }
 
 // ৩. লগআউট অ্যাকশন
@@ -138,9 +181,11 @@ export async function syncAndGetUserProfile(userId: string, email?: string, full
       fullName: profile.full_name,
       avatarUrl: profile.avatar_url,
       role: roleName,
+      email: email || null,
+      phone: profile.phone || null,
     };
   } catch (error) {
     console.error("❌ ERROR IN SYNC AND GET USER PROFILE ACTION:", error);
     return null;
   }
-}
+}
