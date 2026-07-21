@@ -3,6 +3,7 @@ import React, { Suspense } from "react";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { AuthProvider } from "@/providers/auth-provider";
 import { Toaster } from "react-hot-toast";
+import MobileBottomNav from "@/components/MobileBottomNav";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -22,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="antialiased">
+      <body className="antialiased pb-14 md:pb-0">
         <ThemeProvider
           attribute="data-theme"
           forcedTheme="light"
@@ -32,6 +33,7 @@ export default function RootLayout({
             <Suspense fallback={null}>
               {children}
             </Suspense>
+            <MobileBottomNav />
             <Toaster position="top-right" reverseOrder={false} />
           </AuthProvider>
         </ThemeProvider>

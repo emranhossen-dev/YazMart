@@ -7,6 +7,7 @@ import { ShoppingBag, Lock, Mail, User, ArrowLeft } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/auth-store";
+import { useShopStore } from "@/store/shop-store";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -66,6 +67,9 @@ export default function AuthPage() {
         if (signUpRes.error) {
           setMessage({ type: "error", text: signUpRes.error });
         } else {
+          // Clear cart for newly registered user so they start fresh with 0 items
+          useShopStore.getState().clearCart();
+
           // Check if registration returned session (auto-login succeeded)
           if (signUpRes.session) {
             await supabase.auth.setSession({

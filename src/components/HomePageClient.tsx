@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Heart, ArrowRight, Layers, ShoppingBag, ShoppingCart, User, Package, Store, LogOut,
-  Star, ChevronLeft, ChevronRight, Search, ChevronDown,
-  Trash2, X, Plus, Minus, Truck, Info, RotateCcw, Headphones, ShieldCheck
+  Star, ChevronLeft, ChevronRight, Search, ChevronDown, Menu, Tag, Sparkles,
+  Trash2, X, Plus, Minus, Truck, Info, RotateCcw, Headphones, ShieldCheck, Home as HomeIcon, Compass
 } from "lucide-react";
 import { useShopStore } from "../store/shop-store";
 import { useAuthStore } from "../store/auth-store";
@@ -40,14 +40,14 @@ function ProductCard({
   return (
     <div className="group flex w-full shrink-0 flex-col overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-xs hover:shadow-xl transition-all duration-300">
       {/* Product Image Box - Full space coverage */}
-      <div className="relative w-full h-56 md:h-64 overflow-hidden rounded-t-3xl bg-slate-100">
+      <div className="relative w-full h-36 sm:h-48 md:h-56 overflow-hidden rounded-t-3xl bg-slate-100">
         {badgeText && (
-          <span className="absolute top-3.5 left-3.5 z-10 rounded-full bg-[#ff6600] px-3 py-1 text-[10px] font-black uppercase text-white shadow-xs tracking-wide">
+          <span className="absolute top-2 left-2 z-10 rounded-full bg-[#ff6600] px-2 py-0.5 text-[8px] sm:text-[9px] md:text-[10px] font-black uppercase text-white shadow-xs tracking-wide">
             {badgeText}
           </span>
         )}
 
-        <div className="absolute top-3.5 right-3.5 z-10 flex gap-1.5">
+        <div className="absolute top-2 right-2 z-10 flex gap-1">
           {onInfoClick && (
             <button
               type="button"
@@ -57,18 +57,18 @@ function ProductCard({
                 onInfoClick(product);
               }}
               aria-label="Quick view"
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/95 shadow-sm text-slate-500 hover:text-slate-900 transition-colors cursor-pointer"
+              className="flex h-6 w-6 md:h-8 md:w-8 items-center justify-center rounded-full bg-white/95 shadow-sm text-slate-500 hover:text-slate-900 transition-colors cursor-pointer"
             >
-              <Info className="h-4 w-4" />
+              <Info className="h-3 w-3 md:h-4 md:w-4" />
             </button>
           )}
 
           <button
             onClick={() => onToggleWishlist(product)}
             aria-label="Toggle wishlist"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-white/95 shadow-sm transition-colors hover:text-rose-500 cursor-pointer"
+            className="flex h-6 w-6 md:h-8 md:w-8 items-center justify-center rounded-full bg-white/95 shadow-sm transition-colors hover:text-rose-500 cursor-pointer"
           >
-            <Heart className={`h-4 w-4 ${inWishlist ? "fill-rose-500 text-rose-500" : "text-slate-400"}`} />
+            <Heart className={`h-3 w-3 md:h-4 md:w-4 ${inWishlist ? "fill-rose-500 text-rose-500" : "text-slate-400"}`} />
           </button>
         </div>
 
@@ -84,40 +84,40 @@ function ProductCard({
         </Link>
       </div>
 
-      <div className="flex flex-1 flex-col gap-2 p-5">
-        <div className="flex items-center gap-1 text-xs text-amber-500 font-bold">
-          <Star className="h-3.5 w-3.5 fill-current" />
+      <div className="flex flex-1 flex-col gap-1 p-2.5 sm:p-3 md:p-4">
+        <div className="flex items-center gap-1 text-[10px] sm:text-[11px] md:text-xs text-amber-500 font-bold">
+          <Star className="h-3 w-3 md:h-3.5 md:w-3.5 fill-current" />
           <span>{ratingVal}</span>
           <span className="text-slate-400 font-normal">· {reviewsCount}</span>
         </div>
 
-        <h4 className="line-clamp-1 text-sm font-bold text-slate-900 hover:text-[#ff6600] transition-colors">
+        <h4 className="line-clamp-1 text-[11px] sm:text-xs md:text-sm font-bold text-slate-900 hover:text-[#ff6600] transition-colors">
           <Link href={`/products/${product.slug || product.id}`}>{product.name}</Link>
         </h4>
 
-        <div className="flex items-baseline gap-2 mt-0.5">
-          <span className="text-base md:text-lg font-black text-slate-900">
+        <div className="flex items-baseline gap-1 mt-0.5">
+          <span className="text-xs sm:text-sm md:text-base font-black text-slate-900">
             ৳{Number(product.selling_price || product.price || 0).toLocaleString()}
           </span>
           {(product.compare_price || product.originalPrice) && (
-            <span className="text-xs font-semibold text-slate-400 line-through">
+            <span className="text-[9px] sm:text-[10px] md:text-xs font-semibold text-slate-400 line-through">
               ৳{Number(product.compare_price || product.originalPrice).toLocaleString()}
             </span>
           )}
         </div>
 
-        <div className="mt-2 flex gap-2">
+        <div className="mt-1 flex gap-1 sm:gap-1.5">
           <button
             onClick={() => onAddToCart(product)}
-            className="flex flex-1 items-center justify-center gap-1 rounded-full border border-slate-200 bg-white hover:border-[#ff6600] hover:bg-orange-50/50 py-2 text-xs font-bold text-slate-800 hover:text-[#ff6600] transition-all cursor-pointer"
+            className="flex flex-1 items-center justify-center gap-0.5 rounded-full border border-slate-200 bg-white hover:border-[#ff6600] hover:bg-orange-50/50 py-1 text-[10px] md:text-[11px] font-bold text-slate-800 hover:text-[#ff6600] transition-all cursor-pointer"
           >
-            <ShoppingCart className="h-3.5 w-3.5 text-[#ff6600]" /> Add
+            <ShoppingCart className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-[#ff6600]" /> Add
           </button>
           <button
             onClick={() => onBuyNow(product)}
-            className="flex-1 rounded-full bg-[#ff6600] hover:bg-orange-700 py-2 text-xs font-bold text-white transition-all cursor-pointer shadow-xs"
+            className="flex-1 rounded-full bg-[#ff6600] hover:bg-orange-700 py-1 text-[10px] md:text-[11px] font-bold text-white transition-all cursor-pointer shadow-xs"
           >
-            Buy Now
+            Buy
           </button>
         </div>
       </div>
@@ -125,7 +125,7 @@ function ProductCard({
   );
 }
 
-/* Category Product Row Carousel Slider */
+/* Category Product Row Carousel with Vertically Centered Left/Right Navigation Buttons */
 function CategoryCarouselRow({
   title,
   subtitle,
@@ -152,57 +152,58 @@ function CategoryCarouselRow({
   if (!products || products.length === 0) return null;
 
   return (
-    <section className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6 space-y-4 border-b border-slate-100">
+    <section className="mx-auto w-full max-w-7xl px-3 py-6 md:px-6 md:py-8 space-y-3 md:space-y-4 border-b border-slate-100">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl md:text-2xl font-extrabold text-[#0c192e] tracking-tight">{title}</h2>
-          {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
+          <h2 className="text-lg md:text-2xl font-extrabold text-[#0c192e] tracking-tight">{title}</h2>
+          {subtitle && <p className="text-[11px] md:text-xs text-slate-500 mt-0.5">{subtitle}</p>}
         </div>
 
-        <div className="flex items-center gap-3">
-          {categorySlug && (
-            <Link
-              href={`/categories/${categorySlug}`}
-              className="text-xs font-bold text-[#ff6600] hover:underline flex items-center gap-1"
-            >
-              View All <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          )}
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => scroll("left")}
-              aria-label="Previous"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-xs hover:border-[#ff6600] hover:bg-orange-50 hover:text-[#ff6600] transition-colors cursor-pointer"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => scroll("right")}
-              aria-label="Next"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-xs hover:border-[#ff6600] hover:bg-orange-50 hover:text-[#ff6600] transition-colors cursor-pointer"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
+        {categorySlug && (
+          <Link
+            href={`/categories/${categorySlug}`}
+            className="text-[11px] md:text-xs font-bold text-[#ff6600] hover:underline flex items-center gap-1"
+          >
+            View All <ArrowRight className="h-3 w-3 md:h-3.5 md:w-3.5" />
+          </Link>
+        )}
       </div>
 
-      <div
-        ref={scrollRef}
-        className="scrollbar-none flex gap-5 overflow-x-auto py-2 snap-x snap-mandatory scroll-smooth"
-      >
-        {products.map((product: any) => (
-          <div key={product.id} className="w-[260px] md:w-[285px] shrink-0 snap-start">
-            <ProductCard
-              product={product}
-              wishlist={wishlist}
-              onToggleWishlist={onToggleWishlist}
-              onAddToCart={onAddToCart}
-              onBuyNow={onBuyNow}
-              onInfoClick={onInfoClick}
-            />
-          </div>
-        ))}
+      {/* Carousel Track with Vertically Centered Edge Controls */}
+      <div className="relative group/carousel">
+        <button
+          onClick={() => scroll("left")}
+          aria-label="Previous"
+          className="absolute left-0 md:left-2 top-1/2 -translate-y-1/2 z-20 flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-full bg-slate-900/60 hover:bg-[#ff6600] text-white shadow-xl border border-white/20 backdrop-blur-xs transition-all cursor-pointer"
+        >
+          <ChevronLeft className="h-4 w-4 md:h-5 md:w-5" />
+        </button>
+
+        <div
+          ref={scrollRef}
+          className="scrollbar-none flex gap-3 md:gap-5 overflow-x-auto py-2 snap-x snap-mandatory scroll-smooth px-1"
+        >
+          {products.map((product: any) => (
+            <div key={product.id} className="w-[155px] sm:w-[210px] md:w-[285px] shrink-0 snap-start">
+              <ProductCard
+                product={product}
+                wishlist={wishlist}
+                onToggleWishlist={onToggleWishlist}
+                onAddToCart={onAddToCart}
+                onBuyNow={onBuyNow}
+                onInfoClick={onInfoClick}
+              />
+            </div>
+          ))}
+        </div>
+
+        <button
+          onClick={() => scroll("right")}
+          aria-label="Next"
+          className="absolute right-1 md:right-2 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-slate-900/60 hover:bg-[#ff6600] text-white shadow-xl border border-white/20 backdrop-blur-xs transition-all cursor-pointer"
+        >
+          <ChevronRight className="h-5 w-5" />
+        </button>
       </div>
     </section>
   );
@@ -219,10 +220,12 @@ export default function HomePageClient({
 
   const [searchQuery, setSearchQuery] = useState("");
   const [headerCategoryMenuOpen, setHeaderCategoryMenuOpen] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [quickViewProduct, setQuickViewProduct] = useState<any>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [rightSidebar, setRightSidebar] = useState<"cart" | "wishlist" | null>(null);
 
+  const categoryScrollRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   const {
@@ -252,12 +255,22 @@ export default function HomePageClient({
     router.push("/checkout");
   };
 
+  const scrollCategoryCarousel = (direction: "left" | "right") => {
+    if (categoryScrollRef.current) {
+      const scrollAmount = 300;
+      categoryScrollRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth"
+      });
+    }
+  };
+
   const searchedProducts = searchQuery
     ? products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
     : [];
 
   return (
-    <div className="flex min-h-screen flex-col bg-white text-slate-900 font-sans antialiased">
+    <div className="flex min-h-screen flex-col bg-white text-slate-900 font-sans antialiased pb-16 md:pb-0">
 
       {/* ============ 1. TOP ANNOUNCEMENT BAR ============ */}
       <div className="bg-[#0b1426] text-slate-300 text-xs font-medium border-b border-slate-800/80 py-2">
@@ -265,7 +278,7 @@ export default function HomePageClient({
           <span className="text-[11px] text-slate-300 flex items-center gap-2">
             Free shipping over ৳1500 · Cash on delivery available
           </span>
-          <div className="flex items-center gap-6 text-[11px] font-medium text-slate-300">
+          <div className="hidden sm:flex items-center gap-6 text-[11px] font-medium text-slate-300">
             <Link href="/profile?tab=tracking" className="hover:text-white transition-colors">
               Track order
             </Link>
@@ -276,40 +289,40 @@ export default function HomePageClient({
         </div>
       </div>
 
-      {/* ============ 2. MAIN HEADER ============ */}
+      {/* ============ 2. MAIN HEADER (Responsive: Logo Left, Search Middle, Hamburger Right) ============ */}
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/98 backdrop-blur-md">
-        <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between gap-4 px-4 md:px-6">
+        <div className="mx-auto flex h-16 md:h-[76px] max-w-7xl items-center justify-between gap-2 md:gap-4 px-3 md:px-6">
 
-          {/* Logo */}
+          {/* Left: Logo */}
           <Link href="/" className="flex shrink-0 items-center">
             <img
               src="/logo yazmart.png"
               alt="YazMart Logo"
-              className="h-10 md:h-11 w-auto object-contain max-w-[160px]"
+              className="h-8 md:h-11 w-auto object-contain max-w-[120px] md:max-w-[160px]"
             />
           </Link>
 
-          {/* Rounded Pill Search Input with Embedded Search Button */}
-          <div className="relative hidden max-w-2xl flex-1 md:block mx-4">
+          {/* Center: Search Input taking all remaining middle space */}
+          <div className="relative flex-1 max-w-2xl mx-1 md:mx-4">
             <div className="relative w-full">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 h-3.5 md:h-4 w-3.5 md:w-4 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search products, brands, stores..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-11 pl-11 pr-28 rounded-full border border-slate-200 bg-slate-100/70 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#ff6600]/30 focus:border-[#ff6600] transition text-xs font-semibold text-slate-900 placeholder-slate-400"
+                className="w-full h-9 md:h-11 pl-9 md:pl-11 pr-16 md:pr-28 rounded-full border border-slate-200 bg-slate-100/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#ff6600]/30 focus:border-[#ff6600] transition text-xs font-semibold text-slate-900 placeholder-slate-400"
               />
               <button
                 type="button"
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-9 px-6 rounded-full bg-[#ff6600] text-white text-xs font-bold hover:bg-orange-700 transition cursor-pointer shadow-xs"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 md:h-9 px-3 md:px-6 rounded-full bg-[#ff6600] text-white text-[11px] md:text-xs font-bold hover:bg-orange-700 transition cursor-pointer shadow-xs"
               >
                 Search
               </button>
             </div>
 
             {searchQuery && searchedProducts.length > 0 && (
-              <div className="absolute top-[48px] left-0 right-0 z-50 max-h-72 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-2 text-xs shadow-xl space-y-1">
+              <div className="absolute top-[42px] md:top-[48px] left-0 right-0 z-50 max-h-72 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-2 text-xs shadow-xl space-y-1">
                 {searchedProducts.map((p: any) => (
                   <Link
                     key={p.id}
@@ -330,13 +343,13 @@ export default function HomePageClient({
             )}
           </div>
 
-          {/* Right Action Icons & Profile */}
-          <div className="flex shrink-0 items-center gap-3">
+          {/* Right Actions & Hamburger Button */}
+          <div className="flex shrink-0 items-center gap-1.5 md:gap-3">
             
-            {/* Account Badge */}
+            {/* Account Badge (Desktop) */}
             {user ? (
               <div 
-                className="relative"
+                className="relative hidden md:block"
                 onMouseEnter={() => setUserMenuOpen(true)}
                 onMouseLeave={() => setUserMenuOpen(false)}
               >
@@ -380,13 +393,13 @@ export default function HomePageClient({
                 )}
               </div>
             ) : (
-              <Link href="/auth" className="flex items-center gap-1.5 rounded-full bg-[#ff6600] hover:bg-orange-700 px-5 py-2 text-xs font-extrabold text-white transition-all shadow-xs">
+              <Link href="/auth" className="hidden md:flex items-center gap-1.5 rounded-full bg-[#ff6600] hover:bg-orange-700 px-4 py-2 text-xs font-extrabold text-white transition-all shadow-xs">
                 Sign In
               </Link>
             )}
 
-            {/* Wishlist Icon */}
-            <Link href="/wishlist" className="relative flex h-10 w-10 items-center justify-center text-slate-700 hover:bg-orange-50 hover:text-[#ff6600] rounded-full transition-colors">
+            {/* Wishlist Icon (Desktop) */}
+            <Link href="/wishlist" className="relative hidden md:flex h-10 w-10 items-center justify-center text-slate-700 hover:bg-orange-50 hover:text-[#ff6600] rounded-full transition-colors">
               <Heart className="h-5 w-5" />
               {wishlist.length > 0 && (
                 <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white shadow-xs">
@@ -395,10 +408,10 @@ export default function HomePageClient({
               )}
             </Link>
 
-            {/* Cart Icon */}
+            {/* Cart Icon (Desktop) */}
             <button 
               onClick={() => setRightSidebar("cart")}
-              className="relative flex h-10 w-10 items-center justify-center text-slate-700 hover:bg-orange-50 hover:text-[#ff6600] rounded-full transition-colors cursor-pointer"
+              className="relative hidden md:flex h-10 w-10 items-center justify-center text-slate-700 hover:bg-orange-50 hover:text-[#ff6600] rounded-full transition-colors cursor-pointer"
             >
               <ShoppingBag className="h-5 w-5" />
               {cart.length > 0 && (
@@ -407,17 +420,26 @@ export default function HomePageClient({
                 </span>
               )}
             </button>
+
+            {/* Right Hamburger Icon Button */}
+            <button
+              onClick={() => setMobileSidebarOpen(true)}
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 hover:bg-orange-50 text-slate-800 hover:text-[#ff6600] transition-colors cursor-pointer"
+              aria-label="Open menu"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
           </div>
         </div>
 
-        {/* CATEGORY NAV SUB-BAR */}
-        <div className="relative z-40 hidden border-t border-slate-200/80 sm:block bg-white">
-          <div className="mx-auto flex h-11 max-w-7xl items-center justify-between px-4 md:px-6">
+        {/* CATEGORY NAV SUB-BAR (Visible on Mobile & Desktop) */}
+        <div className="relative z-40 border-t border-slate-200/80 bg-white">
+          <div className="mx-auto flex h-10 max-w-7xl items-center justify-between px-3 md:px-6">
             
-            <div className="flex items-center gap-6">
-              {/* All Categories Trigger */}
+            <div className="flex items-center gap-4 w-full overflow-hidden">
+              {/* All Categories Trigger (Desktop) */}
               <div
-                className="relative"
+                className="relative hidden md:block shrink-0"
                 onMouseEnter={() => setHeaderCategoryMenuOpen(true)}
                 onMouseLeave={() => setHeaderCategoryMenuOpen(false)}
               >
@@ -444,13 +466,13 @@ export default function HomePageClient({
                 )}
               </div>
 
-              {/* Direct Category Links from Real DB */}
-              <nav className="flex items-center gap-5 text-xs font-medium text-slate-700 overflow-x-auto scrollbar-none py-1">
-                {categories.slice(0, 7).map((cat: any) => (
+              {/* Direct Horizontal Category Links Strip */}
+              <nav className="flex items-center gap-4 text-xs font-semibold text-slate-700 overflow-x-auto scrollbar-none py-1 w-full">
+                {categories.map((cat: any) => (
                   <Link
                     key={cat.id}
                     href={`/categories/${cat.slug}`}
-                    className="hover:text-[#ff6600] transition-colors whitespace-nowrap"
+                    className="hover:text-[#ff6600] transition-colors whitespace-nowrap bg-slate-50 md:bg-transparent px-3 md:px-0 py-1 md:py-0 rounded-full border border-slate-200 md:border-none"
                   >
                     {cat.name}
                   </Link>
@@ -461,7 +483,7 @@ export default function HomePageClient({
             {/* Become a Seller Link */}
             <Link
               href="/seller-center"
-              className="text-xs font-bold text-[#ff6600] hover:underline flex items-center gap-1 cursor-pointer shrink-0"
+              className="hidden md:flex text-xs font-bold text-[#ff6600] hover:underline items-center gap-1 cursor-pointer shrink-0"
             >
               Become a Seller <ArrowRight className="h-3.5 w-3.5" />
             </Link>
@@ -470,59 +492,59 @@ export default function HomePageClient({
       </header>
 
       {/* ============ 3. HERO BANNER SECTION (Full container cover) ============ */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-[#0c192e] via-[#10203b] to-[#152745] text-white py-12 md:py-16">
-        <div className="mx-auto max-w-7xl px-4 md:px-6 grid md:grid-cols-2 gap-10 items-center">
+      <section className="relative overflow-hidden bg-gradient-to-r from-[#0c192e] via-[#10203b] to-[#152745] text-white py-10 md:py-16">
+        <div className="mx-auto max-w-7xl px-4 md:px-6 grid md:grid-cols-2 gap-8 md:gap-10 items-center">
           
           {/* Hero Left Content */}
-          <div className="space-y-6">
+          <div className="space-y-4 md:space-y-6 text-center md:text-left">
             <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 text-[#ff7722] text-[11px] font-extrabold tracking-wider uppercase border border-orange-500/30">
               MEGA SALE · UP TO 60% OFF
             </span>
 
-            <h1 className="text-4xl md:text-6xl font-black leading-[1.1] tracking-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-black leading-[1.1] tracking-tight">
               Shop Smart, <br />
               <span className="text-[#ff6600]">Live Better.</span>
             </h1>
 
-            <p className="text-sm md:text-base text-slate-300 leading-relaxed max-w-md">
+            <p className="text-xs sm:text-sm md:text-base text-slate-300 leading-relaxed max-w-md mx-auto md:mx-0">
               Thousands of products from trusted local sellers — delivered fast, priced right.
             </p>
 
-            <div className="flex flex-wrap gap-4 pt-1">
+            <div className="flex flex-wrap justify-center md:justify-start gap-3 md:gap-4 pt-1">
               <Link
                 href="/products"
-                className="h-12 px-8 rounded-full bg-[#ff6600] hover:bg-orange-600 text-white font-extrabold text-xs uppercase tracking-wider transition-all shadow-lg shadow-orange-500/20 inline-flex items-center gap-2 cursor-pointer"
+                className="h-11 md:h-12 px-6 md:px-8 rounded-full bg-[#ff6600] hover:bg-orange-600 text-white font-extrabold text-xs uppercase tracking-wider transition-all shadow-lg shadow-orange-500/20 inline-flex items-center gap-2 cursor-pointer"
               >
                 Shop Now <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/stores"
-                className="h-12 px-8 rounded-full border border-white/20 hover:border-white/40 text-white font-bold text-xs uppercase tracking-wider transition cursor-pointer inline-flex items-center gap-2 bg-white/5"
+                className="h-11 md:h-12 px-6 md:px-8 rounded-full border border-white/20 hover:border-white/40 text-white font-bold text-xs uppercase tracking-wider transition cursor-pointer inline-flex items-center gap-2 bg-white/5"
               >
                 <Store className="h-4 w-4" /> Browse Stores
               </Link>
             </div>
 
             {/* Hero Stats */}
-            <div className="pt-6 flex gap-10 border-t border-slate-800 text-xs text-slate-400">
+            <div className="pt-4 md:pt-6 flex justify-around md:justify-start md:gap-10 border-t border-slate-800 text-xs text-slate-400">
               <div>
-                <div className="text-2xl font-black text-white">{products.length || 0}+</div>
-                <span className="text-slate-400">Products Available</span>
+                <div className="text-xl md:text-2xl font-black text-white">{products.length || 0}+</div>
+                <span className="text-slate-400">Products</span>
               </div>
               <div>
-                <div className="text-2xl font-black text-white">{categories.length || 0}+</div>
-                <span className="text-slate-400">Active Categories</span>
+                <div className="text-xl md:text-2xl font-black text-white">{categories.length || 0}+</div>
+                <span className="text-slate-400">Categories</span>
               </div>
               <div>
-                <div className="text-2xl font-black text-white">4.8★</div>
-                <span className="text-slate-400">Avg Rating</span>
+                <div className="text-xl md:text-2xl font-black text-white">4.8★</div>
+                <span className="text-slate-400">Rating</span>
               </div>
             </div>
           </div>
 
           {/* Hero Right Photo Banner - Full space image cover */}
           <div className="relative flex justify-center w-full">
-            <div className="w-full max-w-lg rounded-[32px] overflow-hidden border border-white/10 shadow-2xl bg-slate-900 h-[360px] md:h-[420px] relative group">
+            <div className="w-full max-w-lg rounded-[28px] md:rounded-[32px] overflow-hidden border border-white/10 shadow-2xl bg-slate-900 h-[300px] sm:h-[360px] md:h-[420px] relative group">
               <img
                 src="/images/hero_shopping_lifestyle.png"
                 alt="YazMart Shopping Lifestyle"
@@ -535,96 +557,117 @@ export default function HomePageClient({
 
       {/* ============ 4. FEATURE HIGHLIGHTS BAR ============ */}
       <section className="border-b border-slate-200 bg-slate-50/60 py-6">
-        <div className="mx-auto max-w-7xl px-4 md:px-6 grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="mx-auto max-w-7xl px-4 md:px-6 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           <div className="flex items-center gap-3">
-            <div className="h-11 w-11 rounded-2xl flex items-center justify-center bg-orange-100/70 text-[#ff6600] shrink-0">
+            <div className="h-10 w-10 md:h-11 md:w-11 rounded-2xl flex items-center justify-center bg-orange-100/70 text-[#ff6600] shrink-0">
               <Truck className="h-5 w-5" />
             </div>
             <div>
-              <div className="font-extrabold text-sm text-slate-900">Free Delivery</div>
-              <div className="text-xs text-slate-500 font-medium">On orders over ৳1500</div>
+              <div className="font-extrabold text-xs md:text-sm text-slate-900">Free Delivery</div>
+              <div className="text-[11px] text-slate-500 font-medium">On orders over ৳1500</div>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="h-11 w-11 rounded-2xl flex items-center justify-center bg-orange-100/70 text-[#ff6600] shrink-0">
+            <div className="h-10 w-10 md:h-11 md:w-11 rounded-2xl flex items-center justify-center bg-orange-100/70 text-[#ff6600] shrink-0">
               <RotateCcw className="h-5 w-5" />
             </div>
             <div>
-              <div className="font-extrabold text-sm text-slate-900">Easy Returns</div>
-              <div className="text-xs text-slate-500 font-medium">7-day return policy</div>
+              <div className="font-extrabold text-xs md:text-sm text-slate-900">Easy Returns</div>
+              <div className="text-[11px] text-slate-500 font-medium">7-day return policy</div>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="h-11 w-11 rounded-2xl flex items-center justify-center bg-orange-100/70 text-[#ff6600] shrink-0">
+            <div className="h-10 w-10 md:h-11 md:w-11 rounded-2xl flex items-center justify-center bg-orange-100/70 text-[#ff6600] shrink-0">
               <ShieldCheck className="h-5 w-5" />
             </div>
             <div>
-              <div className="font-extrabold text-sm text-slate-900">Secure Payment</div>
-              <div className="text-xs text-slate-500 font-medium">100% protected checkout</div>
+              <div className="font-extrabold text-xs md:text-sm text-slate-900">Secure Payment</div>
+              <div className="text-[11px] text-slate-500 font-medium">100% protected checkout</div>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="h-11 w-11 rounded-2xl flex items-center justify-center bg-orange-100/70 text-[#ff6600] shrink-0">
+            <div className="h-10 w-10 md:h-11 md:w-11 rounded-2xl flex items-center justify-center bg-orange-100/70 text-[#ff6600] shrink-0">
               <Headphones className="h-5 w-5" />
             </div>
             <div>
-              <div className="font-extrabold text-sm text-slate-900">24/7 Support</div>
-              <div className="text-xs text-slate-500 font-medium">Talk to our team anytime</div>
+              <div className="font-extrabold text-xs md:text-sm text-slate-900">24/7 Support</div>
+              <div className="text-[11px] text-slate-500 font-medium">Talk to our team anytime</div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ============ 5. SHOP BY CATEGORY (Real Database Categories Grid) ============ */}
+      {/* ============ 5. SHOP BY CATEGORY (Slidable Carousel with Vertically Centered Left/Right Buttons) ============ */}
       {categories.length > 0 && (
-        <section className="mx-auto w-full max-w-7xl px-4 py-12 md:py-16 md:px-6 space-y-6">
-          <div>
-            <h2 className="text-2xl md:text-3xl font-extrabold text-[#0c192e] tracking-tight">Shop by Category</h2>
-            <p className="text-xs md:text-sm text-slate-500 mt-1">Browse the collections available on YazMart.</p>
+        <section className="mx-auto w-full max-w-7xl px-4 py-10 md:py-16 md:px-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-extrabold text-[#0c192e] tracking-tight">Shop by Category</h2>
+              <p className="text-xs md:text-sm text-slate-500 mt-1">Browse the collections available on YazMart.</p>
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
-            {categories.slice(0, 8).map((cat: any) => (
-              <Link
-                key={cat.id}
-                href={`/categories/${cat.slug}`}
-                className="group relative h-72 md:h-80 w-full rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col justify-end p-6 border border-slate-100"
-              >
-                {/* Full Container Image Coverage */}
-                <img
-                  src={cat.image_url || cat.image || "/images/cat_electronics.png"}
-                  alt={cat.name}
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
+          <div className="relative group/category-carousel">
+            <button
+              onClick={() => scrollCategoryCarousel("left")}
+              aria-label="Previous categories"
+              className="absolute left-1 md:left-2 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-slate-900/60 hover:bg-[#ff6600] text-white shadow-xl border border-white/20 backdrop-blur-xs transition-all cursor-pointer"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
 
-                {/* Bottom Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-transparent" />
+            <div
+              ref={categoryScrollRef}
+              className="scrollbar-none flex gap-4 md:gap-6 overflow-x-auto py-2 snap-x snap-mandatory scroll-smooth px-1"
+            >
+              {categories.map((cat: any) => (
+                <Link
+                  key={cat.id}
+                  href={`/categories/${cat.slug}`}
+                  className="group relative h-56 md:h-80 w-[155px] sm:w-[240px] md:w-[280px] shrink-0 snap-start rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col justify-end p-4 md:p-6 border border-slate-100"
+                >
+                  {/* Full Container Image Coverage */}
+                  <img
+                    src={cat.image_url || cat.image || "/images/cat_electronics.png"}
+                    alt={cat.name}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
 
-                {/* Category Text & Action */}
-                <div className="relative z-10 space-y-1">
-                  <div className="text-white font-black text-lg">
-                    {cat.name}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-transparent" />
+
+                  <div className="relative z-10 space-y-1">
+                    <div className="text-white font-black text-lg">
+                      {cat.name}
+                    </div>
+                    <div className="text-xs font-bold text-[#ff6600] group-hover:translate-x-1 transition-transform flex items-center gap-1">
+                      Shop now →
+                    </div>
                   </div>
-                  <div className="text-xs font-bold text-[#ff6600] group-hover:translate-x-1 transition-transform flex items-center gap-1">
-                    Shop now →
-                  </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              ))}
+            </div>
+
+            <button
+              onClick={() => scrollCategoryCarousel("right")}
+              aria-label="Next categories"
+              className="absolute right-1 md:right-2 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-slate-900/60 hover:bg-[#ff6600] text-white shadow-xl border border-white/20 backdrop-blur-xs transition-all cursor-pointer"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
           </div>
         </section>
       )}
 
       {/* ============ 6. PROMO DEAL BANNERS ============ */}
-      <section className="mx-auto w-full max-w-7xl px-4 pb-12 md:pb-16 md:px-6">
+      <section className="mx-auto w-full max-w-7xl px-4 pb-10 md:pb-16 md:px-6">
         <div className="grid md:grid-cols-3 gap-6">
           
-          <div className="md:col-span-2 rounded-3xl bg-gradient-to-r from-[#ff6600] via-[#ff7300] to-[#ff8533] p-8 md:p-10 text-white relative overflow-hidden flex flex-col justify-between min-h-[260px] shadow-lg shadow-orange-500/15">
+          <div className="md:col-span-2 rounded-3xl bg-gradient-to-r from-[#ff6600] via-[#ff7300] to-[#ff8533] p-6 md:p-10 text-white relative overflow-hidden flex flex-col justify-between min-h-[240px] md:min-h-[260px] shadow-lg shadow-orange-500/15">
             <div className="space-y-2 relative z-10">
               <span className="text-xs font-black uppercase tracking-wider text-amber-100/90">
                 WEEKEND FLASH SALE
               </span>
-              <h3 className="text-3xl md:text-4xl font-black leading-tight max-w-md">
+              <h3 className="text-2xl sm:text-3xl md:text-4xl font-black leading-tight max-w-md">
                 Up to 60% off <br />Deals & Products
               </h3>
               <p className="text-xs md:text-sm text-orange-100">
@@ -632,7 +675,7 @@ export default function HomePageClient({
               </p>
             </div>
 
-            <div className="pt-6 relative z-10">
+            <div className="pt-4 md:pt-6 relative z-10">
               <Link
                 href="/products?tab=flash-sale"
                 className="bg-white hover:bg-slate-100 text-slate-900 rounded-full px-6 py-2.5 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-md transition cursor-pointer"
@@ -642,12 +685,12 @@ export default function HomePageClient({
             </div>
           </div>
 
-          <div className="rounded-3xl bg-[#0c192e] p-8 md:p-10 text-white relative overflow-hidden flex flex-col justify-between min-h-[260px] shadow-lg">
+          <div className="rounded-3xl bg-[#0c192e] p-6 md:p-10 text-white relative overflow-hidden flex flex-col justify-between min-h-[240px] md:min-h-[260px] shadow-lg">
             <div className="space-y-2 relative z-10">
               <span className="text-xs font-black uppercase tracking-wider text-orange-400">
                 NEW SEASON
               </span>
-              <h3 className="text-2xl md:text-3xl font-black leading-tight">
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-black leading-tight">
                 Fashion & Lifestyle 2026
               </h3>
               <p className="text-xs text-slate-300">
@@ -655,7 +698,7 @@ export default function HomePageClient({
               </p>
             </div>
 
-            <div className="pt-6 relative z-10">
+            <div className="pt-4 md:pt-6 relative z-10">
               <Link
                 href="/products"
                 className="bg-[#ff6600] hover:bg-orange-600 text-white rounded-full px-6 py-2.5 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-md transition cursor-pointer"
@@ -775,6 +818,137 @@ export default function HomePageClient({
           © 2026 YazMart. All rights reserved.
         </div>
       </footer>
+
+      {/* ============ MOBILE RIGHT SIDEBAR DRAWER (Opens when Hamburger Menu clicked) ============ */}
+      {mobileSidebarOpen && (
+        <>
+          <div className="fixed inset-0 z-[90] bg-slate-900/60 backdrop-blur-xs" onClick={() => setMobileSidebarOpen(false)} />
+
+          <div className="fixed inset-y-0 right-0 z-[100] flex w-72 sm:w-80 flex-col bg-white text-slate-900 shadow-2xl border-l border-slate-200 animate-in slide-in-from-right duration-300">
+            <div className="flex items-center justify-between border-b border-slate-200 p-4">
+              <Link href="/" onClick={() => setMobileSidebarOpen(false)}>
+                <img src="/logo yazmart.png" alt="YazMart" className="h-8 w-auto object-contain" />
+              </Link>
+              <button onClick={() => setMobileSidebarOpen(false)} className="p-1 text-slate-400 hover:text-slate-900 cursor-pointer">
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 space-y-6 text-xs font-semibold">
+              
+              {/* User Account / Sign In */}
+              {user ? (
+                <div className="bg-orange-50/70 p-3 rounded-2xl border border-orange-100 flex items-center gap-3">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#ff6600] text-sm font-black uppercase text-white shadow-xs">
+                    {user.fullName?.charAt(0) || "U"}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-extrabold text-slate-900 truncate">{user.fullName || "Customer"}</p>
+                    <p className="text-[10px] text-slate-500 truncate">{user.email}</p>
+                  </div>
+                </div>
+              ) : (
+                <Link
+                  href="/auth"
+                  onClick={() => setMobileSidebarOpen(false)}
+                  className="flex items-center justify-center gap-2 rounded-2xl bg-[#ff6600] py-3 font-extrabold text-white text-xs shadow-md"
+                >
+                  <User className="h-4 w-4" /> Sign In / Register
+                </Link>
+              )}
+
+              {/* All Categories Section */}
+              <div className="space-y-2">
+                <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-400 px-1">All Categories</h4>
+                <div className="space-y-1">
+                  {categories.map((cat: any) => (
+                    <Link
+                      key={cat.id}
+                      href={`/categories/${cat.slug}`}
+                      onClick={() => setMobileSidebarOpen(false)}
+                      className="flex items-center justify-between rounded-xl px-3 py-2.5 text-slate-800 hover:bg-orange-50 hover:text-[#ff6600] transition-colors"
+                    >
+                      <span className="font-bold">{cat.name}</span>
+                      <ChevronRight className="h-4 w-4 text-slate-400" />
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* Quick Navigation Links */}
+              <div className="space-y-2 pt-2 border-t border-slate-100">
+                <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-400 px-1">Quick Links</h4>
+                <div className="space-y-1">
+                  <Link href="/products" onClick={() => setMobileSidebarOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-slate-800 hover:bg-orange-50 hover:text-[#ff6600]">
+                    <Compass className="h-4 w-4 text-[#ff6600]" /> All Products
+                  </Link>
+                  <Link href="/profile?tab=tracking" onClick={() => setMobileSidebarOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-slate-800 hover:bg-orange-50 hover:text-[#ff6600]">
+                    <Truck className="h-4 w-4 text-emerald-600" /> Track Parcel
+                  </Link>
+                  <Link href="/seller-center" onClick={() => setMobileSidebarOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[#ff6600] font-black hover:bg-orange-50">
+                    <Store className="h-4 w-4" /> Become a Seller
+                  </Link>
+                </div>
+              </div>
+
+              {user && (
+                <div className="pt-2 border-t border-slate-100">
+                  <button
+                    onClick={async () => {
+                      setMobileSidebarOpen(false);
+                      await supabase.auth.signOut();
+                      await signOutAction();
+                      window.location.reload();
+                    }}
+                    className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left font-extrabold text-rose-600 hover:bg-rose-50 cursor-pointer"
+                  >
+                    <LogOut className="h-4 w-4" /> Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ============ MOBILE FIXED BOTTOM NAVIGATION BAR ============ */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 px-3 py-1.5 flex items-center justify-around text-[10px] font-bold text-slate-600 shadow-2xl">
+        <Link href="/" className="flex flex-col items-center gap-0.5 hover:text-[#ff6600] transition-colors">
+          <HomeIcon className="h-5 w-5 text-[#ff6600]" />
+          <span>Home</span>
+        </Link>
+
+        <Link href="/products?tab=flash-sale" className="flex flex-col items-center gap-0.5 hover:text-[#ff6600] transition-colors">
+          <Sparkles className="h-5 w-5 text-amber-500" />
+          <span>Deals</span>
+        </Link>
+
+        {/* Center Floating Cart Button */}
+        <button
+          onClick={() => setRightSidebar("cart")}
+          className="relative flex flex-col items-center justify-center -mt-5 cursor-pointer"
+        >
+          <div className="h-12 w-12 rounded-full bg-[#ff6600] text-white flex items-center justify-center shadow-lg shadow-orange-500/40 border-2 border-white">
+            <ShoppingBag className="h-6 w-6" />
+            {cart.length > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-slate-900 text-[9px] font-black text-white shadow-xs">
+                {cart.reduce((sum, item) => sum + item.quantity, 0)}
+              </span>
+            )}
+          </div>
+          <span className="mt-0.5 text-slate-800 font-extrabold">Cart</span>
+        </button>
+
+        <Link href="/profile?tab=orders" className="flex flex-col items-center gap-0.5 hover:text-[#ff6600] transition-colors">
+          <Package className="h-5 w-5 text-slate-600" />
+          <span>Orders</span>
+        </Link>
+
+        <Link href="/profile" className="flex flex-col items-center gap-0.5 hover:text-[#ff6600] transition-colors">
+          <User className="h-5 w-5 text-slate-600" />
+          <span>Profile</span>
+        </Link>
+      </div>
 
       {/* ============ CART / WISHLIST DRAWER ============ */}
       {rightSidebar && (
