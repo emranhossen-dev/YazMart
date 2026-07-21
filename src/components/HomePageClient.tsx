@@ -209,7 +209,7 @@ function CategoryCarouselRow({
   );
 }
 
-/* Dynamic Auto-Playing Animated Hero Banner Carousel */
+/* Dynamic Auto-Playing Smooth Fade Hero Banner Carousel */
 function HeroBannerCarousel({ productCount, categoryCount }: { productCount: number; categoryCount: number }) {
   const slides = [
     {
@@ -223,7 +223,7 @@ function HeroBannerCarousel({ productCount, categoryCount }: { productCount: num
       cta1Link: "/products",
       cta2Text: "Browse Stores",
       cta2Link: "/stores",
-      gradient: "from-[#0c192e] via-[#10203b] to-[#152745]"
+      bgGradient: "bg-gradient-to-r from-[#0c192e] via-[#10203b] to-[#152745]"
     },
     {
       id: 2,
@@ -236,7 +236,7 @@ function HeroBannerCarousel({ productCount, categoryCount }: { productCount: num
       cta1Link: "/products",
       cta2Text: "View Deals",
       cta2Link: "/products",
-      gradient: "from-[#1a0e2e] via-[#23123b] to-[#2e1647]"
+      bgGradient: "bg-gradient-to-r from-[#1a0e2e] via-[#23123b] to-[#2e1647]"
     },
     {
       id: 3,
@@ -249,121 +249,107 @@ function HeroBannerCarousel({ productCount, categoryCount }: { productCount: num
       cta1Link: "/products",
       cta2Text: "New Arrivals",
       cta2Link: "/products",
-      gradient: "from-[#2e0e1a] via-[#3b1224] to-[#47162b]"
+      bgGradient: "bg-gradient-to-r from-[#2e0e1a] via-[#3b1224] to-[#47162b]"
     }
   ];
 
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
-    if (isPaused) return;
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
     }, 4500);
     return () => clearInterval(interval);
-  }, [isPaused, slides.length]);
-
-  const slide = slides[currentSlide];
+  }, [slides.length]);
 
   return (
-    <section 
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-      className={`relative overflow-hidden bg-gradient-to-r ${slide.gradient} text-white py-10 md:py-16 transition-all duration-700`}
-    >
-      <div className="mx-auto max-w-7xl px-4 md:px-6 grid md:grid-cols-2 gap-8 md:gap-10 items-center min-h-[380px]">
-        
-        {/* Left Content */}
-        <div key={currentSlide} className="space-y-4 md:space-y-6 text-center md:text-left animate-in fade-in duration-500">
-          <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 text-[#ff7722] text-[11px] font-extrabold tracking-wider uppercase border border-orange-500/30">
-            <Sparkles className="h-3.5 w-3.5" />
-            {slide.badge}
-          </span>
+    <section className="relative overflow-hidden bg-slate-950 text-white min-h-[420px] md:min-h-[460px] flex items-center">
+      {slides.map((slide, idx) => {
+        const isActive = currentSlide === idx;
+        return (
+          <div
+            key={slide.id}
+            className={`absolute inset-0 w-full h-full ${slide.bgGradient} transition-opacity duration-1000 ease-in-out py-10 md:py-16 flex items-center ${
+              isActive ? "opacity-100 z-10 pointer-events-auto" : "opacity-0 z-0 pointer-events-none"
+            }`}
+          >
+            <div className="mx-auto max-w-7xl px-4 md:px-6 grid md:grid-cols-2 gap-8 md:gap-10 items-center w-full">
+              
+              {/* Left Content */}
+              <div className={`space-y-4 md:space-y-6 text-center md:text-left transition-all duration-1000 ${
+                isActive ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
+              }`}>
+                <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 text-[#ff7722] text-[11px] font-extrabold tracking-wider uppercase border border-orange-500/30">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  {slide.badge}
+                </span>
 
-          <h1 className="text-3xl sm:text-4xl md:text-6xl font-black leading-[1.1] tracking-tight">
-            {slide.title} <br />
-            <span className="text-[#ff6600]">{slide.titleHighlight}</span>
-          </h1>
+                <h1 className="text-3xl sm:text-4xl md:text-6xl font-black leading-[1.1] tracking-tight">
+                  {slide.title} <br />
+                  <span className="text-[#ff6600]">{slide.titleHighlight}</span>
+                </h1>
 
-          <p className="text-xs sm:text-sm md:text-base text-slate-300 leading-relaxed max-w-md mx-auto md:mx-0 font-medium">
-            {slide.subtitle}
-          </p>
+                <p className="text-xs sm:text-sm md:text-base text-slate-300 leading-relaxed max-w-md mx-auto md:mx-0 font-medium">
+                  {slide.subtitle}
+                </p>
 
-          <div className="flex flex-wrap justify-center md:justify-start gap-3 md:gap-4 pt-1">
-            <Link
-              href={slide.cta1Link}
-              className="h-11 md:h-12 px-6 md:px-8 rounded-full bg-[#ff6600] hover:bg-orange-600 text-white font-extrabold text-xs uppercase tracking-wider transition-all shadow-lg shadow-orange-500/20 inline-flex items-center gap-2 cursor-pointer"
-            >
-              {slide.cta1Text} <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link
-              href={slide.cta2Link}
-              className="h-11 md:h-12 px-6 md:px-8 rounded-full border border-white/20 hover:border-white/40 text-white font-bold text-xs uppercase tracking-wider transition cursor-pointer inline-flex items-center gap-2 bg-white/5"
-            >
-              <Store className="h-4 w-4" /> {slide.cta2Text}
-            </Link>
-          </div>
+                <div className="flex flex-wrap justify-center md:justify-start gap-3 md:gap-4 pt-1">
+                  <Link
+                    href={slide.cta1Link}
+                    className="h-11 md:h-12 px-6 md:px-8 rounded-full bg-[#ff6600] hover:bg-orange-600 text-white font-extrabold text-xs uppercase tracking-wider transition-all shadow-lg shadow-orange-500/20 inline-flex items-center gap-2 cursor-pointer"
+                  >
+                    {slide.cta1Text} <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <Link
+                    href={slide.cta2Link}
+                    className="h-11 md:h-12 px-6 md:px-8 rounded-full border border-white/20 hover:border-white/40 text-white font-bold text-xs uppercase tracking-wider transition cursor-pointer inline-flex items-center gap-2 bg-white/5"
+                  >
+                    <Store className="h-4 w-4" /> {slide.cta2Text}
+                  </Link>
+                </div>
 
-          {/* Stats */}
-          <div className="pt-4 md:pt-6 flex justify-around md:justify-start md:gap-10 border-t border-slate-800/80 text-xs text-slate-400">
-            <div>
-              <div className="text-xl md:text-2xl font-black text-white">{productCount || 100}+</div>
-              <span className="text-slate-400 font-bold">Products</span>
+                {/* Stats */}
+                <div className="pt-4 md:pt-6 flex justify-around md:justify-start md:gap-10 border-t border-slate-800/80 text-xs text-slate-400">
+                  <div>
+                    <div className="text-xl md:text-2xl font-black text-white">{productCount || 100}+</div>
+                    <span className="text-slate-400 font-bold">Products</span>
+                  </div>
+                  <div>
+                    <div className="text-xl md:text-2xl font-black text-white">{categoryCount || 10}+</div>
+                    <span className="text-slate-400 font-bold">Categories</span>
+                  </div>
+                  <div>
+                    <div className="text-xl md:text-2xl font-black text-white">4.8★</div>
+                    <span className="text-slate-400 font-bold">Rating</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Photo Banner */}
+              <div className="relative flex justify-center w-full">
+                <div className="w-full max-w-lg rounded-[28px] md:rounded-[32px] overflow-hidden border border-white/10 shadow-2xl bg-slate-900 h-[260px] sm:h-[320px] md:h-[380px] relative group">
+                  <img
+                    src={slide.image}
+                    alt={slide.title}
+                    className="w-full h-full object-cover object-center transition-transform duration-1000 group-hover:scale-105"
+                  />
+                </div>
+              </div>
             </div>
-            <div>
-              <div className="text-xl md:text-2xl font-black text-white">{categoryCount || 10}+</div>
-              <span className="text-slate-400 font-bold">Categories</span>
-            </div>
-            <div>
-              <div className="text-xl md:text-2xl font-black text-white">4.8★</div>
-              <span className="text-slate-400 font-bold">Rating</span>
-            </div>
           </div>
-        </div>
-
-        {/* Right Photo Banner */}
-        <div className="relative flex justify-center w-full">
-          <div className="w-full max-w-lg rounded-[28px] md:rounded-[32px] overflow-hidden border border-white/10 shadow-2xl bg-slate-900 h-[280px] sm:h-[340px] md:h-[400px] relative group">
-            <img
-              key={currentSlide}
-              src={slide.image}
-              alt={slide.title}
-              className="w-full h-full object-cover object-center transition-all duration-700 group-hover:scale-105"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Navigation Arrows */}
-      <button
-        type="button"
-        onClick={() => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)}
-        aria-label="Previous slide"
-        className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-30 flex h-9 w-9 md:h-11 md:w-11 items-center justify-center rounded-full bg-slate-900/60 hover:bg-[#ff6600] text-white shadow-2xl border border-white/20 backdrop-blur-xs transition-all cursor-pointer"
-      >
-        <ChevronLeft className="h-5 w-5" />
-      </button>
-
-      <button
-        type="button"
-        onClick={() => setCurrentSlide((prev) => (prev + 1) % slides.length)}
-        aria-label="Next slide"
-        className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-30 flex h-9 w-9 md:h-11 md:w-11 items-center justify-center rounded-full bg-slate-900/60 hover:bg-[#ff6600] text-white shadow-2xl border border-white/20 backdrop-blur-xs transition-all cursor-pointer"
-      >
-        <ChevronRight className="h-5 w-5" />
-      </button>
+        );
+      })}
 
       {/* Pagination Dots */}
-      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2">
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2">
         {slides.map((_, idx) => (
           <button
             key={idx}
             type="button"
             onClick={() => setCurrentSlide(idx)}
             aria-label={`Go to slide ${idx + 1}`}
-            className={`h-2.5 rounded-full transition-all cursor-pointer ${
-              currentSlide === idx ? "w-8 bg-[#ff6600]" : "w-2.5 bg-white/40 hover:bg-white/70"
+            className={`h-2 rounded-full transition-all duration-500 cursor-pointer ${
+              currentSlide === idx ? "w-8 bg-[#ff6600]" : "w-2 bg-white/40 hover:bg-white/70"
             }`}
           />
         ))}
