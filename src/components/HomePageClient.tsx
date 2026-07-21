@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -204,6 +204,169 @@ function CategoryCarouselRow({
         >
           <ChevronRight className="h-5 w-5" />
         </button>
+      </div>
+    </section>
+  );
+}
+
+/* Dynamic Auto-Playing Animated Hero Banner Carousel */
+function HeroBannerCarousel({ productCount, categoryCount }: { productCount: number; categoryCount: number }) {
+  const slides = [
+    {
+      id: 1,
+      badge: "MEGA SALE · UP TO 60% OFF",
+      title: "Shop Smart,",
+      titleHighlight: "Live Better.",
+      subtitle: "Thousands of products from trusted local sellers — delivered fast, priced right.",
+      image: "/images/hero_shopping_lifestyle.png",
+      cta1Text: "Shop Now",
+      cta1Link: "/products",
+      cta2Text: "Browse Stores",
+      cta2Link: "/stores",
+      gradient: "from-[#0c192e] via-[#10203b] to-[#152745]"
+    },
+    {
+      id: 2,
+      badge: "TECH & ELECTRONICS · NEW ARRIVALS",
+      title: "Upgrade Your",
+      titleHighlight: "Digital Setup.",
+      subtitle: "Discover authentic gadgets, smartphones & accessories with official warranty.",
+      image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=1200&auto=format&fit=crop",
+      cta1Text: "Explore Tech",
+      cta1Link: "/products",
+      cta2Text: "View Deals",
+      cta2Link: "/products",
+      gradient: "from-[#1a0e2e] via-[#23123b] to-[#2e1647]"
+    },
+    {
+      id: 3,
+      badge: "EXCLUSIVE FASHION COLLECTION",
+      title: "Redefine Your",
+      titleHighlight: "Everyday Style.",
+      subtitle: "Premium clothing, footwear and accessories curated for modern lifestyles.",
+      image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1200&auto=format&fit=crop",
+      cta1Text: "Shop Fashion",
+      cta1Link: "/products",
+      cta2Text: "New Arrivals",
+      cta2Link: "/products",
+      gradient: "from-[#2e0e1a] via-[#3b1224] to-[#47162b]"
+    }
+  ];
+
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    if (isPaused) return;
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 4500);
+    return () => clearInterval(interval);
+  }, [isPaused, slides.length]);
+
+  const slide = slides[currentSlide];
+
+  return (
+    <section 
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      className={`relative overflow-hidden bg-gradient-to-r ${slide.gradient} text-white py-10 md:py-16 transition-all duration-700`}
+    >
+      <div className="mx-auto max-w-7xl px-4 md:px-6 grid md:grid-cols-2 gap-8 md:gap-10 items-center min-h-[380px]">
+        
+        {/* Left Content */}
+        <div key={currentSlide} className="space-y-4 md:space-y-6 text-center md:text-left animate-in fade-in duration-500">
+          <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 text-[#ff7722] text-[11px] font-extrabold tracking-wider uppercase border border-orange-500/30">
+            <Sparkles className="h-3.5 w-3.5" />
+            {slide.badge}
+          </span>
+
+          <h1 className="text-3xl sm:text-4xl md:text-6xl font-black leading-[1.1] tracking-tight">
+            {slide.title} <br />
+            <span className="text-[#ff6600]">{slide.titleHighlight}</span>
+          </h1>
+
+          <p className="text-xs sm:text-sm md:text-base text-slate-300 leading-relaxed max-w-md mx-auto md:mx-0 font-medium">
+            {slide.subtitle}
+          </p>
+
+          <div className="flex flex-wrap justify-center md:justify-start gap-3 md:gap-4 pt-1">
+            <Link
+              href={slide.cta1Link}
+              className="h-11 md:h-12 px-6 md:px-8 rounded-full bg-[#ff6600] hover:bg-orange-600 text-white font-extrabold text-xs uppercase tracking-wider transition-all shadow-lg shadow-orange-500/20 inline-flex items-center gap-2 cursor-pointer"
+            >
+              {slide.cta1Text} <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              href={slide.cta2Link}
+              className="h-11 md:h-12 px-6 md:px-8 rounded-full border border-white/20 hover:border-white/40 text-white font-bold text-xs uppercase tracking-wider transition cursor-pointer inline-flex items-center gap-2 bg-white/5"
+            >
+              <Store className="h-4 w-4" /> {slide.cta2Text}
+            </Link>
+          </div>
+
+          {/* Stats */}
+          <div className="pt-4 md:pt-6 flex justify-around md:justify-start md:gap-10 border-t border-slate-800/80 text-xs text-slate-400">
+            <div>
+              <div className="text-xl md:text-2xl font-black text-white">{productCount || 100}+</div>
+              <span className="text-slate-400 font-bold">Products</span>
+            </div>
+            <div>
+              <div className="text-xl md:text-2xl font-black text-white">{categoryCount || 10}+</div>
+              <span className="text-slate-400 font-bold">Categories</span>
+            </div>
+            <div>
+              <div className="text-xl md:text-2xl font-black text-white">4.8★</div>
+              <span className="text-slate-400 font-bold">Rating</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Photo Banner */}
+        <div className="relative flex justify-center w-full">
+          <div className="w-full max-w-lg rounded-[28px] md:rounded-[32px] overflow-hidden border border-white/10 shadow-2xl bg-slate-900 h-[280px] sm:h-[340px] md:h-[400px] relative group">
+            <img
+              key={currentSlide}
+              src={slide.image}
+              alt={slide.title}
+              className="w-full h-full object-cover object-center transition-all duration-700 group-hover:scale-105"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation Arrows */}
+      <button
+        type="button"
+        onClick={() => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)}
+        aria-label="Previous slide"
+        className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-30 flex h-9 w-9 md:h-11 md:w-11 items-center justify-center rounded-full bg-slate-900/60 hover:bg-[#ff6600] text-white shadow-2xl border border-white/20 backdrop-blur-xs transition-all cursor-pointer"
+      >
+        <ChevronLeft className="h-5 w-5" />
+      </button>
+
+      <button
+        type="button"
+        onClick={() => setCurrentSlide((prev) => (prev + 1) % slides.length)}
+        aria-label="Next slide"
+        className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-30 flex h-9 w-9 md:h-11 md:w-11 items-center justify-center rounded-full bg-slate-900/60 hover:bg-[#ff6600] text-white shadow-2xl border border-white/20 backdrop-blur-xs transition-all cursor-pointer"
+      >
+        <ChevronRight className="h-5 w-5" />
+      </button>
+
+      {/* Pagination Dots */}
+      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2">
+        {slides.map((_, idx) => (
+          <button
+            key={idx}
+            type="button"
+            onClick={() => setCurrentSlide(idx)}
+            aria-label={`Go to slide ${idx + 1}`}
+            className={`h-2.5 rounded-full transition-all cursor-pointer ${
+              currentSlide === idx ? "w-8 bg-[#ff6600]" : "w-2.5 bg-white/40 hover:bg-white/70"
+            }`}
+          />
+        ))}
       </div>
     </section>
   );
@@ -491,69 +654,8 @@ export default function HomePageClient({
         </div>
       </header>
 
-      {/* ============ 3. HERO BANNER SECTION (Full container cover) ============ */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-[#0c192e] via-[#10203b] to-[#152745] text-white py-10 md:py-16">
-        <div className="mx-auto max-w-7xl px-4 md:px-6 grid md:grid-cols-2 gap-8 md:gap-10 items-center">
-          
-          {/* Hero Left Content */}
-          <div className="space-y-4 md:space-y-6 text-center md:text-left">
-            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 text-[#ff7722] text-[11px] font-extrabold tracking-wider uppercase border border-orange-500/30">
-              MEGA SALE · UP TO 60% OFF
-            </span>
-
-            <h1 className="text-3xl sm:text-4xl md:text-6xl font-black leading-[1.1] tracking-tight">
-              Shop Smart, <br />
-              <span className="text-[#ff6600]">Live Better.</span>
-            </h1>
-
-            <p className="text-xs sm:text-sm md:text-base text-slate-300 leading-relaxed max-w-md mx-auto md:mx-0">
-              Thousands of products from trusted local sellers — delivered fast, priced right.
-            </p>
-
-            <div className="flex flex-wrap justify-center md:justify-start gap-3 md:gap-4 pt-1">
-              <Link
-                href="/products"
-                className="h-11 md:h-12 px-6 md:px-8 rounded-full bg-[#ff6600] hover:bg-orange-600 text-white font-extrabold text-xs uppercase tracking-wider transition-all shadow-lg shadow-orange-500/20 inline-flex items-center gap-2 cursor-pointer"
-              >
-                Shop Now <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                href="/stores"
-                className="h-11 md:h-12 px-6 md:px-8 rounded-full border border-white/20 hover:border-white/40 text-white font-bold text-xs uppercase tracking-wider transition cursor-pointer inline-flex items-center gap-2 bg-white/5"
-              >
-                <Store className="h-4 w-4" /> Browse Stores
-              </Link>
-            </div>
-
-            {/* Hero Stats */}
-            <div className="pt-4 md:pt-6 flex justify-around md:justify-start md:gap-10 border-t border-slate-800 text-xs text-slate-400">
-              <div>
-                <div className="text-xl md:text-2xl font-black text-white">{products.length || 0}+</div>
-                <span className="text-slate-400">Products</span>
-              </div>
-              <div>
-                <div className="text-xl md:text-2xl font-black text-white">{categories.length || 0}+</div>
-                <span className="text-slate-400">Categories</span>
-              </div>
-              <div>
-                <div className="text-xl md:text-2xl font-black text-white">4.8★</div>
-                <span className="text-slate-400">Rating</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Hero Right Photo Banner - Full space image cover */}
-          <div className="relative flex justify-center w-full">
-            <div className="w-full max-w-lg rounded-[28px] md:rounded-[32px] overflow-hidden border border-white/10 shadow-2xl bg-slate-900 h-[300px] sm:h-[360px] md:h-[420px] relative group">
-              <img
-                src="/images/hero_shopping_lifestyle.png"
-                alt="YazMart Shopping Lifestyle"
-                className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* ============ 3. HERO BANNER CAROUSEL SECTION ============ */}
+      <HeroBannerCarousel productCount={products.length} categoryCount={categories.length} />
 
       {/* ============ 4. FEATURE HIGHLIGHTS BAR ============ */}
       <section className="border-b border-slate-200 bg-slate-50/60 py-6">
