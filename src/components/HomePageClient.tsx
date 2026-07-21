@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   Heart, ArrowRight, Layers, ShoppingBag, ShoppingCart, User, Package, Store, LogOut,
   Star, ChevronLeft, ChevronRight, Search, ChevronDown, Menu, Tag, Sparkles,
-  Trash2, X, Plus, Minus, Truck, Info, RotateCcw, Headphones, ShieldCheck, Home as HomeIcon, Compass
+  Trash2, X, Plus, Minus, Truck, Info, RotateCcw, Headphones, ShieldCheck, Home as HomeIcon, Compass, Shield, LayoutDashboard
 } from "lucide-react";
 import { useShopStore } from "../store/shop-store";
 import { useAuthStore } from "../store/auth-store";
@@ -428,11 +428,14 @@ export default function HomePageClient({
             Free shipping over ৳1500 · Cash on delivery available
           </span>
           <div className="hidden sm:flex items-center gap-6 text-[11px] font-medium text-slate-300">
+            <Link href="/seller" className="hover:text-amber-400 transition-colors font-bold flex items-center gap-1">
+              <Store className="h-3 w-3 text-amber-400" /> Seller Panel
+            </Link>
+            <Link href="/admin" className="hover:text-indigo-400 transition-colors font-bold flex items-center gap-1">
+              <Shield className="h-3 w-3 text-indigo-400" /> Admin Panel
+            </Link>
             <Link href="/profile?tab=tracking" className="hover:text-white transition-colors">
               Track order
-            </Link>
-            <Link href="/seller-center" className="hover:text-white transition-colors">
-              Sell on YazMart
             </Link>
           </div>
         </div>
@@ -526,6 +529,12 @@ export default function HomePageClient({
                       </Link>
                       <Link href="/profile?tab=orders" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2 font-semibold text-slate-800 hover:bg-orange-50 hover:text-[#ff6600]">
                         <Package className="h-4 w-4 text-[#ff6600]" /> Orders
+                      </Link>
+                      <Link href="/seller" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2 font-semibold text-slate-800 hover:bg-orange-50 hover:text-[#ff6600]">
+                        <Store className="h-4 w-4 text-[#ff6600]" /> Seller Panel
+                      </Link>
+                      <Link href="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2 font-bold text-indigo-600 hover:bg-indigo-50">
+                        <Shield className="h-4 w-4 text-indigo-600" /> Admin Panel
                       </Link>
                       <button
                         onClick={async () => {
@@ -973,7 +982,13 @@ export default function HomePageClient({
                   <Link href="/profile?tab=tracking" onClick={() => setMobileSidebarOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-slate-800 hover:bg-orange-50 hover:text-[#ff6600]">
                     <Truck className="h-4 w-4 text-emerald-600" /> Track Parcel
                   </Link>
-                  <Link href="/seller-center" onClick={() => setMobileSidebarOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[#ff6600] font-black hover:bg-orange-50">
+                  <Link href="/seller" onClick={() => setMobileSidebarOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-slate-800 font-extrabold hover:bg-orange-50 hover:text-[#ff6600]">
+                    <Store className="h-4 w-4 text-[#ff6600]" /> Seller Panel
+                  </Link>
+                  <Link href="/admin" onClick={() => setMobileSidebarOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-indigo-600 font-extrabold hover:bg-indigo-50">
+                    <Shield className="h-4 w-4 text-indigo-600" /> Admin Panel
+                  </Link>
+                  <Link href="/seller-center" onClick={() => setMobileSidebarOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-slate-600 font-bold hover:bg-orange-50">
                     <Store className="h-4 w-4" /> Become a Seller
                   </Link>
                 </div>
