@@ -639,50 +639,82 @@ export default function HomePageClient({
             case "hero":
               return (
                 <React.Fragment key={sectionId}>
-                  <section className="mx-auto grid w-full max-w-7xl gap-px border-b border-[var(--border)] px-4 pt-0 md:grid-cols-3 md:px-6 md:pt-0 md:pb-px">
-                    <div className="relative h-[420px] overflow-hidden border border-[var(--border)] md:col-span-2">
-                      {config.slider_images.map((img: string, idx: number) => (
-                        <div key={idx} className={`absolute inset-0 flex items-center justify-center bg-[var(--surface-container-low)] transition-opacity duration-700 ${activeSlide === idx ? "opacity-100 z-10" : "opacity-0 z-0"}`}>
-                          <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
-                          <img src={img} className="h-full w-full object-cover" />
-                          <div className="absolute bottom-10 left-10 z-20 max-w-lg space-y-4 text-left text-white">
-                            <span className="inline-block bg-white px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-black">New Arrival</span>
-                            <h1 className="font-display text-3xl font-bold uppercase leading-[1.05] tracking-tight md:text-5xl">Shop Smart, Live Better</h1>
-                            <p className="hidden text-xs text-white/80 md:block">Thousands of products across electronics, fashion, home and beauty — delivered fast, priced right.</p>
-                            <Link href="/products" className="inline-flex items-center gap-2 border border-white bg-white px-6 py-3 font-mono text-xs font-semibold uppercase tracking-wider text-black transition-colors hover:bg-transparent hover:text-white">
-                              Shop Catalog <ArrowRight className="h-3.5 w-3.5" />
-                            </Link>
+                  {/* Rich Hero Section */}
+                  <section className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border-b border-slate-800">
+                    <div className="mx-auto max-w-7xl px-4 py-12 md:py-20 grid md:grid-cols-2 gap-10 items-center">
+                      <div className="text-white space-y-6">
+                        <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-500/20 text-[#ff6600] text-xs font-extrabold tracking-wider uppercase border border-orange-500/30">
+                          <span className="w-2 h-2 rounded-full bg-[#ff6600] animate-ping" />
+                          Mega Sale · Up to 60% Off
+                        </span>
+                        
+                        <h1 className="text-4xl md:text-6xl font-black leading-tight tracking-tight">
+                          Shop Smart, <br />
+                          <span className="bg-gradient-to-r from-[#ff6600] via-orange-400 to-amber-300 bg-clip-text text-transparent">
+                            Live Better.
+                          </span>
+                        </h1>
+
+                        <p className="text-base md:text-lg text-slate-300 leading-relaxed max-w-md">
+                          Thousands of products across electronics, fashion, home and beauty — delivered fast, priced right.
+                        </p>
+
+                        <div className="flex flex-wrap gap-4 pt-2">
+                          <Link
+                            href="/products"
+                            className="h-12 px-8 rounded-full bg-[#ff6600] hover:bg-orange-700 text-white font-extrabold text-xs uppercase tracking-wider transition-all shadow-lg shadow-orange-500/25 inline-flex items-center gap-2 cursor-pointer"
+                          >
+                            Shop Now <ArrowRight className="h-4 w-4" />
+                          </Link>
+                          <Link
+                            href="/products"
+                            className="h-12 px-8 rounded-full border border-white/30 text-white hover:bg-white/10 font-bold text-xs uppercase tracking-wider transition cursor-pointer inline-flex items-center"
+                          >
+                            View Deals
+                          </Link>
+                        </div>
+
+                        <div className="pt-6 flex gap-8 border-t border-slate-800/80 text-xs text-slate-400">
+                          <div>
+                            <div className="text-2xl font-black text-white">50K+</div>
+                            <span>Products</span>
+                          </div>
+                          <div>
+                            <div className="text-2xl font-black text-white">120K+</div>
+                            <span>Happy Buyers</span>
+                          </div>
+                          <div>
+                            <div className="text-2xl font-black text-white">4.8★</div>
+                            <span>Avg Rating</span>
                           </div>
                         </div>
-                      ))}
-
-                      <button onClick={handlePrevSlide} className="absolute left-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center border border-white/30 text-white opacity-0 transition-opacity hover:bg-white/10 group-hover:opacity-100 [.group:hover_&]:opacity-100">
-                        <ChevronLeft className="h-4 w-4" />
-                      </button>
-                      <button onClick={handleNextSlide} className="absolute right-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center border border-white/30 text-white opacity-0 transition-opacity hover:bg-white/10 group-hover:opacity-100 [.group:hover_&]:opacity-100">
-                        <ChevronRight className="h-4 w-4" />
-                      </button>
-
-                      <div className="absolute bottom-6 right-8 z-20 flex gap-1.5">
-                        {config.slider_images.map((_: any, idx: number) => (
-                          <button key={idx} onClick={() => setActiveSlide(idx)} className={`h-1 cursor-pointer transition-all ${activeSlide === idx ? "w-6 bg-white" : "w-3 bg-white/40"}`} />
-                        ))}
                       </div>
-                    </div>
 
-                    <div className="flex flex-col gap-px">
-                      {config.right_banners.slice(0, 2).map((banner: any, idx: number) => (
-                        <div key={idx} className="group relative h-[210px] flex-1 overflow-hidden border border-[var(--border)]">
-                          <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" style={{ backgroundImage: `url(${banner.url})` }} />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
-                          <div className="absolute bottom-5 left-5 z-10 space-y-1 text-left">
-                            <h3 className="font-display text-base font-bold text-white">{banner.title}</h3>
-                            <Link href={banner.link || "#"} className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-white/90 hover:gap-2 transition-all">
-                              Shop Now <ArrowRight className="h-3 w-3" />
-                            </Link>
+                      {/* Right Hero Interactive Slider Graphic */}
+                      <div className="relative">
+                        <div className="absolute inset-0 rounded-3xl blur-3xl opacity-40 bg-gradient-to-r from-[#ff6600] to-amber-500" />
+                        <div className="relative rounded-3xl overflow-hidden border border-slate-800 bg-slate-900 shadow-2xl h-[380px] md:h-[440px] group">
+                          {config.slider_images.map((img: string, idx: number) => (
+                            <div key={idx} className={`absolute inset-0 transition-opacity duration-700 ${activeSlide === idx ? "opacity-100 z-10" : "opacity-0 z-0"}`}>
+                              <img src={img} className="h-full w-full object-cover" />
+                              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
+                            </div>
+                          ))}
+
+                          <button onClick={handlePrevSlide} className="absolute left-3 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/30 bg-slate-900/60 text-white backdrop-blur transition hover:bg-[#ff6600]">
+                            <ChevronLeft className="h-5 w-5" />
+                          </button>
+                          <button onClick={handleNextSlide} className="absolute right-3 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/30 bg-slate-900/60 text-white backdrop-blur transition hover:bg-[#ff6600]">
+                            <ChevronRight className="h-5 w-5" />
+                          </button>
+
+                          <div className="absolute bottom-6 right-8 z-20 flex gap-2">
+                            {config.slider_images.map((_: any, idx: number) => (
+                              <button key={idx} onClick={() => setActiveSlide(idx)} className={`h-1.5 cursor-pointer rounded-full transition-all ${activeSlide === idx ? "w-7 bg-[#ff6600]" : "w-3 bg-white/40"}`} />
+                            ))}
                           </div>
                         </div>
-                      ))}
+                      </div>
                     </div>
                   </section>
                   
@@ -1072,33 +1104,35 @@ export default function HomePageClient({
 
             case "newsletter":
               return (
-                <section key={sectionId} className="mx-auto w-full max-w-7xl border-b border-[var(--border)] px-4 py-16 md:px-6">
-                  <div className="flex flex-col items-center justify-between gap-8 border border-[var(--border)] p-10 md:flex-row md:p-14">
-                    <div className="max-w-md space-y-2 text-left">
-                      <h2 className="font-display text-2xl font-bold uppercase tracking-tight text-[var(--foreground)] md:text-3xl">Join the Circle</h2>
-                      <p className="text-xs font-medium leading-relaxed text-[var(--muted-foreground)] md:text-sm">Early access to new drops and members-only offers, straight to your inbox.</p>
-                    </div>
-
-                    <div className="w-full md:w-auto">
+                <section key={sectionId} className="mx-auto max-w-7xl px-4 py-14 md:py-20">
+                  <div className="rounded-3xl bg-slate-900 text-white p-8 md:p-14 relative overflow-hidden shadow-2xl border border-slate-800">
+                    <div className="relative z-10 max-w-xl space-y-4">
+                      <span className="px-3.5 py-1.5 rounded-full bg-orange-500/20 text-[#ff6600] text-xs font-black uppercase tracking-wider border border-orange-500/30">
+                        Exclusive Member Perks
+                      </span>
+                      <h3 className="text-3xl md:text-4xl font-black tracking-tight">Get 10% off your first order</h3>
+                      <p className="opacity-80 text-sm leading-relaxed">Join the YazMart newsletter for exclusive deals, new arrivals and insider drops.</p>
                       <form
                         onSubmit={(e) => {
                           e.preventDefault();
-                          toast.success("Subscribed successfully!", {
-                            style: { background: "var(--card)", color: "var(--foreground)", border: "1px solid var(--border)", fontSize: "12px", fontWeight: "600", borderRadius: "0" }
+                          toast.success("Subscribed successfully! Check your email for your 10% coupon.", {
+                            style: { background: "#0f172a", color: "#ffffff", border: "1px solid #ff6600" }
                           });
                         }}
-                        className="flex flex-col gap-0 border border-[var(--foreground)] sm:flex-row"
+                        className="pt-2 flex flex-col sm:flex-row gap-3"
                       >
-                        <div className="flex flex-1 items-center gap-2 px-4">
-                          <Mail className="h-3.5 w-3.5 shrink-0 text-[var(--muted-foreground)]" />
-                          <input type="email" required placeholder="you@example.com" className="w-full border-none bg-transparent py-3 text-xs font-medium text-[var(--foreground)] placeholder-[var(--muted-foreground)] focus:outline-none focus:ring-0" />
-                        </div>
-                        <button type="submit" className="cursor-pointer bg-[var(--foreground)] px-8 py-3 text-xs font-semibold uppercase tracking-wider text-[var(--background)] transition-opacity hover:opacity-85">
-                          Join
+                        <input
+                          type="email"
+                          required
+                          placeholder="Enter your email address…"
+                          className="flex-1 h-12 px-6 rounded-full bg-white/10 border border-white/20 placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-[#ff6600] text-white text-xs font-semibold"
+                        />
+                        <button type="submit" className="h-12 px-8 rounded-full bg-[#ff6600] hover:bg-orange-700 text-white font-extrabold text-xs uppercase tracking-wider transition cursor-pointer shadow-lg shadow-orange-500/30">
+                          Subscribe
                         </button>
                       </form>
-                      <p className="mt-3 text-left font-mono text-[9px] text-[var(--muted-foreground)]">By joining you agree to our Terms and Privacy Policy.</p>
                     </div>
+                    <div className="absolute -right-20 -top-20 h-80 w-80 rounded-full opacity-30 blur-3xl bg-gradient-to-r from-[#ff6600] to-amber-500" />
                   </div>
                 </section>
               );
