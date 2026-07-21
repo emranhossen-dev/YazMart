@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   Heart, ArrowRight, Layers, ShoppingBag, ShoppingCart, User, Package, Coins, ShieldCheck, Store, LogOut,
   Star, ChevronLeft, ChevronRight, Search, ChevronDown, Mail,
-  Trash2, X, Plus, Minus, Truck, Info
+  Trash2, X, Plus, Minus, Truck, Info, RotateCcw, Headphones
 } from "lucide-react";
 import { ThemeToggle } from "./ui/theme-toggle";
 import { useShopStore } from "../store/shop-store";
@@ -341,33 +341,52 @@ export default function HomePageClient({
         }
       `}</style>
 
+      {/* ============ ANNOUNCEMENT BAR ============ */}
+      <div className="bg-[#0f172a] text-slate-300 text-xs font-medium border-b border-slate-800">
+        <div className="mx-auto max-w-7xl px-4 md:px-6 py-2 flex items-center justify-between">
+          <span className="flex items-center gap-2 text-[11px]">
+            <span className="inline-block w-2 h-2 rounded-full bg-[#ff6600] animate-ping" />
+            Free shipping on orders over ৳1500 · Cash on delivery available
+          </span>
+          <div className="hidden md:flex items-center gap-5 text-[11px] font-bold text-slate-400">
+            <Link href="/profile?tab=tracking" className="hover:text-[#ff6600] transition-colors flex items-center gap-1">
+              <Truck className="h-3.5 w-3.5 text-[#ff6600]" /> Track order
+            </Link>
+            <Link href="/seller-center" className="hover:text-[#ff6600] transition-colors">Become a Seller</Link>
+            <a href="mailto:shop@yazmart.com" className="hover:text-[#ff6600] transition-colors">Help</a>
+          </div>
+        </div>
+      </div>
+
       {/* ============ HEADER ============ */}
-      <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]">
+      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/98 backdrop-blur-md">
         <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-4 px-4 md:px-6">
 
           <Link href="/" className="flex shrink-0 items-center gap-2">
             <img
               src="/logo yazmart.png"
               alt="YazMart Logo"
-              className="h-10 w-auto object-contain max-w-[160px]"
+              className="h-10 md:h-11 w-auto object-contain max-w-[160px]"
             />
           </Link>
 
-          <div className="relative hidden max-w-xl flex-1 md:block">
-            <div className="flex items-center gap-2 border border-[var(--border)] px-4 py-2.5 focus-within:border-[var(--foreground)]">
-              <Search className="h-4 w-4 text-[var(--muted-foreground)]" />
+          {/* Rounded Pill Search Input */}
+          <div className="relative hidden max-w-2xl flex-1 md:block mx-4">
+            <div className="relative w-full">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search products…"
+                placeholder="Search products, brands, categories…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full border-none bg-transparent text-xs font-medium text-[var(--foreground)] placeholder-[var(--muted-foreground)] focus:outline-none focus:ring-0"
+                className="w-full h-11 pl-11 pr-28 rounded-full border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#ff6600]/30 focus:border-[#ff6600] transition text-xs font-semibold text-slate-900 placeholder-slate-400"
               />
-              {searchQuery && (
-                <button onClick={() => setSearchQuery("")} className="font-mono text-[10px] uppercase text-[var(--muted-foreground)] hover:text-[var(--foreground)] cursor-pointer">
-                  Clear
-                </button>
-              )}
+              <button
+                type="button"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-9 px-5 rounded-full bg-[#ff6600] text-white text-xs font-extrabold hover:bg-orange-700 transition cursor-pointer"
+              >
+                Search
+              </button>
             </div>
 
             {searchQuery && searchedProducts.length > 0 && (
@@ -617,55 +636,98 @@ export default function HomePageClient({
           if (config.disabled_sections.includes(sectionId)) return null;
 
           switch (sectionId) {
-
             case "hero":
               return (
-                <section key={sectionId} className="mx-auto grid w-full max-w-7xl gap-px border-b border-[var(--border)] px-4 pt-0 md:grid-cols-3 md:px-6 md:pt-0 md:pb-px">
-                  <div className="relative h-[420px] overflow-hidden border border-[var(--border)] md:col-span-2">
-                    {config.slider_images.map((img: string, idx: number) => (
-                      <div key={idx} className={`absolute inset-0 flex items-center justify-center bg-[var(--surface-container-low)] transition-opacity duration-700 ${activeSlide === idx ? "opacity-100 z-10" : "opacity-0 z-0"}`}>
-                        <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
-                        <img src={img} className="h-full w-full object-cover" />
-                        <div className="absolute bottom-10 left-10 z-20 max-w-lg space-y-4 text-left text-white">
-                          <span className="inline-block bg-white px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-black">New Arrival</span>
-                          <h1 className="font-display text-3xl font-bold uppercase leading-[1.05] tracking-tight md:text-5xl">Future of Sound &amp; Vision</h1>
-                          <p className="max-w-md text-xs font-medium leading-relaxed text-white/85 md:text-sm">Curated technology and lifestyle products, picked for people who notice detail.</p>
-                          <Link href="/products" className="inline-flex items-center gap-2 bg-white px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-black transition-opacity hover:opacity-85">
-                            Explore Collection <ArrowRight className="h-3.5 w-3.5" />
-                          </Link>
+                <React.Fragment key={sectionId}>
+                  <section className="mx-auto grid w-full max-w-7xl gap-px border-b border-[var(--border)] px-4 pt-0 md:grid-cols-3 md:px-6 md:pt-0 md:pb-px">
+                    <div className="relative h-[420px] overflow-hidden border border-[var(--border)] md:col-span-2">
+                      {config.slider_images.map((img: string, idx: number) => (
+                        <div key={idx} className={`absolute inset-0 flex items-center justify-center bg-[var(--surface-container-low)] transition-opacity duration-700 ${activeSlide === idx ? "opacity-100 z-10" : "opacity-0 z-0"}`}>
+                          <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+                          <img src={img} className="h-full w-full object-cover" />
+                          <div className="absolute bottom-10 left-10 z-20 max-w-lg space-y-4 text-left text-white">
+                            <span className="inline-block bg-white px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-widest text-black">New Arrival</span>
+                            <h1 className="font-display text-3xl font-bold uppercase leading-[1.05] tracking-tight md:text-5xl">Shop Smart, Live Better</h1>
+                            <p className="hidden text-xs text-white/80 md:block">Thousands of products across electronics, fashion, home and beauty — delivered fast, priced right.</p>
+                            <Link href="/products" className="inline-flex items-center gap-2 border border-white bg-white px-6 py-3 font-mono text-xs font-semibold uppercase tracking-wider text-black transition-colors hover:bg-transparent hover:text-white">
+                              Shop Catalog <ArrowRight className="h-3.5 w-3.5" />
+                            </Link>
+                          </div>
                         </div>
+                      ))}
+
+                      <button onClick={handlePrevSlide} className="absolute left-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center border border-white/30 text-white opacity-0 transition-opacity hover:bg-white/10 group-hover:opacity-100 [.group:hover_&]:opacity-100">
+                        <ChevronLeft className="h-4 w-4" />
+                      </button>
+                      <button onClick={handleNextSlide} className="absolute right-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center border border-white/30 text-white opacity-0 transition-opacity hover:bg-white/10 group-hover:opacity-100 [.group:hover_&]:opacity-100">
+                        <ChevronRight className="h-4 w-4" />
+                      </button>
+
+                      <div className="absolute bottom-6 right-8 z-20 flex gap-1.5">
+                        {config.slider_images.map((_: any, idx: number) => (
+                          <button key={idx} onClick={() => setActiveSlide(idx)} className={`h-1 cursor-pointer transition-all ${activeSlide === idx ? "w-6 bg-white" : "w-3 bg-white/40"}`} />
+                        ))}
                       </div>
-                    ))}
+                    </div>
 
-                    <button onClick={handlePrevSlide} className="absolute left-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center border border-white/30 text-white opacity-0 transition-opacity hover:bg-white/10 group-hover:opacity-100 [.group:hover_&]:opacity-100">
-                      <ChevronLeft className="h-4 w-4" />
-                    </button>
-                    <button onClick={handleNextSlide} className="absolute right-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center border border-white/30 text-white opacity-0 transition-opacity hover:bg-white/10 group-hover:opacity-100 [.group:hover_&]:opacity-100">
-                      <ChevronRight className="h-4 w-4" />
-                    </button>
-
-                    <div className="absolute bottom-6 right-8 z-20 flex gap-1.5">
-                      {config.slider_images.map((_: any, idx: number) => (
-                        <button key={idx} onClick={() => setActiveSlide(idx)} className={`h-1 cursor-pointer transition-all ${activeSlide === idx ? "w-6 bg-white" : "w-3 bg-white/40"}`} />
+                    <div className="flex flex-col gap-px">
+                      {config.right_banners.slice(0, 2).map((banner: any, idx: number) => (
+                        <div key={idx} className="group relative h-[210px] flex-1 overflow-hidden border border-[var(--border)]">
+                          <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" style={{ backgroundImage: `url(${banner.url})` }} />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
+                          <div className="absolute bottom-5 left-5 z-10 space-y-1 text-left">
+                            <h3 className="font-display text-base font-bold text-white">{banner.title}</h3>
+                            <Link href={banner.link || "#"} className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-white/90 hover:gap-2 transition-all">
+                              Shop Now <ArrowRight className="h-3 w-3" />
+                            </Link>
+                          </div>
+                        </div>
                       ))}
                     </div>
-                  </div>
-
-                  <div className="flex flex-col gap-px">
-                    {config.right_banners.slice(0, 2).map((banner: any, idx: number) => (
-                      <div key={idx} className="group relative h-[210px] flex-1 overflow-hidden border border-[var(--border)]">
-                        <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" style={{ backgroundImage: `url(${banner.url})` }} />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
-                        <div className="absolute bottom-5 left-5 z-10 space-y-1 text-left">
-                          <h3 className="font-display text-base font-bold text-white">{banner.title}</h3>
-                          <Link href={banner.link || "#"} className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-white/90 hover:gap-2 transition-all">
-                            Shop Now <ArrowRight className="h-3 w-3" />
-                          </Link>
+                  </section>
+                  
+                  {/* Value Propositions Bar */}
+                  <section className="border-y border-slate-200 bg-slate-50/80">
+                    <div className="mx-auto max-w-7xl px-4 md:px-6 py-6 grid grid-cols-2 md:grid-cols-4 gap-6">
+                      <div className="flex items-center gap-3">
+                        <div className="h-11 w-11 rounded-2xl flex items-center justify-center bg-orange-50 text-[#ff6600] border border-orange-200 shrink-0">
+                          <Truck className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <div className="font-extrabold text-sm text-slate-900">Free Delivery</div>
+                          <div className="text-xs text-slate-500 font-medium">On orders over ৳1500</div>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </section>
+                      <div className="flex items-center gap-3">
+                        <div className="h-11 w-11 rounded-2xl flex items-center justify-center bg-orange-50 text-[#ff6600] border border-orange-200 shrink-0">
+                          <RotateCcw className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <div className="font-extrabold text-sm text-slate-900">Easy Returns</div>
+                          <div className="text-xs text-slate-500 font-medium">7-day return policy</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="h-11 w-11 rounded-2xl flex items-center justify-center bg-orange-50 text-[#ff6600] border border-orange-200 shrink-0">
+                          <ShieldCheck className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <div className="font-extrabold text-sm text-slate-900">Secure Payment</div>
+                          <div className="text-xs text-slate-500 font-medium">100% protected checkout</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="h-11 w-11 rounded-2xl flex items-center justify-center bg-orange-50 text-[#ff6600] border border-orange-200 shrink-0">
+                          <Headphones className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <div className="font-extrabold text-sm text-slate-900">24/7 Support</div>
+                          <div className="text-xs text-slate-500 font-medium">Talk to our team anytime</div>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                </React.Fragment>
               );
 
             case "categories":
