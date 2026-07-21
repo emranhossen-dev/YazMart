@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getEnterpriseUserSession } from "@/actions/auth-enterprise";
 import AdminLayoutClient from "./AdminLayoutClient";
@@ -19,5 +19,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     notFound();
   }
 
-  return <AdminLayoutClient>{children}</AdminLayoutClient>;
+  return (
+    <Suspense fallback={null}>
+      <AdminLayoutClient>{children}</AdminLayoutClient>
+    </Suspense>
+  );
 }

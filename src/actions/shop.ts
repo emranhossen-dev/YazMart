@@ -195,20 +195,32 @@ export async function getProductDetails(slug: string) {
 
     const product = serializeProduct(rawProduct);
 
-    // রিলেটেড প্রোডাক্টসমূহ (সেম ক্যাটাগরি, ড্রাফট বা হিডেন বাদে)
+    // ১. সেম ক্যাটাগরি প্রোডাক্ট (You May Also Like)
     const rawRelated = await prisma.pimProducts.findMany({
       where: {
         category_id: product.category_id,
         status: "PUBLISHED",
         id: { not: product.id }
       },
-      take: 4,
-      include: { category: true }
+      take: 8,
+      include: { category: true, store: true, brand: true }
     });
 
     const relatedProducts = rawRelated.map(serializeProduct);
 
-    return { product, relatedProducts };
+    // ২. অনন্যা ক্যাটাগরির প্রোডাক্ট এবং অন্যান্য সমস্ত প্রোডাক্ট (Just For You - Limitless all products)
+    const rawJustForYou = await prisma.pimProducts.findMany({
+      where: {
+        status: "PUBLISHED",
+        id: { not: product.id }
+      },
+      include: { category: true, store: true, brand: true },
+      orderBy: { createdAt: "desc" }
+    });
+
+    const justForYouProducts = rawJustForYou.map(serializeProduct);
+
+    return { product, relatedProducts, justForYouProducts };
   } catch (error: any) {
     console.error("❌ GET PRODUCT DETAILS ERROR:", error);
     return { error: "Failed to load product details." };

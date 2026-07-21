@@ -33,7 +33,9 @@ export default function RootLayout({
             <Suspense fallback={null}>
               {children}
             </Suspense>
-            <MobileBottomNav />
+            <Suspense fallback={null}>
+              <MobileBottomNav />
+            </Suspense>
             <Toaster position="top-right" reverseOrder={false} />
           </AuthProvider>
         </ThemeProvider>

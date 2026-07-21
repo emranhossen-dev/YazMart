@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
@@ -38,7 +38,7 @@ function getStageIndex(status: string): number {
   return idx !== -1 ? idx : 0;
 }
 
-export default function CustomerProfilePage() {
+function CustomerProfileContent() {
   const searchParams = useSearchParams();
   const tabQuery = searchParams.get("tab");
   const { user, isLoading: authLoading } = useAuthStore();
@@ -575,3 +575,20 @@ export default function CustomerProfilePage() {
     </div>
   );
 }
+
+export default function CustomerProfilePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex flex-col bg-zinc-50 font-sans">
+        <Header />
+        <div className="flex-1 flex items-center justify-center p-8">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        </div>
+        <Footer />
+      </div>
+    }>
+      <CustomerProfileContent />
+    </Suspense>
+  );
+}
+

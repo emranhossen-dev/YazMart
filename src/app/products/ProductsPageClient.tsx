@@ -509,7 +509,7 @@ export default function ProductsPageClient({
           <div className="flex shrink-0 flex-col justify-between gap-3 border-b border-[var(--border)] px-4 py-3 sm:flex-row sm:items-center">
             <p className="font-mono text-[11px] text-[var(--muted-foreground)]">
               {loading ? "Loading…" : products.length === 0 ? "No results" : (
-                <>Showing <strong className="text-[var(--foreground)]">{rangeStart}–{rangeEnd}</strong> of <strong className="text-[var(--foreground)]">{products.length}</strong></>
+                <>Showing all <strong className="text-[var(--foreground)]">{products.length}</strong> products</>
               )}
             </p>
 
@@ -594,8 +594,8 @@ export default function ProductsPageClient({
               </button>
             </div>
           ) : viewMode === "grid" ? (
-            <div key={page} className="products-fade grid grid-cols-2 gap-5 lg:grid-cols-3">
-              {paginatedProducts.map((product) => (
+            <div className="products-fade grid grid-cols-2 gap-5 lg:grid-cols-3">
+              {products.map((product) => (
                 <ProductCard
                   key={product.id}
                   product={product}
@@ -608,8 +608,8 @@ export default function ProductsPageClient({
               ))}
             </div>
           ) : (
-            <div key={page} className="products-fade space-y-4">
-              {paginatedProducts.map((product) => (
+            <div className="products-fade space-y-4">
+              {products.map((product) => (
                 <ProductRow
                   key={product.id}
                   product={product}
@@ -619,43 +619,6 @@ export default function ProductsPageClient({
                   onBuyNow={handleBuyNow}
                 />
               ))}
-            </div>
-          )}
-
-          {/* Pagination */}
-          {!loading && products.length > PAGE_SIZE && (
-            <div className="flex items-center justify-center gap-1.5 pt-4">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-[var(--border)] text-[var(--foreground)] transition-colors hover:border-[var(--foreground)] disabled:opacity-30"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-
-              {getPageList().map((p, idx) =>
-                p === "…" ? (
-                  <span key={`e-${idx}`} className="px-1 font-mono text-xs text-[var(--muted-foreground)]">…</span>
-                ) : (
-                  <button
-                    key={p}
-                    onClick={() => setPage(p)}
-                    className={`flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg font-mono text-xs font-semibold transition-colors ${
-                      page === p ? "bg-[var(--foreground)] text-[var(--background)]" : "border border-[var(--border)] text-[var(--foreground)] hover:border-[var(--foreground)]"
-                    }`}
-                  >
-                    {p}
-                  </button>
-                )
-              )}
-
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-[var(--border)] text-[var(--foreground)] transition-colors hover:border-[var(--foreground)] disabled:opacity-30"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
             </div>
           )}
           </div>{/* end scrollable area */}

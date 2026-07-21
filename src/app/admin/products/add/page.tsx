@@ -805,11 +805,11 @@ function ProductAddFormContent() {
             {activeTab === "media" && (
               <div className="space-y-4">
                 {/* Featured Main Image */}
-                <div>
+                <div className="space-y-2">
                   <label className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Featured Main Image (Primary Thumbnail)</label>
-                  <div className="flex gap-4 items-center bg-[var(--background)]/20 p-4 border border-[var(--border)] rounded-xl">
+                  <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center bg-[var(--background)]/20 p-4 border border-[var(--border)] rounded-xl">
                     {featuredImage ? (
-                      <div className="w-20 h-20 border border-[var(--border)] rounded bg-[var(--background)] flex items-center justify-center overflow-hidden p-1 relative">
+                      <div className="w-20 h-20 border border-[var(--border)] rounded bg-[var(--background)] flex items-center justify-center overflow-hidden p-1 relative shrink-0">
                         <img src={featuredImage} className="w-full h-full object-contain" />
                         <button 
                           type="button" 
@@ -823,24 +823,39 @@ function ProductAddFormContent() {
                         </button>
                       </div>
                     ) : (
-                      <div className="w-20 h-20 border border-dashed border-[var(--border)] rounded flex items-center justify-center text-[var(--muted-foreground)]">
+                      <div className="w-20 h-20 border border-dashed border-[var(--border)] rounded flex items-center justify-center text-[var(--muted-foreground)] shrink-0">
                         <ImageIcon className="h-8 w-8" />
                       </div>
                     )}
-                    <div>
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        onChange={(e) => handleImageUpload(e, true)} 
-                        className="hidden" 
-                        id="featured-image-file" 
-                      />
-                      <label 
-                        htmlFor="featured-image-file" 
-                        className="inline-block px-4 py-2 bg-[var(--background)] hover:bg-[var(--accent)] border border-[var(--border)] text-xs font-bold uppercase rounded cursor-pointer transition-colors"
-                      >
-                        {uploading ? "Uploading..." : "Select Main Image"}
-                      </label>
+                    <div className="flex-1 space-y-2 w-full">
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={(e) => handleImageUpload(e, true)} 
+                          className="hidden" 
+                          id="featured-image-file" 
+                        />
+                        <label 
+                          htmlFor="featured-image-file" 
+                          className="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase rounded cursor-pointer transition-colors"
+                        >
+                          {uploading ? "Uploading File..." : "📁 Upload Image File"}
+                        </label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] shrink-0">Or Paste Image URL:</span>
+                        <input
+                          type="url"
+                          value={featuredImage}
+                          onChange={(e) => {
+                            setFeaturedImage(e.target.value);
+                            setFormData((p: any) => ({ ...p, featured_image: e.target.value }));
+                          }}
+                          placeholder="https://example.com/product.jpg"
+                          className="w-full px-3 py-1.5 text-xs rounded bg-[var(--background)] border border-[var(--border)] focus:outline-none"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>

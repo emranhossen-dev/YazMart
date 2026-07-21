@@ -10,14 +10,11 @@ import Footer from "@/components/Footer";
 import { createOrder } from "@/actions/orders";
 import {
   CreditCard, ShoppingBag, ShieldCheck, Heart, ShoppingCart,
-  Lock, Ticket, Truck, MapPin, Banknote, Smartphone
+  Lock, Ticket, Truck, MapPin, Banknote, Smartphone, ChevronDown, ChevronUp, Check
 } from "lucide-react";
 import { validateCoupon } from "@/actions/coupons";
 import { getUserCoins } from "@/actions/reviews";
 
-// ───────────────────────────────────────────────
-// Bangladesh full location data
-// ───────────────────────────────────────────────
 const BD_DIVISIONS = [
   "Dhaka", "Chittagong", "Rajshahi", "Khulna",
   "Barishal", "Sylhet", "Rangpur", "Mymensingh",
@@ -53,7 +50,6 @@ const BD_DISTRICTS: Record<string, string[]> = {
 };
 
 const BD_THANAS: Record<string, string[]> = {
-  // Dhaka Division
   Dhaka: [
     "Adabor", "Badda", "Bangshal", "Cantonment", "Chawkbazar",
     "Dakshinkhan", "Demra", "Dhanmondi", "Gendaria", "Gulshan",
@@ -65,12 +61,8 @@ const BD_THANAS: Record<string, string[]> = {
     "Tejgaon Industrial", "Turag", "Uttara", "Uttarkhan", "Vatara",
     "Wari",
   ],
-  Gazipur: [
-    "Gazipur Sadar", "Kaliakair", "Kaliganj", "Kapasia", "Sreepur", "Tongi",
-  ],
-  Narayanganj: [
-    "Araihazar", "Bandar", "Narayanganj Sadar", "Rupganj", "Sonargaon",
-  ],
+  Gazipur: ["Gazipur Sadar", "Kaliakair", "Kaliganj", "Kapasia", "Sreepur", "Tongi"],
+  Narayanganj: ["Araihazar", "Bandar", "Narayanganj Sadar", "Rupganj", "Sonargaon"],
   Narsingdi: ["Narsingdi Sadar", "Belabo", "Monohardi", "Palash", "Raipura", "Shibpur"],
   Manikganj: ["Manikganj Sadar", "Daulatpur", "Ghior", "Harirampur", "Saturia", "Shivalaya", "Singair"],
   Munshiganj: ["Munshiganj Sadar", "Gazaria", "Louhajang", "Sirajdikhan", "Sreenagar", "Tongibari"],
@@ -81,8 +73,6 @@ const BD_THANAS: Record<string, string[]> = {
   Rajbari: ["Rajbari Sadar", "Baliakandi", "Goalanda", "Pangsha"],
   Shariatpur: ["Shariatpur Sadar", "Bhedarganj", "Damudya", "Gosairhat", "Naria", "Zanjira"],
   Tangail: ["Tangail Sadar", "Basail", "Bhuapur", "Delduar", "Dhanbari", "Ghatail", "Gopalpur", "Kalihati", "Madhupur", "Mirzapur", "Nagarpur", "Sakhipur"],
-
-  // Chittagong Division
   Chattogram: [
     "Chandgaon", "Chittagong Port", "Double Mooring", "Halishahar",
     "Karnaphuli", "Khulshi", "Kotwali", "Pahartali", "Panchlaish",
@@ -98,8 +88,6 @@ const BD_THANAS: Record<string, string[]> = {
   Lakshmipur: ["Lakshmipur Sadar", "Kamalnagar", "Raipur", "Ramganj", "Ramgati"],
   Noakhali: ["Noakhali Sadar", "Begumganj", "Chatkhil", "Companiganj", "Hatiya", "Kabirhat", "Senbagh", "Subarnachar"],
   Rangamati: ["Rangamati Sadar", "Bagaichhari", "Barkal", "Belaichhari", "Juraichhari", "Kaptai", "Kawkhali", "Langadu", "Naniarchar", "Rajasthali"],
-
-  // Rajshahi Division
   Rajshahi: ["Rajshahi Sadar", "Bagha", "Bagmara", "Charghat", "Durgapur", "Godagari", "Mohanpur", "Paba", "Puthia", "Tanore"],
   Bogura: ["Bogura Sadar", "Adamdighi", "Dhunat", "Dhupchanchia", "Gabtali", "Kahaloo", "Nandigram", "Sariakandi", "Shajahanpur", "Sherpur", "Shibganj", "Sonatola"],
   "Chapai Nawabganj": ["Chapai Nawabganj Sadar", "Bholahat", "Gomastapur", "Nachole", "Shibganj"],
@@ -108,8 +96,6 @@ const BD_THANAS: Record<string, string[]> = {
   Natore: ["Natore Sadar", "Bagatipara", "Baraigram", "Gurudaspur", "Lalpur", "Singra"],
   Pabna: ["Pabna Sadar", "Atgharia", "Bera", "Bhangura", "Chatmohar", "Faridpur", "Ishwardi", "Santhia", "Sujanagar"],
   Sirajganj: ["Sirajganj Sadar", "Belkuchi", "Chauhali", "Kamarkhanda", "Kazipur", "Raiganj", "Shahjadpur", "Tarash", "Ullapara"],
-
-  // Khulna Division
   Khulna: ["Khulna Sadar", "Batiaghata", "Dacope", "Dighalia", "Dumuria", "Harintana", "Khalishpur", "Khan Jahan Ali", "Koyra", "Paikgachha", "Phultala", "Rupsa", "Sonadanga", "Terokhada"],
   Bagerhat: ["Bagerhat Sadar", "Chitalmari", "Fakirhat", "Kachua", "Mollahat", "Mongla", "Morrelganj", "Rampal", "Sarankhola"],
   Chuadanga: ["Chuadanga Sadar", "Alamdanga", "Damurhuda", "Jibannagar"],
@@ -120,22 +106,16 @@ const BD_THANAS: Record<string, string[]> = {
   Meherpur: ["Meherpur Sadar", "Gangni", "Mujibnagar"],
   Narail: ["Narail Sadar", "Kalia", "Lohagara"],
   Satkhira: ["Satkhira Sadar", "Assasuni", "Debhata", "Kalaroa", "Kaliganj", "Shyamnagar", "Tala"],
-
-  // Barishal Division
   Barishal: ["Barishal Sadar", "Agailjhara", "Babuganj", "Bakerganj", "Banaripara", "Gournadi", "Hijla", "Mehendiganj", "Muladi", "Wazirpur"],
   Barguna: ["Barguna Sadar", "Amtali", "Bamna", "Betagi", "Patharghata", "Taltali"],
   Bhola: ["Bhola Sadar", "Borhanuddin", "Char Fasson", "Daulatkhan", "Lalmohan", "Manpura", "Tazumuddin"],
   Jhalokati: ["Jhalokati Sadar", "Kathalia", "Nalchity", "Rajapur"],
   Patuakhali: ["Patuakhali Sadar", "Bauphal", "Dashmina", "Dumki", "Galachipa", "Kalapara", "Mirzaganj", "Rangabali"],
   Pirojpur: ["Pirojpur Sadar", "Bhandaria", "Kawkhali", "Mathbaria", "Nazirpur", "Nesarabad", "Zianagar"],
-
-  // Sylhet Division
   Sylhet: ["Sylhet Sadar", "Balaganj", "Beanibazar", "Bishwanath", "Companiganj", "Fenchuganj", "Golapganj", "Gowainghat", "Jaintiapur", "Kanaighat", "Osmaninagar", "South Surma"],
   Habiganj: ["Habiganj Sadar", "Ajmiriganj", "Bahubal", "Baniachong", "Chunarughat", "Lakhai", "Madhabpur", "Nabiganj"],
   Moulvibazar: ["Moulvibazar Sadar", "Barlekha", "Juri", "Kamalganj", "Kulaura", "Rajnagar", "Sreemangal"],
   Sunamganj: ["Sunamganj Sadar", "Bishwamvarpur", "Chhatak", "Derai", "Dharmapasha", "Dowarabazar", "Jagannathpur", "Jamalganj", "Sullah", "Tahirpur"],
-
-  // Rangpur Division
   Rangpur: ["Rangpur Sadar", "Badarganj", "Gangachara", "Kaunia", "Mithapukur", "Pirgachha", "Pirganj", "Taraganj"],
   Dinajpur: ["Dinajpur Sadar", "Birampur", "Birganj", "Biral", "Bochaganj", "Chirirbandar", "Fulbari", "Ghoraghat", "Hakimpur", "Kaharole", "Khansama", "Nawabganj", "Parbatipur"],
   Gaibandha: ["Gaibandha Sadar", "Fulchhari", "Gobindaganj", "Palashbari", "Sadullapur", "Saghata", "Sundarganj"],
@@ -144,8 +124,6 @@ const BD_THANAS: Record<string, string[]> = {
   Nilphamari: ["Nilphamari Sadar", "Dimla", "Domar", "Jaldhaka", "Kishoreganj", "Saidpur"],
   Panchagarh: ["Panchagarh Sadar", "Atwari", "Boda", "Debiganj", "Tetulia"],
   Thakurgaon: ["Thakurgaon Sadar", "Baliadangi", "Haripur", "Pirganj", "Ranisankail"],
-
-  // Mymensingh Division
   Mymensingh: ["Mymensingh Sadar", "Bhaluka", "Dhobaura", "Fulbaria", "Gaffargaon", "Gauripur", "Haluaghat", "Ishwarganj", "Muktagachha", "Nandail", "Phulpur", "Trishal"],
   Jamalpur: ["Jamalpur Sadar", "Bakshiganj", "Dewanganj", "Islampur", "Madarganj", "Melandaha", "Sarishabari"],
   Netrokona: ["Netrokona Sadar", "Atpara", "Barhatta", "Durgapur", "Kalmakanda", "Kendua", "Khaliajuri", "Madan", "Mohanganj", "Purbadhala"],
@@ -158,11 +136,14 @@ function calcDeliveryCharge(district: string): number {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart, clearCart, wishlist } = useShopStore();
+  const { cart, clearCart } = useShopStore();
   const { user } = useAuthStore();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Mobile order summary dropdown toggle
+  const [showMobileOrderSummary, setShowMobileOrderSummary] = useState(false);
 
   // Coupon
   const [couponCode, setCouponCode] = useState("");
@@ -203,7 +184,6 @@ export default function CheckoutPage() {
   const defaultDeliveryCharge = district ? calcDeliveryCharge(district) : 0;
   const deliveryCharge = customShippingSum > 0 ? customShippingSum : defaultDeliveryCharge;
   
-  // Coins discount (1 coin = 1 Taka discount)
   const coinsDiscount = useCoins ? Math.min(subtotal, userCoins) : 0;
   const coinsRedeemed = coinsDiscount;
 
@@ -273,106 +253,150 @@ export default function CheckoutPage() {
     } else if (res.success && res.orderId) {
       clearCart();
       if (paymentMethod === "ONLINE") {
-        // Go to payment instruction page first
         router.push(`/checkout/payment/${res.orderId}`);
       } else {
-        // COD → go straight to confirmation
         router.push(`/checkout/confirmation/${res.orderId}`);
       }
     }
-
 
     setLoading(false);
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans">
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans pb-24 lg:pb-0">
       <Header />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 md:px-6 py-8 space-y-8">
-        {/* Steps */}
-        <div className="max-w-xl mx-auto flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-zinc-400">
-          <div className="flex items-center gap-2 text-emerald-600">
-            <span className="w-6 h-6 rounded-full bg-emerald-50 border-2 border-emerald-500 flex items-center justify-center text-[10px] font-black text-emerald-600">✓</span>
-            <span>Shopping Bag</span>
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-4 md:px-6 py-4 md:py-8 space-y-6">
+        
+        {/* Responsive Steps Bar */}
+        <div className="max-w-xl mx-auto flex items-center justify-between text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">
+          <div className="flex items-center gap-1.5 text-emerald-600">
+            <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-emerald-100 flex items-center justify-center text-[10px] font-black text-emerald-600">✓</span>
+            <span className="hidden sm:inline">Shopping</span> Bag
           </div>
-          <div className="flex-1 h-0.5 bg-emerald-500 mx-4" />
-          <div className="flex items-center gap-2 text-[var(--foreground)]">
-            <span className="w-6 h-6 rounded-full border-2 border-[var(--foreground)] flex items-center justify-center text-[10px] font-black">2</span>
+          <div className="flex-1 h-0.5 bg-emerald-500 mx-2 sm:mx-4" />
+          <div className="flex items-center gap-1.5 text-slate-900 font-black">
+            <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#ff6600] text-white flex items-center justify-center text-[10px] font-black">2</span>
             <span>Checkout</span>
           </div>
-          <div className="flex-1 h-0.5 bg-zinc-200 mx-4" />
-          <div className="flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full border-2 border-zinc-200 flex items-center justify-center text-[10px] font-black">3</span>
-            <span>Confirmation</span>
+          <div className="flex-1 h-0.5 bg-slate-200 mx-2 sm:mx-4" />
+          <div className="flex items-center gap-1.5">
+            <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 border-slate-300 flex items-center justify-center text-[10px] font-black text-slate-400">3</span>
+            <span className="hidden sm:inline">Confirmation</span>
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-b border-[var(--border)] pb-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold uppercase tracking-tight flex items-center gap-3">
-              <CreditCard className="h-7 w-7" /> Checkout
-            </h1>
-            <p className="text-xs text-[var(--muted-foreground)] mt-1">Enter your delivery details and confirm your order.</p>
-          </div>
+        {/* MOBILE ONLY: Accordion summary preview at top */}
+        <div className="lg:hidden rounded-2xl border border-slate-200 bg-white p-3 shadow-xs">
+          <button
+            type="button"
+            onClick={() => setShowMobileOrderSummary(!showMobileOrderSummary)}
+            className="w-full flex items-center justify-between text-xs font-bold text-slate-900 cursor-pointer"
+          >
+            <div className="flex items-center gap-2">
+              <ShoppingBag className="h-4 w-4 text-[#ff6600]" />
+              <span>Order Summary ({cart.length} items)</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm font-black text-slate-950">৳{total.toLocaleString()}</span>
+              {showMobileOrderSummary ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </div>
+          </button>
+
+          {showMobileOrderSummary && (
+            <div className="mt-3 pt-3 border-t border-slate-100 space-y-3 animate-in fade-in duration-150 text-xs">
+              <div className="max-h-48 overflow-y-auto space-y-2 pr-1">
+                {cart.map((item) => (
+                  <div key={item.id} className="flex justify-between items-center py-1.5 border-b border-slate-100 last:border-b-0">
+                    <div className="flex items-center gap-2 min-w-0 pr-2">
+                      {item.image && (
+                        <img src={item.image} className="w-8 h-8 rounded-md object-contain border border-slate-100 shrink-0" />
+                      )}
+                      <p className="font-semibold text-slate-900 line-clamp-1">{item.name}</p>
+                    </div>
+                    <span className="font-bold text-slate-950 shrink-0">৳{(item.price * item.quantity).toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-1.5 pt-2 text-[11px] font-semibold text-slate-600 border-t border-slate-100">
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span className="font-bold text-slate-900">৳{subtotal.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Delivery Charge</span>
+                  <span className="font-bold text-slate-900">{district ? `৳${deliveryCharge}` : "Select district"}</span>
+                </div>
+                {totalDiscount > 0 && (
+                  <div className="flex justify-between text-emerald-600 font-extrabold">
+                    <span>Discount</span>
+                    <span>−৳{totalDiscount.toLocaleString()}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {error && (
-          <div className="p-4 rounded-xl text-xs font-semibold bg-rose-500/10 text-rose-600 border border-rose-500/20">
-            {error}
+          <div className="p-3.5 rounded-2xl text-xs font-bold bg-rose-500/10 text-rose-600 border border-rose-500/20">
+            ⚠️ {error}
           </div>
         )}
 
-        <div className="grid gap-8 lg:grid-cols-5 items-start">
+        <div className="grid gap-6 lg:grid-cols-5 items-start">
+          
           {/* ─── LEFT: Shipping Form ─── */}
-          <div className="lg:col-span-3 p-6 rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm space-y-6">
-            <h3 className="text-xs font-bold uppercase text-[var(--foreground)] tracking-wider border-b border-[var(--border)] pb-3 flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4" /> Shipping Details
+          <div className="lg:col-span-3 p-4 sm:p-6 rounded-3xl border border-slate-200/80 bg-white shadow-xs space-y-6">
+            <h3 className="text-xs font-black uppercase text-slate-900 tracking-wider border-b border-slate-100 pb-3 flex items-center gap-2">
+              <ShieldCheck className="h-4.5 w-4.5 text-[#ff6600]" /> Shipping & Contact Info
             </h3>
 
-            <form onSubmit={handlePlaceOrder} className="space-y-5">
+            <form id="checkout-form" onSubmit={handlePlaceOrder} className="space-y-4 sm:space-y-5">
+              
               {/* Name + Email */}
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="block text-[10px] font-semibold uppercase text-zinc-500 mb-1.5">Full Name *</label>
+                  <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Full Name *</label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
-                    className="w-full px-3 py-2.5 text-sm rounded-xl bg-[var(--background)] border border-[var(--border)] focus:outline-none focus:border-[var(--foreground)] font-medium transition-all"
-                    placeholder="e.g. Emran Hossen"
+                    className="w-full px-3.5 py-2.5 sm:py-3 text-xs sm:text-sm rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-[#ff6600] font-semibold text-slate-900"
+                    placeholder="e.g. Rahim Ahmed"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-semibold uppercase text-zinc-500 mb-1.5">Email Address *</label>
+                  <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Email Address *</label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full px-3 py-2.5 text-sm rounded-xl bg-[var(--background)] border border-[var(--border)] focus:outline-none focus:border-[var(--foreground)] font-medium transition-all"
-                    placeholder="e.g. emran@example.com"
+                    className="w-full px-3.5 py-2.5 sm:py-3 text-xs sm:text-sm rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-[#ff6600] font-semibold text-slate-900"
+                    placeholder="e.g. rahim@gmail.com"
                   />
                 </div>
               </div>
 
               {/* Phone */}
               <div>
-                <label className="block text-[10px] font-semibold uppercase text-zinc-500 mb-1.5">Phone Number *</label>
+                <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Phone Number *</label>
                 <input
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   required
-                  className="w-full px-3 py-2.5 text-sm rounded-xl bg-[var(--background)] border border-[var(--border)] focus:outline-none focus:border-[var(--foreground)] font-medium transition-all"
+                  className="w-full px-3.5 py-2.5 sm:py-3 text-xs sm:text-sm rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-[#ff6600] font-semibold text-slate-900"
                   placeholder="e.g. 01700000000"
                 />
               </div>
 
               {/* Division */}
               <div>
-                <label className="block text-[10px] font-semibold uppercase text-zinc-500 mb-1.5">Division *</label>
+                <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Division *</label>
                 <select
                   value={division}
                   onChange={(e) => {
@@ -381,7 +405,7 @@ export default function CheckoutPage() {
                     setThana("");
                   }}
                   required
-                  className="w-full px-3 py-2.5 text-sm rounded-xl bg-[var(--background)] border border-[var(--border)] focus:outline-none focus:border-[var(--foreground)] font-medium transition-all cursor-pointer"
+                  className="w-full px-3.5 py-2.5 sm:py-3 text-xs sm:text-sm rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-[#ff6600] font-bold text-slate-900 cursor-pointer"
                 >
                   <option value="" disabled>Select Division</option>
                   {BD_DIVISIONS.map((d) => (
@@ -391,9 +415,9 @@ export default function CheckoutPage() {
               </div>
 
               {/* District + Thana */}
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="block text-[10px] font-semibold uppercase text-zinc-500 mb-1.5">District *</label>
+                  <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">District *</label>
                   <select
                     value={district}
                     onChange={(e) => {
@@ -402,7 +426,7 @@ export default function CheckoutPage() {
                     }}
                     required
                     disabled={!division}
-                    className="w-full px-3 py-2.5 text-sm rounded-xl bg-[var(--background)] border border-[var(--border)] focus:outline-none focus:border-[var(--foreground)] font-medium transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-full px-3.5 py-2.5 sm:py-3 text-xs sm:text-sm rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-[#ff6600] font-bold text-slate-900 cursor-pointer disabled:opacity-40"
                   >
                     <option value="" disabled>Select District</option>
                     {availableDistricts.map((d) => (
@@ -412,13 +436,13 @@ export default function CheckoutPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-semibold uppercase text-zinc-500 mb-1.5">Thana / Upazila *</label>
+                  <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Thana / Upazila *</label>
                   <select
                     value={thana}
                     onChange={(e) => setThana(e.target.value)}
                     required
                     disabled={!district}
-                    className="w-full px-3 py-2.5 text-sm rounded-xl bg-[var(--background)] border border-[var(--border)] focus:outline-none focus:border-[var(--foreground)] font-medium transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-full px-3.5 py-2.5 sm:py-3 text-xs sm:text-sm rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-[#ff6600] font-bold text-slate-900 cursor-pointer disabled:opacity-40"
                   >
                     <option value="" disabled>Select Thana</option>
                     {availableThanas.map((t) => (
@@ -430,160 +454,150 @@ export default function CheckoutPage() {
 
               {/* Delivery charge indicator */}
               {district && (
-                <div className={`flex items-center gap-3 rounded-xl p-3 text-xs font-semibold border ${
+                <div className={`flex items-center gap-2.5 rounded-xl p-3 text-xs font-bold border ${
                   district === "Dhaka"
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                    : "border-amber-200 bg-amber-50 text-amber-700"
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                    : "border-amber-200 bg-amber-50 text-amber-800"
                 }`}>
-                  <Truck className="h-4 w-4 shrink-0" />
-                  {district === "Dhaka"
-                    ? "Inside Dhaka — Delivery Charge: ৳60"
-                    : `Outside Dhaka (${district}) — Delivery Charge: ৳120`}
-                  <MapPin className="h-3.5 w-3.5 ml-auto shrink-0" />
+                  <Truck className="h-4 w-4 shrink-0 text-[#ff6600]" />
+                  <span>
+                    {district === "Dhaka"
+                      ? "Inside Dhaka — Delivery Fee: ৳60"
+                      : `Outside Dhaka (${district}) — Delivery Fee: ৳120`}
+                  </span>
                 </div>
               )}
 
               {/* Address */}
               <div>
-                <label className="block text-[10px] font-semibold uppercase text-zinc-500 mb-1.5">House / Road / Area *</label>
+                <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Detailed Address *</label>
                 <textarea
                   value={addressLine}
                   onChange={(e) => setAddressLine(e.target.value)}
                   required
                   rows={2}
-                  className="w-full px-3 py-2.5 text-sm rounded-xl bg-[var(--background)] border border-[var(--border)] focus:outline-none focus:border-[var(--foreground)] font-medium transition-all resize-none"
-                  placeholder="House no, road no, area / mohalla"
+                  className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-[#ff6600] font-semibold text-slate-900 resize-none"
+                  placeholder="House no, Road no, Village / Area..."
                 />
               </div>
 
               {/* Payment Method */}
               <div>
-                <label className="block text-[10px] font-semibold uppercase text-zinc-500 mb-2">Payment Method *</label>
+                <label className="block text-[10px] font-black uppercase text-slate-500 mb-2">Payment Method *</label>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <button
                     type="button"
                     onClick={() => setPaymentMethod("COD")}
-                    className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all text-left ${
+                    className={`flex items-start gap-3 p-3.5 rounded-2xl border-2 cursor-pointer transition-all text-left ${
                       paymentMethod === "COD"
-                        ? "border-emerald-500 bg-emerald-50"
-                        : "border-[var(--border)] hover:border-[var(--foreground)] bg-[var(--background)]"
+                        ? "border-emerald-500 bg-emerald-50/60 ring-2 ring-emerald-300/40"
+                        : "border-slate-200 hover:border-slate-400 bg-slate-50"
                     }`}
                   >
-                    <Banknote className={`h-5 w-5 mt-0.5 shrink-0 ${paymentMethod === "COD" ? "text-emerald-600" : "text-zinc-400"}`} />
+                    <Banknote className={`h-5 w-5 mt-0.5 shrink-0 ${paymentMethod === "COD" ? "text-emerald-600" : "text-slate-400"}`} />
                     <div>
-                      <p className={`text-xs font-bold ${paymentMethod === "COD" ? "text-emerald-700" : "text-[var(--foreground)]"}`}>
+                      <p className={`text-xs font-black ${paymentMethod === "COD" ? "text-emerald-800" : "text-slate-900"}`}>
                         Cash on Delivery (COD)
                       </p>
-                      <p className="text-[10px] text-zinc-500 mt-0.5">Pay when you receive the package</p>
+                      <p className="text-[10px] text-slate-500 font-medium">Pay cash when package arrives</p>
                     </div>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setPaymentMethod("ONLINE")}
-                    className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all text-left ${
+                    className={`flex items-start gap-3 p-3.5 rounded-2xl border-2 cursor-pointer transition-all text-left ${
                       paymentMethod === "ONLINE"
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-[var(--border)] hover:border-[var(--foreground)] bg-[var(--background)]"
+                        ? "border-[#ff6600] bg-orange-50/60 ring-2 ring-orange-300/40"
+                        : "border-slate-200 hover:border-slate-400 bg-slate-50"
                     }`}
                   >
-                    <Smartphone className={`h-5 w-5 mt-0.5 shrink-0 ${paymentMethod === "ONLINE" ? "text-blue-600" : "text-zinc-400"}`} />
+                    <Smartphone className={`h-5 w-5 mt-0.5 shrink-0 ${paymentMethod === "ONLINE" ? "text-[#ff6600]" : "text-slate-400"}`} />
                     <div>
-                      <p className={`text-xs font-bold ${paymentMethod === "ONLINE" ? "text-blue-700" : "text-[var(--foreground)]"}`}>
+                      <p className={`text-xs font-black ${paymentMethod === "ONLINE" ? "text-[#ff6600]" : "text-slate-900"}`}>
                         Online Payment
                       </p>
-                      <p className="text-[10px] text-zinc-500 mt-0.5">bKash · Nagad · Visa · MasterCard</p>
+                      <p className="text-[10px] text-slate-500 font-medium">bKash · Nagad · Visa · Card</p>
                     </div>
                   </button>
                 </div>
-
-                {/* Online payment note */}
-                {paymentMethod === "ONLINE" && (
-                  <div className="mt-3 p-3 rounded-xl bg-blue-50 border border-blue-200 text-[10px] text-blue-700 font-medium">
-                    ℹ️ After placing your order, our team will contact you with payment instructions via phone or WhatsApp.
-                  </div>
-                )}
               </div>
 
-              {/* Submit */}
-              <div className="pt-4 border-t border-[var(--border)]">
+              {/* DESKTOP Submit Button */}
+              <div className="hidden lg:block pt-2">
                 <button
                   type="submit"
                   disabled={loading || cart.length === 0}
-                  className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold uppercase tracking-wider shadow-md cursor-pointer flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full py-4 bg-[#ff6600] hover:bg-[#e65c00] text-white rounded-2xl text-sm font-black uppercase tracking-wider shadow-lg shadow-orange-500/25 cursor-pointer flex items-center justify-center gap-2 transition-all disabled:opacity-50"
                 >
                   <Lock className="h-4 w-4" />
-                  {loading ? "Processing..." : `Confirm Order — ৳${total.toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
+                  {loading ? "Processing Order..." : `Confirm Order — ৳${total.toLocaleString()}`}
                 </button>
-                <p className="text-center text-[10px] text-zinc-400 mt-3">
-                  Payment method: <strong>{paymentMethod === "COD" ? "Cash on Delivery" : "Online Payment"}</strong>
-                </p>
               </div>
             </form>
           </div>
 
-          {/* ─── RIGHT: Order Summary ─── */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="p-6 border border-[var(--border)] bg-[var(--card)] rounded-2xl shadow-sm space-y-5">
-              <h3 className="text-xs font-bold uppercase text-[var(--foreground)] tracking-wider border-b border-[var(--border)] pb-3">
-                Order Summary
+          {/* ─── RIGHT: Order Summary (Desktop Side Panel) ─── */}
+          <div className="hidden lg:block lg:col-span-2 space-y-5">
+            <div className="p-6 border border-slate-200/80 bg-white rounded-3xl shadow-xs space-y-5">
+              <h3 className="text-xs font-black uppercase text-slate-900 tracking-wider border-b border-slate-100 pb-3">
+                Order Items ({cart.length})
               </h3>
 
-              {/* Cart items */}
-              <div className="max-h-56 overflow-y-auto space-y-3 text-xs scrollbar-none pr-1">
+              <div className="max-h-60 overflow-y-auto space-y-3 text-xs scrollbar-none pr-1">
                 {cart.map((item) => (
-                  <div key={item.id} className="flex justify-between items-center py-2 border-b border-[var(--border)] last:border-b-0">
-                    <div className="min-w-0 pr-3 flex items-center gap-2">
+                  <div key={item.id} className="flex justify-between items-center py-2 border-b border-slate-100 last:border-b-0">
+                    <div className="min-w-0 pr-3 flex items-center gap-2.5">
                       {item.image && (
-                        <div className="w-9 h-9 rounded-lg border border-[var(--border)] bg-white flex items-center justify-center shrink-0 overflow-hidden p-0.5">
+                        <div className="w-10 h-10 rounded-xl border border-slate-100 bg-slate-50 flex items-center justify-center shrink-0 overflow-hidden p-0.5">
                           <img src={item.image} className="max-h-full max-w-full object-contain" />
                         </div>
                       )}
                       <div>
-                        <p className="font-semibold text-[var(--foreground)] line-clamp-1">{item.name}</p>
-                        <p className="text-[9px] text-[var(--muted-foreground)] font-mono mt-0.5">Qty: {item.quantity} × ৳{item.price.toFixed(2)}</p>
+                        <p className="font-extrabold text-slate-900 line-clamp-1">{item.name}</p>
+                        <p className="text-[10px] text-slate-400 font-bold mt-0.5">Qty: {item.quantity} × ৳{item.price}</p>
                       </div>
                     </div>
-                    <span className="font-bold text-[var(--foreground)] shrink-0">৳{(item.price * item.quantity).toFixed(2)}</span>
+                    <span className="font-black text-slate-950 shrink-0">৳{(item.price * item.quantity).toLocaleString()}</span>
                   </div>
                 ))}
               </div>
 
               {/* Coupon */}
-              <div>
+              <div className="space-y-1.5">
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                    placeholder="Promo code"
-                    className="flex-1 px-3 py-2 text-xs rounded-lg border border-[var(--border)] focus:outline-none focus:border-[var(--foreground)] font-bold uppercase tracking-wider bg-[var(--background)]"
+                    placeholder="PROMO CODE"
+                    className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-[#ff6600] font-black uppercase tracking-wider bg-slate-50"
                   />
                   <button
                     type="button"
                     onClick={handleApplyCoupon}
                     disabled={applyingCoupon || !couponCode}
-                    className="px-4 py-2 bg-[var(--foreground)] text-[var(--background)] rounded-lg text-xs font-bold uppercase tracking-wider disabled:opacity-50 cursor-pointer"
+                    className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold uppercase tracking-wider disabled:opacity-50 cursor-pointer hover:bg-slate-800"
                   >
                     {applyingCoupon ? "..." : "Apply"}
                   </button>
                 </div>
-                {couponError && <p className="text-[10px] text-rose-500 font-semibold mt-1.5">{couponError}</p>}
+                {couponError && <p className="text-[10px] text-rose-500 font-bold">{couponError}</p>}
                 {discountAmount > 0 && (
-                  <p className="text-[10px] text-emerald-600 font-semibold mt-1.5 flex items-center gap-1">
-                    <Ticket className="h-3 w-3" /> Coupon Applied! −৳{discountAmount.toFixed(2)}
+                  <p className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
+                    <Ticket className="h-3 w-3" /> Coupon Applied! −৳{discountAmount}
                   </p>
                 )}
               </div>
 
               {/* Reward Coins */}
               {user && userCoins > 0 && (
-                <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs flex items-center justify-between">
+                <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-2xl text-xs flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="text-amber-500 font-bold text-sm">🪙</span>
+                    <span className="text-amber-500 font-bold text-base">🪙</span>
                     <div>
-                      <p className="font-bold text-amber-900 dark:text-amber-200 text-[11px]">Use Reward Coins</p>
-                      <p className="text-[9px] text-amber-700 dark:text-amber-400 font-medium">You have {userCoins} coins (Save up to ৳{Math.min(subtotal, userCoins)})</p>
+                      <p className="font-bold text-amber-900 text-[11px]">Use Reward Coins</p>
+                      <p className="text-[9px] text-amber-700 font-medium">You have {userCoins} coins (Save up to ৳{Math.min(subtotal, userCoins)})</p>
                     </div>
                   </div>
                   <input
@@ -595,47 +609,53 @@ export default function CheckoutPage() {
                 </div>
               )}
 
-              {/* Price breakdown */}
-              <div className="divide-y divide-[var(--border)] text-xs font-medium border-t border-[var(--border)] pt-1">
-                <div className="py-3 flex justify-between text-[var(--muted-foreground)]">
+              {/* Price Breakdown */}
+              <div className="divide-y divide-slate-100 text-xs font-bold border-t border-slate-100 pt-1">
+                <div className="py-2.5 flex justify-between text-slate-500">
                   <span>Subtotal</span>
-                  <span className="font-semibold text-[var(--foreground)]">৳{subtotal.toFixed(2)}</span>
+                  <span className="text-slate-950 font-extrabold">৳{subtotal.toLocaleString()}</span>
                 </div>
 
-                <div className="py-3 flex justify-between text-[var(--muted-foreground)]">
-                  <span className="flex items-center gap-1">
-                    <Truck className="h-3.5 w-3.5" />
-                    Delivery Charge
-                    {district && <span className="text-[9px] ml-1 text-zinc-400">({district === "Dhaka" ? "Inside Dhaka" : "Outside Dhaka"})</span>}
-                  </span>
-                  <span className="font-semibold text-[var(--foreground)]">
-                    {district ? `৳${deliveryCharge.toFixed(2)}` : <span className="text-zinc-400">Select district</span>}
-                  </span>
+                <div className="py-2.5 flex justify-between text-slate-500">
+                  <span>Delivery Fee</span>
+                  <span className="text-slate-950 font-extrabold">{district ? `৳${deliveryCharge}` : "Select district"}</span>
                 </div>
 
-                {discountAmount > 0 && (
-                  <div className="py-3 flex justify-between text-emerald-600 font-semibold">
-                    <span>Discount</span>
-                    <span>−৳{discountAmount.toFixed(2)}</span>
+                {totalDiscount > 0 && (
+                  <div className="py-2.5 flex justify-between text-emerald-600 font-black">
+                    <span>Total Discount</span>
+                    <span>−৳{totalDiscount.toLocaleString()}</span>
                   </div>
                 )}
 
-                <div className="py-4 flex justify-between text-sm font-bold border-t border-[var(--border)] text-[var(--foreground)]">
-                  <span>Total Amount</span>
-                  <span className="text-base" style={{ color: "var(--primary)" }}>
-                    ৳{total.toFixed(2)}
-                  </span>
+                <div className="py-3 flex justify-between text-base font-black border-t border-slate-100 text-slate-950">
+                  <span>Total Payable</span>
+                  <span className="text-[#ff6600] text-lg">৳{total.toLocaleString()}</span>
                 </div>
-              </div>
-
-              <div className="flex items-center justify-center gap-2 text-[10px] text-[var(--muted-foreground)] bg-[var(--background)] p-3 rounded-xl border border-[var(--border)] font-medium">
-                <ShieldCheck className="h-4 w-4 text-emerald-500 flex-shrink-0" />
-                <span>Your order information is securely encrypted.</span>
               </div>
             </div>
           </div>
         </div>
       </main>
+
+      {/* MOBILE STICKY BOTTOM ORDER BAR */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-3 shadow-2xl flex items-center justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-bold text-slate-400 uppercase">Total Amount</p>
+          <p className="text-lg font-black text-slate-950 leading-tight">৳{total.toLocaleString()}</p>
+        </div>
+
+        <button
+          form="checkout-form"
+          type="submit"
+          disabled={loading || cart.length === 0}
+          className="flex-1 py-3 bg-[#ff6600] hover:bg-[#e65c00] text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-md cursor-pointer flex items-center justify-center gap-1.5 transition-all disabled:opacity-50 max-w-[200px]"
+        >
+          <Lock className="h-3.5 w-3.5" />
+          {loading ? "Processing..." : "Place Order"}
+        </button>
+      </div>
+
       <Footer />
     </div>
   );

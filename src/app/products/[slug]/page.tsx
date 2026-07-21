@@ -70,6 +70,7 @@ export default async function ProductDetailPage({
     <ProductDetailPageClient
       initialProduct={res.product}
       initialRelated={res.relatedProducts || []}
+      initialJustForYou={res.justForYouProducts || []}
     />
   );
 }

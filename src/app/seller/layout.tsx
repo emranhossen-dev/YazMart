@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getEnterpriseUserSession } from "@/actions/auth-enterprise";
 import { getSellerStore } from "@/actions/seller";
@@ -38,8 +38,10 @@ export default async function SellerLayout({ children }: { children: React.React
   };
 
   return (
-    <SellerLayoutClient session={session} store={defaultStore}>
-      {children}
-    </SellerLayoutClient>
+    <Suspense fallback={null}>
+      <SellerLayoutClient session={session} store={defaultStore}>
+        {children}
+      </SellerLayoutClient>
+    </Suspense>
   );
 }

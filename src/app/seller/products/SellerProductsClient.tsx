@@ -3,8 +3,9 @@
 import React, { useState } from "react";
 import { createEnterpriseProduct } from "@/actions/pim-products";
 import { deleteSellerProduct } from "@/actions/seller";
+import { uploadImage } from "@/actions/upload";
 import { 
-  Plus, Edit, Trash2, X, ShoppingBag, Loader2, Search, SlidersHorizontal 
+  Plus, Edit, Trash2, X, ShoppingBag, Loader2, Search, SlidersHorizontal, UploadCloud, ImageIcon 
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -49,6 +50,32 @@ export default function SellerProductsClient({
   const [currentStock, setCurrentStock] = useState("");
   const [featuredImage, setFeaturedImage] = useState("");
   const [shortDesc, setShortDesc] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
+
+  const handleFileUpload = async (file: File) => {
+    if (!file) return;
+    setUploadingImage(true);
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await uploadImage(fd);
+    if (res.error) {
+      toast.error(res.error);
+    } else if (res.url) {
+      setFeaturedImage(res.url);
+      toast.success("Image uploaded!");
+    }
+    setUploadingImage(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileUpload(e.dataTransfer.files[0]);
+    }
+  };
 
   const openAddModal = () => {
     setEditingProduct(null);
@@ -400,15 +427,60 @@ export default function SellerProductsClient({
                   />
                 </div>
 
-                <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">Featured Image URL</label>
-                  <input
-                    type="url"
-                    value={featuredImage}
-                    onChange={(e) => setFeaturedImage(e.target.value)}
-                    placeholder="https://example.com/shoe.png"
-                    className="mt-1.5 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-xs font-semibold focus:border-zinc-900 focus:bg-white focus:outline-none"
-                  />
+                <div className="sm:col-span-2 space-y-2">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500">Product Image (Drag & Drop or Attach File)</label>
+                  
+                  <div 
+                    onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+                    onDragLeave={() => setDragActive(false)}
+                    onDrop={handleDrop}
+                    className={`border-2 border-dashed rounded-2xl p-4 text-center transition-all flex flex-col items-center justify-center gap-2 relative ${
+                      dragActive ? "border-[#ff6600] bg-orange-50/50" : "border-zinc-200 bg-zinc-50 hover:border-zinc-400"
+                    }`}
+                  >
+                    {featuredImage ? (
+                      <div className="flex items-center gap-4 w-full">
+                        <img src={featuredImage} className="h-16 w-16 rounded-xl object-contain border border-zinc-200 bg-white p-1" />
+                        <div className="flex-1 text-left min-w-0">
+                          <p className="text-xs font-bold text-zinc-900 truncate">{featuredImage}</p>
+                          <button
+                            type="button"
+                            onClick={() => setFeaturedImage("")}
+                            className="text-[10px] text-rose-500 font-bold hover:underline mt-0.5 cursor-pointer"
+                          >
+                            Remove Image
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <UploadCloud className="h-8 w-8 text-zinc-400" />
+                        <p className="text-xs font-bold text-zinc-700">Drag and drop product image here, or click to upload</p>
+                        <p className="text-[10px] text-zinc-400">Supports JPG, PNG, WEBP files</p>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              handleFileUpload(e.target.files[0]);
+                            }
+                          }}
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                        />
+                      </>
+                    )}
+                  </div>
+
+                  <div className="flex gap-2 items-center">
+                    <span className="text-[10px] font-bold text-zinc-400 uppercase shrink-0">Or Paste Image URL:</span>
+                    <input
+                      type="url"
+                      value={featuredImage}
+                      onChange={(e) => setFeaturedImage(e.target.value)}
+                      placeholder="https://example.com/image.png"
+                      className="flex-1 rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium focus:border-zinc-900 focus:outline-none"
+                    />
+                  </div>
                 </div>
 
                 <div className="sm:col-span-2">

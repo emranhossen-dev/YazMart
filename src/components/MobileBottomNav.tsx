@@ -1,12 +1,12 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home as HomeIcon, Sparkles, ShoppingBag, Package, User } from "lucide-react";
 import { useShopStore } from "@/store/shop-store";
 
-export default function MobileBottomNav() {
+function MobileBottomNavContent() {
   const pathname = usePathname();
   const { cart } = useShopStore();
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -70,3 +70,12 @@ export default function MobileBottomNav() {
     </div>
   );
 }
+
+export default function MobileBottomNav() {
+  return (
+    <Suspense fallback={null}>
+      <MobileBottomNavContent />
+    </Suspense>
+  );
+}
+
