@@ -61,6 +61,7 @@ function ProductAddFormContent() {
     slug: "",
     sku: "",
     barcode: "",
+    product_code: "",
     status: "PUBLISHED",
     product_type: "PHYSICAL",
     buying_price: 0,
@@ -415,7 +416,7 @@ function ProductAddFormContent() {
                     type="text" 
                     pattern="[0-9]*"
                     inputMode="numeric"
-                    value={formData.barcode} 
+                    value={formData.barcode || ""} 
                     onChange={(e) => handleInputChange("barcode", e.target.value)} 
                     placeholder="e.g. 123456789012" 
                     className="w-full px-3 py-2 text-xs font-mono rounded bg-[var(--background)] border border-[var(--border)] focus:outline-none" 
@@ -425,7 +426,7 @@ function ProductAddFormContent() {
                   <label className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Product Code</label>
                   <input 
                     type="text" 
-                    value={formData.product_code} 
+                    value={formData.product_code || ""} 
                     onChange={(e) => handleInputChange("product_code", e.target.value)} 
                     placeholder="Internal Code" 
                     className="w-full px-3 py-2 text-xs font-mono rounded bg-[var(--background)] border border-[var(--border)] focus:outline-none" 
