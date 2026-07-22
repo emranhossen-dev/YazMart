@@ -84,7 +84,12 @@ export default function AuthModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/70 backdrop-blur-md p-4 animate-in fade-in duration-200 select-none">
+    <div 
+      onClick={(e) => {
+        if (e.target === e.currentTarget) closeAuthModal();
+      }}
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/70 backdrop-blur-md p-4 animate-in fade-in duration-200 select-none"
+    >
       <div className="relative w-full max-w-md bg-white dark:bg-[#0c1026] border border-slate-200 dark:border-[#1a224c] rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
         
         {/* Modal Top Header */}

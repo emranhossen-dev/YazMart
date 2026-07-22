@@ -42,7 +42,7 @@ function getStageIndex(status: string): number {
 function CustomerProfileContent() {
   const searchParams = useSearchParams();
   const tabQuery = searchParams.get("tab");
-  const { user, isLoading: authLoading } = useAuthStore();
+  const { user, isLoading: authLoading, openAuthModal } = useAuthStore();
   const { cart, wishlist, removeFromCart, removeFromWishlist, addToCart } = useShopStore();
 
   if (!authLoading && !user) {
@@ -110,12 +110,12 @@ function CustomerProfileContent() {
             <User className="h-12 w-12 text-zinc-400 mx-auto" />
             <h2 className="text-xl font-bold text-zinc-900">Sign In to View Dashboard</h2>
             <p className="text-xs text-zinc-500">Log in to track your orders, write reviews, manage cart, wishlist, and redeem reward coins.</p>
-            <Link
-              href="/auth"
-              className="inline-block w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-colors"
+            <button
+              onClick={() => openAuthModal("login")}
+              className="w-full py-3 bg-[#ff6600] hover:bg-orange-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
             >
               Sign In / Register
-            </Link>
+            </button>
           </div>
         </main>
         <Footer />

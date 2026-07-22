@@ -387,7 +387,7 @@ export default function HomePageClient({
     updateQuantity,
     removeFromWishlist
   } = useShopStore();
-  const { user } = useAuthStore();
+  const { user, openAuthModal } = useAuthStore();
 
   const handleAddToCart = (product: any) => {
     addToCart(product);
@@ -540,9 +540,13 @@ export default function HomePageClient({
                 )}
               </div>
             ) : (
-              <Link href="/auth" className="hidden md:flex items-center gap-1.5 rounded-full bg-[#ff6600] hover:bg-orange-700 px-4 py-2 text-xs font-extrabold text-white transition-all shadow-xs">
+              <button
+                type="button"
+                onClick={() => openAuthModal("login")}
+                className="hidden md:flex items-center gap-1.5 rounded-full bg-[#ff6600] hover:bg-orange-700 px-4 py-2 text-xs font-extrabold text-white transition-all shadow-xs cursor-pointer"
+              >
                 Sign In
-              </Link>
+              </button>
             )}
 
             {/* Wishlist Icon (Desktop) */}
@@ -885,13 +889,16 @@ export default function HomePageClient({
                   </div>
                 </div>
               ) : (
-                <Link
-                  href="/auth"
-                  onClick={() => setMobileSidebarOpen(false)}
-                  className="flex items-center justify-center gap-2 rounded-2xl bg-[#ff6600] py-3 font-extrabold text-white text-xs shadow-md"
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileSidebarOpen(false);
+                    openAuthModal("login");
+                  }}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#ff6600] py-3 font-extrabold text-white text-xs shadow-md cursor-pointer"
                 >
                   <User className="h-4 w-4" /> Sign In / Register
-                </Link>
+                </button>
               )}
 
               {/* All Categories Section */}

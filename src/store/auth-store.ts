@@ -37,6 +37,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'yazmart-auth-user',
+      partialize: (state) => ({ user: state.user }),
     }
   )
 );
