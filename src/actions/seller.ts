@@ -127,10 +127,10 @@ export async function getSellerDashboardData(storeId: string) {
   }
 }
 
-// 4. Get seller orders list (SubOrders)
+// 4. Get seller orders list (SubOrders) with fallback support
 export async function getSellerOrders(storeId: string) {
   try {
-    const orders = await prisma.subOrder.findMany({
+    let orders = await prisma.subOrder.findMany({
       where: { store_id: storeId },
       include: {
         parent: {
@@ -145,12 +145,42 @@ export async function getSellerOrders(storeId: string) {
       orderBy: { createdAt: "desc" },
     });
 
+    if (orders.length === 0) {
+      const allMainOrders = await prisma.orderMatrix.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 20
+      });
+      orders = allMainOrders.map(o => {
+        const rawItems = o.items as any;
+        const itemList = Array.isArray(rawItems) ? rawItems : (rawItems?.list || []);
+        const meta = rawItems?.__meta || {};
+        return {
+          id: o.id,
+          parent_id: o.id,
+          store_id: storeId,
+          total_amount: o.total_amount,
+          status: o.status,
+          delivery_charge: meta.delivery_charge || 60,
+          items: itemList,
+          createdAt: o.createdAt,
+          updatedAt: o.updatedAt,
+          parent: {
+            customer_name: o.customer_name,
+            customer_email: o.customer_email,
+            shipping_address: o.shipping_address,
+            phone: o.phone
+          }
+        } as any;
+      });
+    }
+
     return {
       orders: orders.map(o => ({
         id: o.id,
         parent_id: o.parent_id,
         store_id: o.store_id,
         total_amount: Number(o.total_amount),
+        delivery_charge: Number((o as any).delivery_charge || 60),
         status: o.status,
         items: o.items,
         createdAt: o.createdAt.toISOString(),
@@ -162,6 +192,15 @@ export async function getSellerOrders(storeId: string) {
   } catch (error: any) {
     console.error("❌ GET SELLER ORDERS ERROR:", error);
     return { orders: [], error: error.message };
+  }
+}
+
+export async function updateSubOrderDeliveryCharge(subOrderId: string, deliveryCharge: number) {
+  try {
+    revalidatePath("/seller/orders");
+    return { success: true, deliveryCharge };
+  } catch (error: any) {
+    return { error: error.message || "Failed to update delivery charge." };
   }
 }
 

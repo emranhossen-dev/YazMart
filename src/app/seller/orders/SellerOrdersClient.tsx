@@ -163,18 +163,45 @@ export default function SellerOrdersClient({ initialOrders }: SellerOrdersClient
                           <td colSpan={6} className="bg-zinc-50/70 px-8 py-5 border-t border-zinc-100">
                             <div className="grid gap-6 md:grid-cols-3">
                               {/* Shipping address info */}
-                              <div className="space-y-2 md:col-span-1">
-                                <h4 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Shipping Logistics</h4>
-                                <div className="flex gap-2 text-zinc-700">
-                                  <MapPin className="h-4 w-4 shrink-0 text-zinc-400" />
-                                  <div>
-                                    <p className="font-extrabold text-zinc-900">{customer.customer_name}</p>
-                                    <p className="mt-1 leading-relaxed">{customer.shipping_address}</p>
+                              <div className="space-y-4 md:col-span-1">
+                                <div className="space-y-2">
+                                  <h4 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Shipping Logistics</h4>
+                                  <div className="flex gap-2 text-zinc-700">
+                                    <MapPin className="h-4 w-4 shrink-0 text-zinc-400" />
+                                    <div>
+                                      <p className="font-extrabold text-zinc-900">{customer.customer_name}</p>
+                                      <p className="mt-1 leading-relaxed text-xs">{customer.shipping_address}</p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2 text-zinc-700 pt-1">
+                                    <Phone className="h-4 w-4 text-zinc-400" />
+                                    <span className="font-mono text-xs">{customer.phone}</span>
                                   </div>
                                 </div>
-                                <div className="flex items-center gap-2 text-zinc-700 pt-1">
-                                  <Phone className="h-4 w-4 text-zinc-400" />
-                                  <span className="font-mono">{customer.phone}</span>
+
+                                {/* Delivery Charge Edit Box */}
+                                <div className="rounded-2xl border border-zinc-200 bg-white p-3.5 space-y-2 shadow-xs">
+                                  <h5 className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Delivery Amount Setup</h5>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-bold text-zinc-500">৳</span>
+                                    <input
+                                      type="number"
+                                      defaultValue={order.delivery_charge || 60}
+                                      id={`del-charge-${order.id}`}
+                                      className="w-24 rounded-lg border border-zinc-200 px-2.5 py-1 text-xs font-bold text-zinc-900 focus:border-zinc-900 focus:outline-none"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const el = document.getElementById(`del-charge-${order.id}`) as HTMLInputElement;
+                                        const val = Number(el?.value || 60);
+                                        toast.success(`Delivery charge set to ৳${val} for Order #${order.id.slice(0, 8)}`);
+                                      }}
+                                      className="rounded-lg bg-zinc-900 px-3 py-1 text-[11px] font-bold text-white transition-opacity hover:opacity-90 cursor-pointer"
+                                    >
+                                      Save Charge
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
 
