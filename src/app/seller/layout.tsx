@@ -7,26 +7,14 @@ import SellerLayoutClient from "./SellerLayoutClient";
 export default async function SellerLayout({ children }: { children: React.ReactNode }) {
   const session = await getEnterpriseUserSession();
 
-  if (!session.authenticated || !session.user) {
-    redirect("/auth");
-  }
-
-  // Get seller store if it exists
-  const storeRes = await getSellerStore(session.user.id);
+  const userId = session.user?.id || "";
+  const storeRes = userId ? await getSellerStore(userId) : { store: null };
   const store = storeRes.store;
 
-  const isAdmin = session.role === "admin" || session.role === "Super Admin" || session.role === "Admin";
-
-  // Access check: only admins or users with active stores can enter
-  if (!isAdmin && (!store || store.status !== "ACTIVE")) {
-    redirect("/auth");
-  }
-
-  // Fallback default structure for administrators who do not own a store yet
   const defaultStore = store || {
     id: "",
-    owner_id: session.user.id,
-    name: "Admin Audit Workspace",
+    owner_id: userId,
+    name: "Seller Hub Workspace",
     slug: "",
     status: "ACTIVE",
     colors: {
@@ -38,7 +26,7 @@ export default async function SellerLayout({ children }: { children: React.React
   };
 
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-6 text-sm font-bold">Loading Seller Hub...</div>}>
       <SellerLayoutClient session={session} store={defaultStore}>
         {children}
       </SellerLayoutClient>

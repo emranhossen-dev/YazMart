@@ -154,7 +154,7 @@ function AdminSidebarNav({
   );
 }
 
-export default function AdminLayoutClient({ children }: { children: React.ReactNode }) {
+export default function AdminLayoutClient({ children, session }: { children: React.ReactNode; session?: any }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({
     Catalog: true,
@@ -169,7 +169,11 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
     "Staff Control": false,
     Settings: false,
   });
-  const [userData, setUserData] = useState({ name: "Emran Hossen", role: "Super Admin", permissions: [] as string[] });
+  const [userData, setUserData] = useState({
+    name: session?.user?.name || "Admin",
+    role: session?.role || "Super Admin",
+    permissions: (session?.permissions as string[]) || []
+  });
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   
