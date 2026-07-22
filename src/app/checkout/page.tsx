@@ -266,7 +266,7 @@ export default function CheckoutPage() {
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans pb-24 lg:pb-0">
       <Header />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-4 md:px-6 py-4 md:py-8 space-y-6">
+      <main className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 xl:px-12 flex-1 py-4 md:py-8 space-y-6">
         
         {/* Responsive Steps Bar */}
         <div className="max-w-xl mx-auto flex items-center justify-between text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">
@@ -523,8 +523,8 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {/* DESKTOP Submit Button */}
-              <div className="hidden lg:block pt-2">
+              {/* Submit Order Button (Visible on Mobile and Desktop) */}
+              <div className="pt-4">
                 <button
                   type="submit"
                   disabled={loading || cart.length === 0}
@@ -639,7 +639,7 @@ export default function CheckoutPage() {
       </main>
 
       {/* MOBILE STICKY BOTTOM ORDER BAR */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-3 shadow-2xl flex items-center justify-between gap-3">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[99] bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-3 shadow-2xl flex items-center justify-between gap-3">
         <div>
           <p className="text-[10px] font-bold text-slate-400 uppercase">Total Amount</p>
           <p className="text-lg font-black text-slate-950 leading-tight">৳{total.toLocaleString()}</p>

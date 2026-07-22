@@ -5,6 +5,7 @@ import { AuthProvider } from "@/providers/auth-provider";
 import { Toaster } from "react-hot-toast";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import AuthModal from "@/components/AuthModal";
+import NavigationSpinner from "@/components/NavigationSpinner";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -31,6 +32,9 @@ export default function RootLayout({
           enableSystem={false}
         >
           <AuthProvider>
+            <Suspense fallback={null}>
+              <NavigationSpinner />
+            </Suspense>
             <Suspense fallback={null}>
               {children}
             </Suspense>

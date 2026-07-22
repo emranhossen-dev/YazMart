@@ -66,7 +66,7 @@ export default function OrderConfirmationPageClient() {
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-sans">
       <Header />
 
-      <main className="flex-1 max-w-2xl w-full mx-auto px-4 py-10 space-y-6">
+      <main className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 xl:px-12 flex-1 py-10 space-y-6">
 
         {/* ── Hero Success Banner ── */}
         <div className={`relative overflow-hidden rounded-2xl p-8 text-center space-y-4 border ${

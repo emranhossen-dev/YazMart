@@ -17,7 +17,7 @@ export default async function StoresDirectoryPage() {
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       <Header />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 md:px-6 py-8 space-y-8">
+      <main className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 xl:px-12 flex-1 py-8 space-y-8">
         {/* Banner */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 p-8 md:p-12 text-white shadow-xl">
           <div className="relative z-10 max-w-2xl space-y-3">

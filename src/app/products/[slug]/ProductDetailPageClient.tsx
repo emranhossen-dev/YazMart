@@ -228,7 +228,7 @@ export default function ProductDetailPageClient({
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900 font-sans">
       <Header />
 
-      <main className="mx-auto w-full max-w-7xl flex-1 space-y-8 px-3 py-4 md:px-6 md:py-8">
+      <main className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 xl:px-12 flex-1 space-y-8 py-4 md:py-8">
 
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-[11px] md:text-xs font-semibold text-slate-400 overflow-x-auto pb-1 scrollbar-none">

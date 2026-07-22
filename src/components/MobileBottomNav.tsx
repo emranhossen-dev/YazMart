@@ -11,8 +11,8 @@ function MobileBottomNavContent() {
   const { cart } = useShopStore();
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  // Hide bottom nav on admin or seller dashboard paths
-  if (pathname?.startsWith("/admin") || pathname?.startsWith("/seller")) {
+  // Hide bottom nav on admin, seller dashboard, or checkout paths
+  if (pathname?.startsWith("/admin") || pathname?.startsWith("/seller") || pathname?.startsWith("/checkout")) {
     return null;
   }
 

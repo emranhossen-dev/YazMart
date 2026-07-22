@@ -19,7 +19,7 @@ export default function CartPage() {
       <Header />
 
       {/* Main content grid */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 md:px-6 py-8 space-y-8">
+      <main className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 xl:px-12 flex-1 py-8 space-y-8">
         
         {/* Step Indicator */}
         <div className="max-w-xl mx-auto flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-400">

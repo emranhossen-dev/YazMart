@@ -34,7 +34,7 @@ export default function FaviconSpinner({
         <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#ff6600] via-amber-400 to-cyan-500 p-[3px] animate-spin shadow-lg shadow-[#ff6600]/20" />
         
         {/* Inner Masked Background */}
-        <div className="absolute inset-[3px] rounded-full bg-white dark:bg-[#0b1426] flex items-center justify-center" />
+        <div className="absolute inset-[3px] rounded-full bg-white flex items-center justify-center" />
 
         {/* Center Logo / Favicon with Pulse Animation */}
         <div className="relative z-10 flex items-center justify-center animate-pulse">
@@ -50,7 +50,7 @@ export default function FaviconSpinner({
       </div>
 
       {label && (
-        <div className="flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-widest text-slate-600 dark:text-slate-300">
+        <div className="flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-widest text-slate-800">
           <span>{label}</span>
           <span className="inline-flex gap-0.5">
             <span className="animate-bounce delay-75">.</span>
@@ -64,7 +64,7 @@ export default function FaviconSpinner({
 
   if (fullScreen) {
     return (
-      <div className="fixed inset-0 z-[999] flex items-center justify-center bg-white/90 dark:bg-[#060813]/90 backdrop-blur-md transition-all">
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/95 backdrop-blur-md transition-all">
         {content}
       </div>
     );

@@ -264,17 +264,17 @@ function HeroBannerCarousel({ productCount, categoryCount }: { productCount: num
   }, [slides.length]);
 
   return (
-    <section className="relative overflow-hidden bg-slate-950 text-white min-h-[540px] sm:min-h-[500px] md:min-h-[460px] flex items-center">
+    <section className="relative overflow-hidden bg-slate-950 text-white min-h-[480px] sm:min-h-[520px] md:min-h-[580px] lg:min-h-[640px] xl:min-h-[700px] flex items-center">
       {slides.map((slide, idx) => {
         const isActive = currentSlide === idx;
         return (
           <div
             key={slide.id}
-            className={`absolute inset-0 w-full h-full ${slide.bgGradient} transition-opacity duration-1000 ease-in-out pt-6 pb-12 md:py-12 flex items-center ${
+            className={`absolute inset-0 w-full h-full ${slide.bgGradient} transition-opacity duration-1000 ease-in-out py-8 md:py-16 flex items-center ${
               isActive ? "opacity-100 z-10 pointer-events-auto" : "opacity-0 z-0 pointer-events-none"
             }`}
           >
-            <div className="mx-auto max-w-7xl px-4 md:px-6 grid md:grid-cols-2 gap-4 md:gap-10 items-center w-full">
+            <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 grid md:grid-cols-2 gap-6 md:gap-12 items-center">
               
               {/* Left Content */}
               <div className={`space-y-2.5 md:space-y-5 text-center md:text-left transition-all duration-1000 ${
@@ -328,7 +328,7 @@ function HeroBannerCarousel({ productCount, categoryCount }: { productCount: num
 
               {/* Right Photo Banner */}
               <div className="relative flex justify-center w-full">
-                <div className="w-full max-w-lg rounded-2xl md:rounded-[32px] overflow-hidden border border-white/10 shadow-2xl bg-slate-900 h-[160px] sm:h-[260px] md:h-[380px] relative group">
+                <div className="w-full max-w-xl lg:max-w-2xl rounded-2xl md:rounded-[32px] overflow-hidden border border-white/10 shadow-2xl bg-slate-900 h-[180px] sm:h-[280px] md:h-[400px] lg:h-[480px] xl:h-[540px] relative group">
                   <img
                     src={slide.image}
                     alt={slide.title}
@@ -424,7 +424,7 @@ export default function HomePageClient({
 
       {/* ============ 1. TOP ANNOUNCEMENT BAR ============ */}
       <div className="bg-[#0b1426] text-slate-300 text-xs font-medium border-b border-slate-800/80 py-2">
-        <div className="mx-auto max-w-7xl px-4 md:px-6 flex items-center justify-between">
+        <div className="mx-auto w-full max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 xl:px-12 px-4 md:px-6 flex items-center justify-between">
           <span className="text-[11px] text-slate-300 flex items-center gap-2">
             Free shipping over ৳1500 · Cash on delivery available
           </span>
@@ -438,7 +438,7 @@ export default function HomePageClient({
 
       {/* ============ 2. MAIN HEADER (Responsive: Logo Left, Search Middle, Hamburger Right) ============ */}
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/98 backdrop-blur-md">
-        <div className="mx-auto flex h-16 md:h-[76px] max-w-7xl items-center justify-between gap-2 md:gap-4 px-3 md:px-6">
+        <div className="mx-auto flex h-16 md:h-[76px] w-full max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 xl:px-12 items-center justify-between gap-2 md:gap-4 px-3 md:px-6">
 
           {/* Left: Logo */}
           <Link href="/" className="flex shrink-0 items-center">
@@ -581,7 +581,7 @@ export default function HomePageClient({
 
         {/* CATEGORY NAV SUB-BAR (Visible on Mobile & Desktop) */}
         <div className="relative z-40 border-t border-slate-200/80 bg-white">
-          <div className="mx-auto flex h-10 max-w-7xl items-center justify-between px-3 md:px-6">
+          <div className="mx-auto flex h-10 w-full max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 xl:px-12 items-center justify-between px-3 md:px-6">
             
             <div className="flex items-center gap-4 w-full overflow-hidden">
               {/* All Categories Trigger (Desktop) */}
@@ -643,7 +643,7 @@ export default function HomePageClient({
 
       {/* ============ 4. FEATURE HIGHLIGHTS BAR ============ */}
       <section className="border-b border-slate-200 bg-slate-50/60 py-6">
-        <div className="mx-auto max-w-7xl px-4 md:px-6 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        <div className="mx-auto w-full max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 xl:px-12 px-4 md:px-6 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 md:h-11 md:w-11 rounded-2xl flex items-center justify-center bg-orange-100/70 text-[#ff6600] shrink-0">
               <Truck className="h-5 w-5" />
@@ -685,7 +685,7 @@ export default function HomePageClient({
 
       {/* ============ 5. SHOP BY CATEGORY (Slidable Carousel with Vertically Centered Left/Right Buttons) ============ */}
       {categories.length > 0 && (
-        <section className="mx-auto w-full max-w-7xl px-4 py-10 md:py-16 md:px-6 space-y-6">
+        <section className="mx-auto w-full w-full max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 xl:px-12 px-4 py-10 md:py-16 md:px-6 space-y-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl md:text-3xl font-extrabold text-[#0c192e] tracking-tight">Shop by Category</h2>
@@ -745,7 +745,7 @@ export default function HomePageClient({
       )}
 
       {/* ============ 6. PROMO DEAL BANNERS ============ */}
-      <section className="mx-auto w-full max-w-7xl px-4 pb-10 md:pb-16 md:px-6">
+      <section className="mx-auto w-full w-full max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 xl:px-12 px-4 pb-10 md:pb-16 md:px-6">
         <div className="grid md:grid-cols-3 gap-6">
           
           <div className="md:col-span-2 rounded-3xl bg-gradient-to-r from-[#ff6600] via-[#ff7300] to-[#ff8533] p-6 md:p-10 text-white relative overflow-hidden flex flex-col justify-between min-h-[240px] md:min-h-[260px] shadow-lg shadow-orange-500/15">
@@ -838,7 +838,7 @@ export default function HomePageClient({
 
       {/* Empty State fallback if database has no products yet */}
       {products.length === 0 && (
-        <section className="mx-auto max-w-7xl px-4 py-16 text-center">
+        <section className="mx-auto w-full max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 xl:px-12 px-4 py-16 text-center">
           <div className="rounded-3xl border border-dashed border-slate-200 bg-slate-50 p-12 space-y-3">
             <ShoppingBag className="mx-auto h-12 w-12 text-slate-300" />
             <h3 className="text-lg font-bold text-slate-800">No Products Listed Yet</h3>

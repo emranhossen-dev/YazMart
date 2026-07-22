@@ -497,7 +497,7 @@ export default function ProductsPageClient({
       <Header />
 
       {/* ============ MAIN LAYOUT ============ */}
-      <main className="mx-auto grid w-full max-w-7xl flex-1 gap-8 px-4 md:px-6 py-8 lg:grid-cols-[260px_1fr]">
+      <main className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 xl:px-12 py-8 grid flex-1 gap-8 lg:grid-cols-[260px_1fr]">
         {/* Sidebar — desktop, sticky filter panel */}
         <aside className="hidden border border-slate-200 bg-white p-5 rounded-2xl shadow-xs lg:block self-start sticky top-20 max-h-[calc(100vh-100px)] overflow-y-auto">
           {filterPanel}
