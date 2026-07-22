@@ -14,6 +14,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { toast } from "react-hot-toast";
 import ProductQuickViewModal from "@/components/ProductQuickViewModal";
+import FaviconSpinner from "@/components/FaviconSpinner";
 
 interface ProductsPageClientProps {
   initialProducts: any[];
@@ -607,21 +608,10 @@ export default function ProductsPageClient({
           {/* Grid / list / empty / loading states */}
           {loading ? (
             <div className="space-y-6">
-              {/* Product Loading Spinner UX Banner */}
-              <div className="py-12 flex flex-col items-center justify-center gap-3 text-center bg-white rounded-3xl border border-slate-100 p-8 shadow-xs">
-                <div className="relative flex items-center justify-center">
-                  <div className="h-14 w-14 rounded-full border-4 border-orange-100 border-t-[#ff6600] animate-spin shadow-xs" />
-                  <ShoppingCart className="h-6 w-6 text-[#ff6600] absolute inset-0 m-auto animate-pulse" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-1.5 justify-center">
-                    <Sparkles className="h-3.5 w-3.5 text-[#ff6600] animate-spin" /> Loading Products...
-                  </p>
-                  <p className="text-[11px] text-slate-400 font-medium">Fetching best deals & catalog items</p>
-                </div>
-              </div>
+              {/* FaviconSpinner — matches site-wide spinner */}
+              <FaviconSpinner label="Loading Products" />
 
-              {/* Skeleton Cards with Spinner overlay */}
+              {/* Skeleton Cards */}
               <div className={viewMode === "grid" ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4" : "space-y-4"}>
                 {Array.from({ length: viewMode === "grid" ? 10 : 4 }).map((_, n) => (
                   <div key={n} className={viewMode === "grid" ? "flex flex-col rounded-3xl border border-slate-100 bg-white overflow-hidden shadow-xs animate-pulse" : "h-32 animate-pulse rounded-2xl border border-slate-100 bg-white"}>
@@ -642,6 +632,7 @@ export default function ProductsPageClient({
                 ))}
               </div>
             </div>
+
           ) : products.length === 0 ? (
             <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-[var(--border)] bg-[var(--card)] p-16 text-center">
               <ShoppingBag className="h-10 w-10 text-[var(--border)]" />
