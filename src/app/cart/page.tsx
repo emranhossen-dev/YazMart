@@ -66,11 +66,13 @@ export default function CartPage() {
                   key={item.id}
                   className="flex gap-4 p-5 bg-[var(--card)] border border-[var(--border)]/50 rounded-2xl items-center shadow-xs hover:border-[var(--border)] transition-all"
                 >
-                  <div className="w-20 h-20 rounded-xl border border-[var(--border)]/40 bg-[var(--background)] p-1.5 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl border border-slate-200 bg-slate-100 overflow-hidden flex-shrink-0 relative">
                     {item.image ? (
-                      <img src={item.image} alt={item.name} className="max-h-full max-w-full object-contain" />
+                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                     ) : (
-                      <ShoppingBag className="h-8 w-8 text-zinc-300" />
+                      <div className="w-full h-full flex items-center justify-center">
+                        <ShoppingBag className="h-8 w-8 text-slate-300" />
+                      </div>
                     )}
                   </div>
 

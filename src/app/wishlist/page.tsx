@@ -14,7 +14,7 @@ export default function WishlistPage() {
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans">
       <Header />
 
-      <main className="flex-1 max-w-5xl w-full mx-auto p-6 md:p-8 space-y-6">
+      <main className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 xl:px-12 flex-1 py-8 space-y-6">
         <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight flex items-center gap-3">
           <Heart className="h-6 w-6 text-rose-500" /> Saved Wishlist
         </h1>
@@ -27,18 +27,20 @@ export default function WishlistPage() {
             <Link href="/" className="inline-block px-5 py-2.5 bg-[#ff6600] hover:bg-orange-700 text-white rounded-xl text-xs font-bold uppercase cursor-pointer">Explore Catalog</Link>
           </div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {wishlist.map((item) => (
               <div 
                 key={item.id}
-                className="flex flex-col p-4 border border-[var(--border)] bg-[var(--card)] rounded-xl shadow-xs justify-between space-y-3"
+                className="flex flex-col p-3 sm:p-4 border border-slate-200/80 bg-white rounded-3xl shadow-xs hover:shadow-lg transition-all justify-between space-y-3"
               >
                 <div className="space-y-2">
-                  <div className="w-full h-36 rounded-lg border border-[var(--border)] bg-[var(--background)] p-2 overflow-hidden flex items-center justify-center">
+                  <div className="relative w-full h-44 sm:h-52 md:h-60 rounded-2xl border border-slate-100 bg-slate-100 overflow-hidden">
                     {item.image ? (
-                      <img src={item.image} alt={item.name} className="max-h-full max-w-full object-contain" />
+                      <img src={item.image} alt={item.name} className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" />
                     ) : (
-                      <ShoppingBag className="h-8 w-8 text-[var(--border)]" />
+                      <div className="w-full h-full flex items-center justify-center">
+                        <ShoppingBag className="h-10 w-10 text-slate-300" />
+                      </div>
                     )}
                   </div>
                   <div>
