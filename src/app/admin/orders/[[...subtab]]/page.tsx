@@ -33,7 +33,6 @@ const FALLBACK_REFUNDS = [
 
 export default function Page() {
   const router = useRouter();
-  const [tab, setTab] = useState<string>("list");
 
   const [orders, setOrders] = useState<DbOrder[]>([]);
   const [loading, setLoading] = useState(false);
@@ -123,18 +122,13 @@ export default function Page() {
     setUpdatingStatusId(null);
   };
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const pathname = window.location.pathname;
-      if (pathname.endsWith("/returns")) {
-        setTab("returns");
-      } else if (pathname.endsWith("/refunds")) {
-        setTab("refunds");
-      } else {
-        setTab("list");
-      }
-    }
-  }, []);
+  const pathname = usePathname();
+
+  const tab = React.useMemo(() => {
+    if (pathname.includes("/returns")) return "returns";
+    if (pathname.includes("/refunds")) return "refunds";
+    return "list";
+  }, [pathname]);
 
   useEffect(() => {
     if (tab === "list") {
@@ -146,14 +140,6 @@ export default function Page() {
     }
   }, [tab]);
 
-  const selectTab = (tabName: string) => {
-    setTab(tabName);
-    if (typeof window !== "undefined") {
-      const newPath = tabName === "list" ? "/admin/orders" : `/admin/orders/${tabName}`;
-      window.history.pushState(null, "", newPath);
-    }
-  };
-
   return (
     <div className="space-y-6 select-none font-sans">
       <div>
@@ -163,21 +149,21 @@ export default function Page() {
 
       {/* Tabs */}
       <div className="flex gap-2 border-b border-[var(--border)] pb-px">
-        <Link href={`/admin/orders/list`}
+        <Link href="/admin/orders"
           className={`px-4 py-2 text-xs font-bold uppercase border-b-2 transition-colors cursor-pointer ${
             tab === "list" ? "border-blue-500 text-blue-500" : "border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
           }`}
         >
           Orders List
         </Link>
-        <Link href={`/admin/orders/returns`}
+        <Link href="/admin/orders/returns"
           className={`px-4 py-2 text-xs font-bold uppercase border-b-2 transition-colors cursor-pointer ${
             tab === "returns" ? "border-blue-500 text-blue-500" : "border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
           }`}
         >
           Returns Ledger
         </Link>
-        <Link href={`/admin/orders/refunds`}
+        <Link href="/admin/orders/refunds"
           className={`px-4 py-2 text-xs font-bold uppercase border-b-2 transition-colors cursor-pointer ${
             tab === "refunds" ? "border-blue-500 text-blue-500" : "border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
           }`}
