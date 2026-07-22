@@ -13,6 +13,7 @@ import { useAuthStore } from "../store/auth-store";
 import { signOutAction } from "../actions/auth";
 import { supabase } from "@/lib/supabase";
 import ProductQuickViewModal from "./ProductQuickViewModal";
+import Footer from "./Footer";
 
 interface HomePageClientProps {
   initialShopData: any;
@@ -853,55 +854,7 @@ export default function HomePageClient({
       )}
 
       {/* ============ 9. FOOTER ============ */}
-      <footer className="border-t border-slate-200 bg-[#0c192e] text-slate-300 mt-12">
-        <div className="mx-auto max-w-7xl px-4 py-14 md:px-6 grid grid-cols-2 md:grid-cols-5 gap-8 text-xs">
-          
-          <div className="col-span-2 space-y-4">
-            <Link href="/" className="inline-block">
-              <img
-                src="/logo yazmart.png"
-                alt="YazMart Logo"
-                className="h-10 w-auto object-contain bg-white/95 rounded-xl p-1.5"
-              />
-            </Link>
-            <p className="text-slate-400 max-w-sm leading-relaxed">
-              YazMart is your premier online marketplace for top-quality products across Bangladesh.
-            </p>
-          </div>
-
-          <div className="space-y-3">
-            <h4 className="font-extrabold text-white uppercase text-[11px] tracking-wider">Quick Links</h4>
-            <ul className="space-y-2 text-slate-400">
-              <li><Link href="/products" className="hover:text-white transition-colors">All Products</Link></li>
-              {categories.slice(0, 3).map((c: any) => (
-                <li key={c.id}>
-                  <Link href={`/categories/${c.slug}`} className="hover:text-white transition-colors">{c.name}</Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="space-y-3">
-            <h4 className="font-extrabold text-white uppercase text-[11px] tracking-wider">Customer Care</h4>
-            <ul className="space-y-2 text-slate-400">
-              <li><Link href="/profile?tab=orders" className="hover:text-white transition-colors">My Orders</Link></li>
-              <li><Link href="/profile?tab=tracking" className="hover:text-white transition-colors">Track Parcel</Link></li>
-              <li><Link href="/help" className="hover:text-white transition-colors">Help & FAQ</Link></li>
-            </ul>
-          </div>
-
-          <div className="space-y-3">
-            <h4 className="font-extrabold text-white uppercase text-[11px] tracking-wider">Seller Portal</h4>
-            <ul className="space-y-2 text-slate-400">
-              <li><Link href="/seller-center" className="hover:text-white transition-colors">Become a Seller</Link></li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="border-t border-slate-800 py-6 text-center text-[11px] text-slate-400">
-          © 2026 YazMart. All rights reserved.
-        </div>
-      </footer>
+      <Footer />
 
       {/* ============ MOBILE RIGHT SIDEBAR DRAWER (Opens when Hamburger Menu clicked) ============ */}
       {mobileSidebarOpen && (
