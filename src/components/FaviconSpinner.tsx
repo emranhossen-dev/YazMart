@@ -39,12 +39,9 @@ export default function FaviconSpinner({
         {/* Center Logo / Favicon with Pulse Animation */}
         <div className="relative z-10 flex items-center justify-center animate-pulse">
           <img
-            src="/logo yazmart.png"
+            src="/favicon.ico"
             alt="YazMart Loading"
             className={`${imgSizes[size]} object-contain rounded-full`}
-            onError={(e) => {
-              (e.currentTarget as HTMLImageElement).src = "/favicon.ico";
-            }}
           />
         </div>
       </div>
