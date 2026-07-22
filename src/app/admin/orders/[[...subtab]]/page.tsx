@@ -3,7 +3,7 @@
 import React, { startTransition, useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { getOrders, updateOrderStatus } from "@/actions/orders";
+import { getOrders, updateOrderStatus, updateOrderDeliveryCharge } from "@/actions/orders";
 import { restockItemBySerial } from "@/actions/pim-products";
 import { ShoppingBag, ArrowLeftRight, CreditCard, Eye, ShieldAlert, Sparkles, Printer, X, Scan, AlertCircle, CheckCircle2, RotateCcw, Trash2, Phone, MessageSquare } from "lucide-react";
 import { handlePrintOrderMemo } from "@/utils/print-order-memo";
@@ -545,10 +545,38 @@ export default function Page() {
                 </div>
               </div>
 
-              {/* Total */}
-              <div className="flex justify-between items-center pt-3 border-t border-[var(--border)]">
-                <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Grand Checkout Total</span>
-                <span className="text-sm font-black text-blue-500 font-mono">৳{selectedOrder.total_amount}</span>
+              {/* Delivery Charge Edit & Total */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-3 border-t border-[var(--border)]">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Shipping / Delivery Fee:</span>
+                  <span className="text-xs font-bold text-[var(--foreground)] font-mono">৳</span>
+                  <input
+                    type="number"
+                    defaultValue={60}
+                    id={`admin-del-charge-${selectedOrder.id}`}
+                    className="w-20 px-2 py-1 text-xs font-mono font-bold bg-[var(--background)] border border-[var(--border)] rounded text-[var(--foreground)] focus:outline-none focus:border-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const el = document.getElementById(`admin-del-charge-${selectedOrder.id}`) as HTMLInputElement;
+                      const val = Number(el?.value || 60);
+                      const res = await updateOrderDeliveryCharge(selectedOrder.id, val);
+                      if (res.error) {
+                        toast.error(res.error);
+                      } else {
+                        toast.success(`Shipping charge updated to ৳${val}`);
+                      }
+                    }}
+                    className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-[10px] font-bold uppercase transition-colors cursor-pointer"
+                  >
+                    Save Fee
+                  </button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Grand Checkout Total</span>
+                  <span className="text-sm font-black text-blue-500 font-mono">৳{selectedOrder.total_amount}</span>
+                </div>
               </div>
             </div>
 

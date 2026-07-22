@@ -16,6 +16,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProductQuickViewModal from "@/components/ProductQuickViewModal";
 import { getProductReviews } from "@/actions/reviews";
+import { getCustomerOrders } from "@/actions/orders";
 
 interface ProductDetailPageClientProps {
   initialProduct: any;
@@ -136,6 +137,7 @@ export default function ProductDetailPageClient({
   const [showWriteReviewModal, setShowWriteReviewModal] = useState(false);
   const [newReviewText, setNewReviewText] = useState("");
   const [newReviewRating, setNewReviewRating] = useState(5);
+  const [hasPurchasedProduct, setHasPurchasedProduct] = useState(false);
 
   // Questions State & Modals
   const [questions, setQuestions] = useState<any[]>([
@@ -149,6 +151,38 @@ export default function ProductDetailPageClient({
   const { cart, wishlist, addToCart, toggleWishlist } = useShopStore();
   const { user } = useAuthStore();
   const [showSideCart, setShowSideCart] = useState(false);
+
+  useEffect(() => {
+    if (user?.id && product?.id) {
+      getCustomerOrders({ userId: user.id, email: user.email || undefined }).then((res) => {
+        if (res.orders) {
+          const found = res.orders.some((order: any) => {
+            const list = Array.isArray(order.items) ? order.items : [];
+            return list.some((item: any) =>
+              item.id === product.id ||
+              item.name?.toLowerCase().trim() === product.name?.toLowerCase().trim()
+            );
+          });
+          setHasPurchasedProduct(found);
+        }
+      });
+    }
+  }, [user, product]);
+
+  const handleOpenWriteReviewModal = () => {
+    if (!user) {
+      toast.error("Please Sign In to leave a product review.", { icon: "🔐" });
+      return;
+    }
+    if (!hasPurchasedProduct) {
+      toast.error("Only verified customers who have purchased this product can leave a review.", {
+        icon: "🛡️",
+        duration: 5000
+      });
+      return;
+    }
+    setShowWriteReviewModal(true);
+  };
 
   useEffect(() => {
     if (product?.id) {
@@ -461,10 +495,10 @@ export default function ProductDetailPageClient({
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setShowWriteReviewModal(true)}
-                className="px-3 py-1.5 bg-orange-50 text-[#ff6600] border border-orange-200 hover:bg-orange-100 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                onClick={handleOpenWriteReviewModal}
+                className="px-3 py-1.5 bg-orange-50 text-[#ff6600] border border-orange-200 hover:bg-orange-100 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
               >
-                + Write Review
+                <span>+ Write Review</span>
               </button>
               <button
                 type="button"

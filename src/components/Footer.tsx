@@ -45,8 +45,7 @@ export default function Footer() {
           </h4>
           <ul className="space-y-2.5 text-slate-400">
             <li><Link href="/seller-center" className="hover:text-[#ff6600] font-bold text-[#ff6600] transition-colors">Become a Seller</Link></li>
-            <li><Link href="/seller" className="hover:text-[#ff6600] transition-colors">Seller Login & Hub</Link></li>
-            <li><Link href="/admin" className="hover:text-[#ff6600] transition-colors">Admin Panel</Link></li>
+            <li><Link href="/stores" className="hover:text-[#ff6600] transition-colors">Browse Verified Stores</Link></li>
           </ul>
         </div>
 

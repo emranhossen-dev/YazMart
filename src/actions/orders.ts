@@ -327,3 +327,27 @@ export async function updateOrderStatus(id: string, status: string) {
     return { error: error?.message || "Failed to update order status." };
   }
 }
+
+export async function updateOrderDeliveryCharge(id: string, deliveryCharge: number) {
+  try {
+    const order = await prisma.orderMatrix.findUnique({ where: { id } });
+    if (!order) return { error: "Order not found." };
+
+    const raw = order.items as any;
+    const currentMeta = raw?.__meta || {};
+    const updatedMeta = { ...currentMeta, delivery_charge: deliveryCharge };
+    const updatedItems = Array.isArray(raw) ? { __meta: updatedMeta, list: raw } : { ...raw, __meta: updatedMeta };
+
+    await prisma.orderMatrix.update({
+      where: { id },
+      data: { items: updatedItems }
+    });
+
+    revalidatePath("/admin/orders");
+    revalidatePath("/seller/orders");
+    revalidatePath("/profile");
+    return { success: true };
+  } catch (error: any) {
+    return { error: error?.message || "Failed to update delivery charge." };
+  }
+}
