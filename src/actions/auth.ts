@@ -89,9 +89,15 @@ export async function signInAction(formData: FormData) {
 
   if (data.session && data.user) {
     const cookieStore = await cookies();
+    cookieStore.set("sb-access-token", data.session.access_token, {
+      path: "/",
+      secure: false,
+      sameSite: "lax",
+      maxAge: data.session.expires_in,
+    });
     cookieStore.set("yazmart-session-token", data.session.access_token, {
       path: "/",
-      secure: false, // Set to false to support both HTTP and HTTPS staging/live environments
+      secure: false,
       sameSite: "lax",
       maxAge: data.session.expires_in,
     });
@@ -125,7 +131,9 @@ export async function signOutAction() {
   if (error) return { error: error.message };
 
   const cookieStore = await cookies();
+  cookieStore.delete("sb-access-token");
   cookieStore.delete("yazmart-session-token");
+  cookieStore.delete("yazmart-user-id");
 
   return { success: "Logged out successfully!" };
 }
