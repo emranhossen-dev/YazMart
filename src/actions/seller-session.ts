@@ -46,28 +46,31 @@ export async function getActiveSellerStore(overrideStoreId?: string | null): Pro
       store = await prisma.store.findFirst({
         where: { owner_id: session.user.id }
       });
+
+      // 3. If seller user has no store yet, auto-create a dedicated store for this seller
+      if (!store) {
+        const cleanName = `${session.user.name || "Seller"}'s Store`;
+        const cleanSlug = `store-${session.user.id.slice(0, 8)}-${Math.floor(1000 + Math.random() * 9000)}`;
+        store = await prisma.store.create({
+          data: {
+            owner_id: session.user.id,
+            name: cleanName,
+            slug: cleanSlug,
+            status: "ACTIVE",
+            description: `Merchant store for ${session.user.name || "seller"}`
+          }
+        });
+      }
     }
 
-    // 3. Fallback: find any active store
+    // 4. Fallback for unauthenticated or system context
     if (!store) {
       store = await prisma.store.findFirst({
         where: { status: "ACTIVE" }
-      }) || await prisma.store.findFirst();
-    }
-
-    // 4. Auto-create store if database is empty
-    if (!store) {
-      const ownerId = session.user?.id || "default-seller-owner";
-      store = await prisma.store.create({
-        data: {
-          owner_id: ownerId,
-          name: "YazMart Main Store",
-          slug: "yazmart-main-store",
-          status: "ACTIVE",
-          description: "Primary enterprise seller store"
-        }
       });
     }
+
+    if (!store) return null;
 
     const fallbackUser = session.user || { id: store.owner_id, name: "Seller Merchant" };
 

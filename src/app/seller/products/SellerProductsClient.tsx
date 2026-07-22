@@ -49,8 +49,10 @@ export default function SellerProductsClient({
   const [comparePrice, setComparePrice] = useState("");
   const [currentStock, setCurrentStock] = useState("");
   const [featuredImage, setFeaturedImage] = useState("");
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [shortDesc, setShortDesc] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
   const [dragActive, setDragActive] = useState(false);
 
   const handleFileUpload = async (file: File) => {
@@ -63,9 +65,37 @@ export default function SellerProductsClient({
       toast.error(res.error);
     } else if (res.url) {
       setFeaturedImage(res.url);
-      toast.success("Image uploaded!");
+      toast.success("Main thumbnail image uploaded!");
     }
     setUploadingImage(false);
+  };
+
+  const handleGalleryUpload = async (files: FileList | File[]) => {
+    if (!files || files.length === 0) return;
+    setUploadingGallery(true);
+    const uploadedUrls: string[] = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await uploadImage(fd);
+      if (res.url) {
+        uploadedUrls.push(res.url);
+      }
+    }
+
+    if (uploadedUrls.length > 0) {
+      setGalleryImages(prev => [...prev, ...uploadedUrls]);
+      toast.success(`Uploaded ${uploadedUrls.length} additional image(s)!`);
+    } else {
+      toast.error("Failed to upload gallery images.");
+    }
+    setUploadingGallery(false);
+  };
+
+  const handleRemoveGalleryImage = (indexToRemove: number) => {
+    setGalleryImages(prev => prev.filter((_, idx) => idx !== indexToRemove));
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -88,6 +118,7 @@ export default function SellerProductsClient({
     setComparePrice("");
     setCurrentStock("10");
     setFeaturedImage("");
+    setGalleryImages([]);
     setShortDesc("");
     setIsModalOpen(true);
   };
@@ -103,6 +134,7 @@ export default function SellerProductsClient({
     setComparePrice(String(product.compare_price || ""));
     setCurrentStock(String(product.current_stock || "0"));
     setFeaturedImage(product.featured_image || "");
+    setGalleryImages(Array.isArray(product.gallery_images) ? product.gallery_images : []);
     setShortDesc(product.short_desc || "");
     setIsModalOpen(true);
   };
@@ -126,7 +158,8 @@ export default function SellerProductsClient({
         selling_price: parseFloat(sellingPrice),
         compare_price: comparePrice ? parseFloat(comparePrice) : null,
         current_stock: parseInt(currentStock),
-        featured_image: featuredImage.trim() || null,
+        featured_image: featuredImage.trim() || (galleryImages.length > 0 ? galleryImages[0] : null),
+        gallery_images: galleryImages,
         short_desc: shortDesc.trim(),
         store_id: storeId,
         status: "PUBLISHED",
@@ -427,8 +460,8 @@ export default function SellerProductsClient({
                   />
                 </div>
 
-                <div className="sm:col-span-2 space-y-2">
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500">Product Image (Drag & Drop or Attach File)</label>
+                <div className="sm:col-span-2 space-y-3">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500">Main Product Thumbnail Image</label>
                   
                   <div 
                     onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
@@ -455,7 +488,7 @@ export default function SellerProductsClient({
                     ) : (
                       <>
                         <UploadCloud className="h-8 w-8 text-zinc-400" />
-                        <p className="text-xs font-bold text-zinc-700">Drag and drop product image here, or click to upload</p>
+                        <p className="text-xs font-bold text-zinc-700">Drag and drop thumbnail image here, or click to upload</p>
                         <p className="text-[10px] text-zinc-400">Supports JPG, PNG, WEBP files</p>
                         <input
                           type="file"
@@ -480,6 +513,63 @@ export default function SellerProductsClient({
                       placeholder="https://example.com/image.png"
                       className="flex-1 rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium focus:border-zinc-900 focus:outline-none"
                     />
+                  </div>
+                </div>
+
+                {/* Multiple Images / Gallery Section */}
+                <div className="sm:col-span-2 space-y-3 pt-2 border-t border-zinc-100">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                      Product Gallery (Multiple Images)
+                    </label>
+                    <span className="text-[10px] font-semibold text-zinc-400">
+                      {galleryImages.length} image(s) attached
+                    </span>
+                  </div>
+
+                  {/* Thumbnail Gallery Grid */}
+                  {galleryImages.length > 0 && (
+                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                      {galleryImages.map((imgUrl, idx) => (
+                        <div key={idx} className="relative group aspect-square rounded-xl border border-zinc-200 bg-zinc-50 p-1 overflow-hidden">
+                          <img src={imgUrl} alt={`Gallery ${idx + 1}`} className="w-full h-full object-cover rounded-lg" />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveGalleryImage(idx)}
+                            className="absolute top-1 right-1 h-5 w-5 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-md opacity-90 hover:opacity-100 cursor-pointer transition-opacity"
+                            title="Remove image"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Gallery Upload Box */}
+                  <div className="relative border-2 border-dashed border-zinc-200 hover:border-zinc-400 bg-zinc-50 rounded-2xl p-4 text-center transition-all flex flex-col items-center justify-center gap-1.5">
+                    {uploadingGallery ? (
+                      <div className="flex items-center gap-2 text-xs font-bold text-zinc-700">
+                        <Loader2 className="h-4 w-4 animate-spin text-[#ff6600]" /> Uploading gallery images...
+                      </div>
+                    ) : (
+                      <>
+                        <ImageIcon className="h-6 w-6 text-zinc-400" />
+                        <p className="text-xs font-bold text-zinc-700">Click to upload multiple additional images</p>
+                        <p className="text-[10px] text-zinc-400">You can select multiple files at once</p>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files.length > 0) {
+                              handleGalleryUpload(e.target.files);
+                            }
+                          }}
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                        />
+                      </>
+                    )}
                   </div>
                 </div>
 

@@ -130,7 +130,7 @@ export async function getSellerDashboardData(storeId: string) {
 // 4. Get seller orders list (SubOrders) with fallback support
 export async function getSellerOrders(storeId: string) {
   try {
-    let orders = await prisma.subOrder.findMany({
+    const orders = await prisma.subOrder.findMany({
       where: { store_id: storeId },
       include: {
         parent: {
@@ -144,35 +144,6 @@ export async function getSellerOrders(storeId: string) {
       },
       orderBy: { createdAt: "desc" },
     });
-
-    if (orders.length === 0) {
-      const allMainOrders = await prisma.orderMatrix.findMany({
-        orderBy: { createdAt: "desc" },
-        take: 20
-      });
-      orders = allMainOrders.map(o => {
-        const rawItems = o.items as any;
-        const itemList = Array.isArray(rawItems) ? rawItems : (rawItems?.list || []);
-        const meta = rawItems?.__meta || {};
-        return {
-          id: o.id,
-          parent_id: o.id,
-          store_id: storeId,
-          total_amount: o.total_amount,
-          status: o.status,
-          delivery_charge: meta.delivery_charge || 60,
-          items: itemList,
-          createdAt: o.createdAt,
-          updatedAt: o.updatedAt,
-          parent: {
-            customer_name: o.customer_name,
-            customer_email: o.customer_email,
-            shipping_address: o.shipping_address,
-            phone: o.phone
-          }
-        } as any;
-      });
-    }
 
     return {
       orders: orders.map(o => ({
