@@ -36,7 +36,6 @@ export type OrderMatrixSumAggregateOutputType = {
 
 export type OrderMatrixMinAggregateOutputType = {
   id: string | null
-  customer_id: string | null
   customer_name: string | null
   customer_email: string | null
   shipping_address: string | null
@@ -49,7 +48,6 @@ export type OrderMatrixMinAggregateOutputType = {
 
 export type OrderMatrixMaxAggregateOutputType = {
   id: string | null
-  customer_id: string | null
   customer_name: string | null
   customer_email: string | null
   shipping_address: string | null
@@ -62,7 +60,6 @@ export type OrderMatrixMaxAggregateOutputType = {
 
 export type OrderMatrixCountAggregateOutputType = {
   id: number
-  customer_id: number
   customer_name: number
   customer_email: number
   shipping_address: number
@@ -86,7 +83,6 @@ export type OrderMatrixSumAggregateInputType = {
 
 export type OrderMatrixMinAggregateInputType = {
   id?: true
-  customer_id?: true
   customer_name?: true
   customer_email?: true
   shipping_address?: true
@@ -99,7 +95,6 @@ export type OrderMatrixMinAggregateInputType = {
 
 export type OrderMatrixMaxAggregateInputType = {
   id?: true
-  customer_id?: true
   customer_name?: true
   customer_email?: true
   shipping_address?: true
@@ -112,7 +107,6 @@ export type OrderMatrixMaxAggregateInputType = {
 
 export type OrderMatrixCountAggregateInputType = {
   id?: true
-  customer_id?: true
   customer_name?: true
   customer_email?: true
   shipping_address?: true
@@ -213,7 +207,6 @@ export type OrderMatrixGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inte
 
 export type OrderMatrixGroupByOutputType = {
   id: string
-  customer_id: string | null
   customer_name: string
   customer_email: string
   shipping_address: string
@@ -250,7 +243,6 @@ export type OrderMatrixWhereInput = {
   OR?: Prisma.OrderMatrixWhereInput[]
   NOT?: Prisma.OrderMatrixWhereInput | Prisma.OrderMatrixWhereInput[]
   id?: Prisma.StringFilter<"OrderMatrix"> | string
-  customer_id?: Prisma.UuidNullableFilter<"OrderMatrix"> | string | null
   customer_name?: Prisma.StringFilter<"OrderMatrix"> | string
   customer_email?: Prisma.StringFilter<"OrderMatrix"> | string
   shipping_address?: Prisma.StringFilter<"OrderMatrix"> | string
@@ -265,7 +257,6 @@ export type OrderMatrixWhereInput = {
 
 export type OrderMatrixOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  customer_id?: Prisma.SortOrderInput | Prisma.SortOrder
   customer_name?: Prisma.SortOrder
   customer_email?: Prisma.SortOrder
   shipping_address?: Prisma.SortOrder
@@ -283,7 +274,6 @@ export type OrderMatrixWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.OrderMatrixWhereInput | Prisma.OrderMatrixWhereInput[]
   OR?: Prisma.OrderMatrixWhereInput[]
   NOT?: Prisma.OrderMatrixWhereInput | Prisma.OrderMatrixWhereInput[]
-  customer_id?: Prisma.UuidNullableFilter<"OrderMatrix"> | string | null
   customer_name?: Prisma.StringFilter<"OrderMatrix"> | string
   customer_email?: Prisma.StringFilter<"OrderMatrix"> | string
   shipping_address?: Prisma.StringFilter<"OrderMatrix"> | string
@@ -298,7 +288,6 @@ export type OrderMatrixWhereUniqueInput = Prisma.AtLeast<{
 
 export type OrderMatrixOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  customer_id?: Prisma.SortOrderInput | Prisma.SortOrder
   customer_name?: Prisma.SortOrder
   customer_email?: Prisma.SortOrder
   shipping_address?: Prisma.SortOrder
@@ -320,7 +309,6 @@ export type OrderMatrixScalarWhereWithAggregatesInput = {
   OR?: Prisma.OrderMatrixScalarWhereWithAggregatesInput[]
   NOT?: Prisma.OrderMatrixScalarWhereWithAggregatesInput | Prisma.OrderMatrixScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"OrderMatrix"> | string
-  customer_id?: Prisma.UuidNullableWithAggregatesFilter<"OrderMatrix"> | string | null
   customer_name?: Prisma.StringWithAggregatesFilter<"OrderMatrix"> | string
   customer_email?: Prisma.StringWithAggregatesFilter<"OrderMatrix"> | string
   shipping_address?: Prisma.StringWithAggregatesFilter<"OrderMatrix"> | string
@@ -334,7 +322,6 @@ export type OrderMatrixScalarWhereWithAggregatesInput = {
 
 export type OrderMatrixCreateInput = {
   id?: string
-  customer_id?: string | null
   customer_name: string
   customer_email: string
   shipping_address: string
@@ -349,7 +336,6 @@ export type OrderMatrixCreateInput = {
 
 export type OrderMatrixUncheckedCreateInput = {
   id?: string
-  customer_id?: string | null
   customer_name: string
   customer_email: string
   shipping_address: string
@@ -364,7 +350,6 @@ export type OrderMatrixUncheckedCreateInput = {
 
 export type OrderMatrixUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  customer_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customer_name?: Prisma.StringFieldUpdateOperationsInput | string
   customer_email?: Prisma.StringFieldUpdateOperationsInput | string
   shipping_address?: Prisma.StringFieldUpdateOperationsInput | string
@@ -379,7 +364,6 @@ export type OrderMatrixUpdateInput = {
 
 export type OrderMatrixUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  customer_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customer_name?: Prisma.StringFieldUpdateOperationsInput | string
   customer_email?: Prisma.StringFieldUpdateOperationsInput | string
   shipping_address?: Prisma.StringFieldUpdateOperationsInput | string
@@ -394,7 +378,6 @@ export type OrderMatrixUncheckedUpdateInput = {
 
 export type OrderMatrixCreateManyInput = {
   id?: string
-  customer_id?: string | null
   customer_name: string
   customer_email: string
   shipping_address: string
@@ -408,7 +391,6 @@ export type OrderMatrixCreateManyInput = {
 
 export type OrderMatrixUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  customer_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customer_name?: Prisma.StringFieldUpdateOperationsInput | string
   customer_email?: Prisma.StringFieldUpdateOperationsInput | string
   shipping_address?: Prisma.StringFieldUpdateOperationsInput | string
@@ -422,7 +404,6 @@ export type OrderMatrixUpdateManyMutationInput = {
 
 export type OrderMatrixUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  customer_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customer_name?: Prisma.StringFieldUpdateOperationsInput | string
   customer_email?: Prisma.StringFieldUpdateOperationsInput | string
   shipping_address?: Prisma.StringFieldUpdateOperationsInput | string
@@ -436,7 +417,6 @@ export type OrderMatrixUncheckedUpdateManyInput = {
 
 export type OrderMatrixCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  customer_id?: Prisma.SortOrder
   customer_name?: Prisma.SortOrder
   customer_email?: Prisma.SortOrder
   shipping_address?: Prisma.SortOrder
@@ -454,7 +434,6 @@ export type OrderMatrixAvgOrderByAggregateInput = {
 
 export type OrderMatrixMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  customer_id?: Prisma.SortOrder
   customer_name?: Prisma.SortOrder
   customer_email?: Prisma.SortOrder
   shipping_address?: Prisma.SortOrder
@@ -467,7 +446,6 @@ export type OrderMatrixMaxOrderByAggregateInput = {
 
 export type OrderMatrixMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  customer_id?: Prisma.SortOrder
   customer_name?: Prisma.SortOrder
   customer_email?: Prisma.SortOrder
   shipping_address?: Prisma.SortOrder
@@ -503,7 +481,6 @@ export type OrderMatrixUpdateOneRequiredWithoutSub_ordersNestedInput = {
 
 export type OrderMatrixCreateWithoutSub_ordersInput = {
   id?: string
-  customer_id?: string | null
   customer_name: string
   customer_email: string
   shipping_address: string
@@ -517,7 +494,6 @@ export type OrderMatrixCreateWithoutSub_ordersInput = {
 
 export type OrderMatrixUncheckedCreateWithoutSub_ordersInput = {
   id?: string
-  customer_id?: string | null
   customer_name: string
   customer_email: string
   shipping_address: string
@@ -547,7 +523,6 @@ export type OrderMatrixUpdateToOneWithWhereWithoutSub_ordersInput = {
 
 export type OrderMatrixUpdateWithoutSub_ordersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  customer_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customer_name?: Prisma.StringFieldUpdateOperationsInput | string
   customer_email?: Prisma.StringFieldUpdateOperationsInput | string
   shipping_address?: Prisma.StringFieldUpdateOperationsInput | string
@@ -561,7 +536,6 @@ export type OrderMatrixUpdateWithoutSub_ordersInput = {
 
 export type OrderMatrixUncheckedUpdateWithoutSub_ordersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  customer_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customer_name?: Prisma.StringFieldUpdateOperationsInput | string
   customer_email?: Prisma.StringFieldUpdateOperationsInput | string
   shipping_address?: Prisma.StringFieldUpdateOperationsInput | string
@@ -606,7 +580,6 @@ export type OrderMatrixCountOutputTypeCountSub_ordersArgs<ExtArgs extends runtim
 
 export type OrderMatrixSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  customer_id?: boolean
   customer_name?: boolean
   customer_email?: boolean
   shipping_address?: boolean
@@ -622,7 +595,6 @@ export type OrderMatrixSelect<ExtArgs extends runtime.Types.Extensions.InternalA
 
 export type OrderMatrixSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  customer_id?: boolean
   customer_name?: boolean
   customer_email?: boolean
   shipping_address?: boolean
@@ -636,7 +608,6 @@ export type OrderMatrixSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
 
 export type OrderMatrixSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  customer_id?: boolean
   customer_name?: boolean
   customer_email?: boolean
   shipping_address?: boolean
@@ -650,7 +621,6 @@ export type OrderMatrixSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
 
 export type OrderMatrixSelectScalar = {
   id?: boolean
-  customer_id?: boolean
   customer_name?: boolean
   customer_email?: boolean
   shipping_address?: boolean
@@ -662,7 +632,7 @@ export type OrderMatrixSelectScalar = {
   updatedAt?: boolean
 }
 
-export type OrderMatrixOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "customer_id" | "customer_name" | "customer_email" | "shipping_address" | "phone" | "total_amount" | "status" | "items" | "createdAt" | "updatedAt", ExtArgs["result"]["orderMatrix"]>
+export type OrderMatrixOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "customer_name" | "customer_email" | "shipping_address" | "phone" | "total_amount" | "status" | "items" | "createdAt" | "updatedAt", ExtArgs["result"]["orderMatrix"]>
 export type OrderMatrixInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sub_orders?: boolean | Prisma.OrderMatrix$sub_ordersArgs<ExtArgs>
   _count?: boolean | Prisma.OrderMatrixCountOutputTypeDefaultArgs<ExtArgs>
@@ -677,7 +647,6 @@ export type $OrderMatrixPayload<ExtArgs extends runtime.Types.Extensions.Interna
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
-    customer_id: string | null
     customer_name: string
     customer_email: string
     shipping_address: string
@@ -1112,7 +1081,6 @@ export interface Prisma__OrderMatrixClient<T, Null = never, ExtArgs extends runt
  */
 export interface OrderMatrixFieldRefs {
   readonly id: Prisma.FieldRef<"OrderMatrix", 'String'>
-  readonly customer_id: Prisma.FieldRef<"OrderMatrix", 'String'>
   readonly customer_name: Prisma.FieldRef<"OrderMatrix", 'String'>
   readonly customer_email: Prisma.FieldRef<"OrderMatrix", 'String'>
   readonly shipping_address: Prisma.FieldRef<"OrderMatrix", 'String'>

@@ -763,7 +763,6 @@ model ProductVariants {
 // ৫. অর্ডার টেবিল (Order Matrix)
 model OrderMatrix {
   id               String      @id @default(uuid())
-  customer_id      String?     @db.Uuid
   customer_name    String
   customer_email   String
   shipping_address String

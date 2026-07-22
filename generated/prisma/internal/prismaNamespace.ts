@@ -3827,7 +3827,6 @@ export type ProductVariantsScalarFieldEnum = (typeof ProductVariantsScalarFieldE
 
 export const OrderMatrixScalarFieldEnum = {
   id: 'id',
-  customer_id: 'customer_id',
   customer_name: 'customer_name',
   customer_email: 'customer_email',
   shipping_address: 'shipping_address',
