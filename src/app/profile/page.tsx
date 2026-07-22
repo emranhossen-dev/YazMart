@@ -10,7 +10,7 @@ import { getUserCoins } from "@/actions/reviews";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import NotFound from "@/app/not-found";
-import { 
+import {
   User, Package, ShoppingCart, Heart, Coins, Truck, Star, Loader2
 } from "lucide-react";
 
@@ -34,7 +34,7 @@ function getStageIndex(status: string): number {
   if (norm === "SHIPPED") return 3;
   if (norm === "IN_TRANSIT") return 4;
   if (norm === "DELIVERED" || norm === "COMPLETED") return 5;
-  
+
   const idx = PARCEL_STAGES.findIndex(s => s.key === norm);
   return idx !== -1 ? idx : 0;
 }
@@ -158,41 +158,36 @@ function CustomerProfileContent() {
         <div className="flex items-center gap-2 border-b border-slate-200 overflow-x-auto pb-px scrollbar-none">
           <button
             onClick={() => setActiveTab("orders")}
-            className={`flex items-center gap-2 px-5 py-3 text-xs font-bold border-b-2 uppercase tracking-wider transition-colors shrink-0 cursor-pointer ${
-              activeTab === "orders" ? "border-[#ff6600] text-[#ff6600] bg-orange-50/60" : "border-transparent text-slate-500 hover:text-slate-900"
-            }`}
+            className={`flex items-center gap-2 px-5 py-3 text-xs font-bold border-b-2 uppercase tracking-wider transition-colors shrink-0 cursor-pointer ${activeTab === "orders" ? "border-[#ff6600] text-[#ff6600] bg-orange-50/60" : "border-transparent text-slate-500 hover:text-slate-900"
+              }`}
           >
             <Package className="h-4 w-4" /> My Orders ({orders.length})
           </button>
           <button
             onClick={() => setActiveTab("cart")}
-            className={`flex items-center gap-2 px-5 py-3 text-xs font-bold border-b-2 uppercase tracking-wider transition-colors shrink-0 cursor-pointer ${
-              activeTab === "cart" ? "border-[#ff6600] text-[#ff6600] bg-orange-50/60" : "border-transparent text-slate-500 hover:text-slate-900"
-            }`}
+            className={`flex items-center gap-2 px-5 py-3 text-xs font-bold border-b-2 uppercase tracking-wider transition-colors shrink-0 cursor-pointer ${activeTab === "cart" ? "border-[#ff6600] text-[#ff6600] bg-orange-50/60" : "border-transparent text-slate-500 hover:text-slate-900"
+              }`}
           >
             <ShoppingCart className="h-4 w-4" /> Cart ({cart.length})
           </button>
           <button
             onClick={() => setActiveTab("wishlist")}
-            className={`flex items-center gap-2 px-5 py-3 text-xs font-bold border-b-2 uppercase tracking-wider transition-colors shrink-0 cursor-pointer ${
-              activeTab === "wishlist" ? "border-[#ff6600] text-[#ff6600] bg-orange-50/60" : "border-transparent text-slate-500 hover:text-slate-900"
-            }`}
+            className={`flex items-center gap-2 px-5 py-3 text-xs font-bold border-b-2 uppercase tracking-wider transition-colors shrink-0 cursor-pointer ${activeTab === "wishlist" ? "border-[#ff6600] text-[#ff6600] bg-orange-50/60" : "border-transparent text-slate-500 hover:text-slate-900"
+              }`}
           >
             <Heart className="h-4 w-4" /> Wishlist ({wishlist.length})
           </button>
           <button
             onClick={() => setActiveTab("coins")}
-            className={`flex items-center gap-2 px-5 py-3 text-xs font-bold border-b-2 uppercase tracking-wider transition-colors shrink-0 cursor-pointer ${
-              activeTab === "coins" ? "border-[#ff6600] text-[#ff6600] bg-orange-50/60" : "border-transparent text-slate-500 hover:text-slate-900"
-            }`}
+            className={`flex items-center gap-2 px-5 py-3 text-xs font-bold border-b-2 uppercase tracking-wider transition-colors shrink-0 cursor-pointer ${activeTab === "coins" ? "border-[#ff6600] text-[#ff6600] bg-orange-50/60" : "border-transparent text-slate-500 hover:text-slate-900"
+              }`}
           >
             <Coins className="h-4 w-4 text-amber-500" /> Reward Coins
           </button>
           <button
             onClick={() => setActiveTab("account")}
-            className={`flex items-center gap-2 px-5 py-3 text-xs font-bold border-b-2 uppercase tracking-wider transition-colors shrink-0 cursor-pointer ${
-              activeTab === "account" ? "border-[#ff6600] text-[#ff6600] bg-orange-50/60" : "border-transparent text-slate-500 hover:text-slate-900"
-            }`}
+            className={`flex items-center gap-2 px-5 py-3 text-xs font-bold border-b-2 uppercase tracking-wider transition-colors shrink-0 cursor-pointer ${activeTab === "account" ? "border-[#ff6600] text-[#ff6600] bg-orange-50/60" : "border-transparent text-slate-500 hover:text-slate-900"
+              }`}
           >
             <User className="h-4 w-4" /> Account Info
           </button>
@@ -227,11 +222,10 @@ function CustomerProfileContent() {
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="font-mono font-black text-sm text-blue-600">#{order.id.slice(0, 8).toUpperCase()}</span>
-                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
-                            isCancelled ? "bg-rose-100 text-rose-700" :
-                            order.status === "DELIVERED" ? "bg-emerald-100 text-emerald-700" :
-                            "bg-blue-100 text-blue-700"
-                          }`}>
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${isCancelled ? "bg-rose-100 text-rose-700" :
+                              order.status === "DELIVERED" ? "bg-emerald-100 text-emerald-700" :
+                                "bg-blue-100 text-blue-700"
+                            }`}>
                             {order.status}
                           </span>
                         </div>
@@ -265,13 +259,12 @@ function CustomerProfileContent() {
                             return (
                               <div
                                 key={stage.key}
-                                className={`p-3 rounded-2xl border text-center relative transition-all ${
-                                  isCurrent
+                                className={`p-3 rounded-2xl border text-center relative transition-all ${isCurrent
                                     ? "bg-blue-600 text-white border-blue-600 shadow-md ring-2 ring-blue-300"
                                     : isPassed
-                                    ? "bg-emerald-50 border-emerald-200 text-emerald-900"
-                                    : "bg-zinc-50 border-zinc-200 text-zinc-400"
-                                }`}
+                                      ? "bg-emerald-50 border-emerald-200 text-emerald-900"
+                                      : "bg-zinc-50 border-zinc-200 text-zinc-400"
+                                  }`}
                               >
                                 <span className="text-xl block mb-1">{stage.icon}</span>
                                 <p className={`text-[10px] font-black uppercase tracking-tight ${isCurrent ? "text-white" : isPassed ? "text-emerald-800" : "text-zinc-400"}`}>
