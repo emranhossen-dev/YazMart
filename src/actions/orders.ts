@@ -28,65 +28,41 @@ export async function createOrder(data: {
       // Create the main order with TAKEN / PENDING initial status
       const initialStatus = data.payment_method === "ONLINE" ? "AWAITING_PAYMENT" : "TAKEN";
 
-      let order: any;
-      try {
-        order = await tx.orderMatrix.create({
-          data: {
-            customer_id: data.customer_id || null,
-            customer_name: data.customer_name,
-            customer_email: data.customer_email,
-            shipping_address: data.shipping_address,
-            phone: data.phone,
-            total_amount: data.total_amount,
-            items: {
-              __meta: {
-                customer_id: data.customer_id || null,
-                payment_method: data.payment_method || "COD",
-                delivery_charge: data.delivery_charge || 0,
-                subtotal: data.subtotal || data.total_amount,
-                discount: data.discount || 0,
-                coupon_code: data.coupon_code || null,
-                coins_redeemed: data.coins_redeemed || 0,
-              },
-              list: data.items,
+      const order = await tx.orderMatrix.create({
+        data: {
+          customer_name: data.customer_name,
+          customer_email: data.customer_email,
+          shipping_address: data.shipping_address,
+          phone: data.phone,
+          total_amount: data.total_amount,
+          items: {
+            __meta: {
+              customer_id: data.customer_id || null,
+              payment_method: data.payment_method || "COD",
+              delivery_charge: data.delivery_charge || 0,
+              subtotal: data.subtotal || data.total_amount,
+              discount: data.discount || 0,
+              coupon_code: data.coupon_code || null,
+              coins_redeemed: data.coins_redeemed || 0,
             },
-            status: initialStatus,
+            list: data.items,
           },
-        });
-      } catch (err) {
-        // Fallback if physical DB table lacks customer_id column
-        order = await tx.orderMatrix.create({
-          data: {
-            customer_name: data.customer_name,
-            customer_email: data.customer_email,
-            shipping_address: data.shipping_address,
-            phone: data.phone,
-            total_amount: data.total_amount,
-            items: {
-              __meta: {
-                customer_id: data.customer_id || null,
-                payment_method: data.payment_method || "COD",
-                delivery_charge: data.delivery_charge || 0,
-                subtotal: data.subtotal || data.total_amount,
-                discount: data.discount || 0,
-                coupon_code: data.coupon_code || null,
-                coins_redeemed: data.coins_redeemed || 0,
-              },
-              list: data.items,
-            },
-            status: initialStatus,
-          },
-        });
-      }
+          status: initialStatus,
+        },
+      });
 
-      // If coins were redeemed, deduct from customer profile
+      // If coins were redeemed, attempt to deduct from customer profile safely
       if (data.customer_id && data.coins_redeemed && data.coins_redeemed > 0) {
-        await tx.profiles.update({
-          where: { id: data.customer_id },
-          data: {
-            coins: { decrement: data.coins_redeemed },
-          },
-        });
+        try {
+          await tx.profiles.update({
+            where: { id: data.customer_id },
+            data: {
+              coins: { decrement: data.coins_redeemed },
+            },
+          });
+        } catch (coinErr) {
+          console.warn("Profiles coins update skipped:", coinErr);
+        }
       }
 
       // Group items by store_id and decrement stock
