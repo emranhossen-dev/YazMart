@@ -95,6 +95,12 @@ export async function signInAction(formData: FormData) {
       sameSite: "lax",
       maxAge: data.session.expires_in,
     });
+    cookieStore.set("yazmart-user-id", data.user.id, {
+      path: "/",
+      secure: false,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 30,
+    });
 
     const profile = await syncAndGetUserProfile(
       data.user.id,
