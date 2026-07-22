@@ -162,7 +162,7 @@ function CategoryCarouselRow({
 
         {categorySlug && (
           <Link
-            href={`/categories/${categorySlug}`}
+            href={categorySlug === "all" ? "/products" : `/products?category=${categorySlug}`}
             className="text-[11px] md:text-xs font-bold text-[#ff6600] hover:underline flex items-center gap-1"
           >
             View All <ArrowRight className="h-3 w-3 md:h-3.5 md:w-3.5" />
@@ -603,7 +603,7 @@ export default function HomePageClient({
                     {categories.map((cat: any) => (
                       <Link
                         key={cat.id}
-                        href={`/categories/${cat.slug}`}
+                        href={`/products?category=${cat.slug}`}
                         className="flex items-center gap-2 rounded-xl p-2.5 font-semibold text-slate-800 hover:bg-orange-50 hover:text-[#ff6600] transition-colors"
                       >
                         <span>{cat.name}</span>
@@ -618,7 +618,7 @@ export default function HomePageClient({
                 {categories.map((cat: any) => (
                   <Link
                     key={cat.id}
-                    href={`/categories/${cat.slug}`}
+                    href={`/products?category=${cat.slug}`}
                     className="hover:text-[#ff6600] transition-colors whitespace-nowrap bg-slate-50 md:bg-transparent px-3 md:px-0 py-1 md:py-0 rounded-full border border-slate-200 md:border-none"
                   >
                     {cat.name}
@@ -709,7 +709,7 @@ export default function HomePageClient({
               {categories.map((cat: any) => (
                 <Link
                   key={cat.id}
-                  href={`/categories/${cat.slug}`}
+                  href={`/products?category=${cat.slug}`}
                   className="group relative h-56 md:h-80 w-[155px] sm:w-[240px] md:w-[280px] shrink-0 snap-start rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col justify-end p-4 md:p-6 border border-slate-100"
                 >
                   {/* Full Container Image Coverage */}
@@ -901,7 +901,7 @@ export default function HomePageClient({
                   {categories.map((cat: any) => (
                     <Link
                       key={cat.id}
-                      href={`/categories/${cat.slug}`}
+                      href={`/products?category=${cat.slug}`}
                       onClick={() => setMobileSidebarOpen(false)}
                       className="flex items-center justify-between rounded-xl px-3 py-2.5 text-slate-800 hover:bg-orange-50 hover:text-[#ff6600] transition-colors"
                     >

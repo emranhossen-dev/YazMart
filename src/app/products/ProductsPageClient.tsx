@@ -237,6 +237,7 @@ export default function ProductsPageClient({
   initialCategories,
 }: ProductsPageClientProps) {
   const tabParam = useQueryParam("tab");
+  const categoryParam = useQueryParam("category");
   const router = useRouter();
 
   const [categories] = useState<any[]>(initialCategories);
@@ -249,6 +250,34 @@ export default function ProductsPageClient({
   const [maxPrice, setMaxPrice] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [selectedCategory, setSelectedCategory] = useState("all");
+
+  // Sync category query parameter (slug or ID) if passed in URL
+  useEffect(() => {
+    if (categoryParam && categoryParam !== "all") {
+      const foundCategory = initialCategories.find(
+        (c) => c.slug === categoryParam || c.id === categoryParam
+      );
+      if (foundCategory) {
+        setSelectedCategory(foundCategory.id);
+      }
+    } else if (categoryParam === "all") {
+      setSelectedCategory("all");
+    }
+  }, [categoryParam, initialCategories]);
+
+  const handleCategorySelect = (catId: string) => {
+    setSelectedCategory(catId);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      if (catId === "all") {
+        url.searchParams.delete("category");
+      } else {
+        const cat = categories.find(c => c.id === catId);
+        url.searchParams.set("category", cat ? cat.slug : catId);
+      }
+      window.history.replaceState({}, "", url.toString());
+    }
+  };
 
   // View states
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -419,7 +448,7 @@ export default function ProductsPageClient({
         <label className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Category</label>
         <div className="max-h-60 space-y-0.5 overflow-y-auto pr-1">
           <button
-            onClick={() => setSelectedCategory("all")}
+            onClick={() => handleCategorySelect("all")}
             className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold transition-colors ${
               selectedCategory === "all" ? "bg-[var(--foreground)] text-[var(--background)]" : "text-[var(--foreground)] hover:bg-[var(--accent)]"
             }`}
@@ -432,7 +461,7 @@ export default function ProductsPageClient({
           {categories.map((cat) => (
             <button
               key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
+              onClick={() => handleCategorySelect(cat.id)}
               className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold transition-colors ${
                 selectedCategory === cat.id ? "bg-[var(--foreground)] text-[var(--background)]" : "text-[var(--foreground)] hover:bg-[var(--accent)]"
               }`}

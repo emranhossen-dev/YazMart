@@ -236,7 +236,7 @@ export default function ProductDetailPageClient({
           <span>/</span>
           {product.category?.name && (
             <>
-              <Link href={`/categories/${product.category.slug}`} className="hover:text-slate-700 shrink-0">{product.category.name}</Link>
+              <Link href={`/products?category=${product.category.slug}`} className="hover:text-slate-700 shrink-0">{product.category.name}</Link>
               <span>/</span>
             </>
           )}
