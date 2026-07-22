@@ -190,6 +190,7 @@ export default function Page() {
                     <tr className="border-b border-[var(--border)] text-[var(--muted-foreground)] font-bold text-[9px] uppercase tracking-wider">
                       <th className="pb-3">Reference ID</th>
                       <th className="pb-3">Customer Info</th>
+                      <th className="pb-3">Ordered Products</th>
                       <th className="pb-3">Shipping Address</th>
                       <th className="pb-3">Bill Total</th>
                       <th className="pb-3">Status</th>
@@ -198,77 +199,114 @@ export default function Page() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[var(--border)] font-medium">
-                    {orders.map((ord) => (
-                      <tr key={ord.id} className="hover:bg-[var(--background)]/50 transition-colors">
-                        <td className="py-3.5 font-mono text-[10px] text-[var(--muted-foreground)] font-bold">#{ord.id.substring(0, 8).toUpperCase()}</td>
-                        <td className="py-3.5">
-                          <button 
-                            onClick={() => setSelectedOrder(ord)}
-                            className="text-left font-bold text-[var(--foreground)] hover:text-blue-500 transition-colors cursor-pointer"
-                          >
-                            {ord.customer_name}
-                          </button>
-                          <p className="text-[10px] text-[var(--muted-foreground)]">{ord.customer_email}</p>
-                          <p className="text-[10px] font-mono text-[var(--muted-foreground)] mt-0.5">{ord.phone}</p>
-                        </td>
-                        <td className="py-3.5 text-[var(--muted-foreground)]">{ord.shipping_address}</td>
-                        <td className="py-3.5 font-bold text-blue-500">৳{ord.total_amount}</td>
-                        <td className="py-3.5">
-                          <select
-                            value={ord.status}
-                            disabled={updatingStatusId === ord.id}
-                            onChange={(e) => handleStatusChange(ord.id, e.target.value)}
-                            className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase bg-[var(--background)] border border-[var(--border)] focus:outline-none cursor-pointer ${
-                              ord.status === "DELIVERED" || ord.status === "COMPLETED" ? "text-emerald-500 border-emerald-500/20 bg-emerald-500/5" :
-                              ord.status === "CANCELLED" ? "text-rose-500 border-rose-500/20 bg-rose-500/5" :
-                              ord.status === "SHIPPED" || ord.status === "IN_TRANSIT" ? "text-indigo-500 border-indigo-500/20 bg-indigo-500/5" :
-                              ord.status === "PROCESSED" || ord.status === "PROCESSING" ? "text-blue-500 border-blue-500/20 bg-blue-500/5" :
-                              "text-amber-500 border-amber-500/20 bg-amber-500/5"
-                            }`}
-                          >
-                            <option value="TAKEN" className="bg-[var(--card)] text-amber-500">1. TAKEN (Order Placed)</option>
-                            <option value="CONFIRMED" className="bg-[var(--card)] text-amber-600">2. CONFIRMED</option>
-                            <option value="PROCESSED" className="bg-[var(--card)] text-blue-500">3. PROCESSED (Packaged)</option>
-                            <option value="SHIPPED" className="bg-[var(--card)] text-indigo-500">4. SHIPPED (Handed Over)</option>
-                            <option value="IN_TRANSIT" className="bg-[var(--card)] text-indigo-600">5. IN_TRANSIT</option>
-                            <option value="DELIVERED" className="bg-[var(--card)] text-emerald-500">6. DELIVERED</option>
-                            <option value="CANCELLED" className="bg-[var(--card)] text-rose-500">CANCELLED</option>
-                          </select>
-                        </td>
-                        <td className="py-3.5 font-mono text-[10px] text-[var(--muted-foreground)]">
-                          {new Date(ord.createdAt).toLocaleDateString()}
-                        </td>
-                        <td className="py-3.5 text-right space-x-1.5 flex justify-end items-center h-[52px]">
-                          <button
-                            onClick={() => setCallTarget({ name: ord.customer_name, phone: ord.phone })}
-                            className="inline-flex items-center justify-center p-1.5 bg-neutral-800 hover:bg-neutral-700 text-blue-400 hover:text-blue-300 rounded transition-colors cursor-pointer"
-                            title="Call Customer"
-                          >
-                            <Phone className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            onClick={() => setMessageTarget({ name: ord.customer_name, phone: ord.phone })}
-                            className="inline-flex items-center justify-center p-1.5 bg-neutral-800 hover:bg-neutral-700 text-emerald-400 hover:text-emerald-300 rounded transition-colors cursor-pointer"
-                            title="Message Customer"
-                          >
-                            <MessageSquare className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            onClick={() => setSelectedOrder(ord)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-neutral-800 hover:bg-neutral-700 text-white rounded text-[10px] font-bold uppercase transition-colors cursor-pointer"
-                            title="View Order Details"
-                          >
-                            <Eye className="h-3 w-3" /> Details
-                          </button>
-                          <button
-                            onClick={() => handlePrintOrderMemo(ord)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-[10px] font-bold uppercase transition-colors cursor-pointer"
-                          >
-                            <Printer className="h-3 w-3" /> Invoice
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    {orders.map((ord) => {
+                      const itemList: any[] = ((): any[] => {
+                        try {
+                          const raw = ord.items;
+                          if (typeof raw === "string") {
+                            const p = JSON.parse(raw);
+                            return Array.isArray(p) ? p : (p?.list || []);
+                          }
+                          if (Array.isArray(raw)) return raw;
+                          if (raw && typeof raw === "object") return (raw as any).list || [];
+                        } catch (e) {}
+                        return [];
+                      })();
+                      const firstItem = itemList[0];
+
+                      return (
+                        <tr key={ord.id} className="hover:bg-[var(--background)]/50 transition-colors">
+                          <td className="py-3.5 font-mono text-[10px] text-[var(--muted-foreground)] font-bold">#{ord.id.substring(0, 8).toUpperCase()}</td>
+                          <td className="py-3.5">
+                            <button 
+                              onClick={() => setSelectedOrder(ord)}
+                              className="text-left font-bold text-[var(--foreground)] hover:text-blue-500 transition-colors cursor-pointer"
+                            >
+                              {ord.customer_name}
+                            </button>
+                            <p className="text-[10px] text-[var(--muted-foreground)]">{ord.customer_email}</p>
+                            <p className="text-[10px] font-mono text-[var(--muted-foreground)] mt-0.5">{ord.phone}</p>
+                          </td>
+                          <td className="py-3.5">
+                            {firstItem ? (
+                              <div className="flex items-center gap-2 max-w-[200px]">
+                                <img
+                                  src={firstItem.image || firstItem.featured_image || firstItem.image_url || "/logo yazmart.png"}
+                                  alt={firstItem.name || "Product"}
+                                  className="h-8 w-8 object-cover rounded bg-[var(--background)] border border-[var(--border)] shrink-0"
+                                />
+                                <div className="min-w-0">
+                                  <p className="text-xs font-bold text-[var(--foreground)] truncate">{firstItem.name || "Product Item"}</p>
+                                  {itemList.length > 1 && (
+                                    <span className="text-[9px] font-bold text-blue-500 bg-blue-500/10 px-1.5 py-0.2 rounded">
+                                      +{itemList.length - 1} more items
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-[var(--muted-foreground)]">-</span>
+                            )}
+                          </td>
+                          <td className="py-3.5 text-[var(--muted-foreground)]">{ord.shipping_address}</td>
+                          <td className="py-3.5 font-bold text-blue-500 font-mono">৳{ord.total_amount}</td>
+                          <td className="py-3.5">
+                            <select
+                              value={ord.status}
+                              disabled={updatingStatusId === ord.id}
+                              onChange={(e) => handleStatusChange(ord.id, e.target.value)}
+                              className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase bg-[var(--background)] border border-[var(--border)] focus:outline-none cursor-pointer ${
+                                ord.status === "DELIVERED" || ord.status === "COMPLETED" ? "text-emerald-500 border-emerald-500/20 bg-emerald-500/5" :
+                                ord.status === "CANCELLED" ? "text-rose-500 border-rose-500/20 bg-rose-500/5" :
+                                ord.status === "SHIPPED" || ord.status === "IN_TRANSIT" ? "text-indigo-500 border-indigo-500/20 bg-indigo-500/5" :
+                                ord.status === "PROCESSED" || ord.status === "PROCESSING" ? "text-blue-500 border-blue-500/20 bg-blue-500/5" :
+                                "text-amber-500 border-amber-500/20 bg-amber-500/5"
+                              }`}
+                            >
+                              <option value="TAKEN" className="bg-[var(--card)] text-amber-500">1. TAKEN (Order Placed)</option>
+                              <option value="CONFIRMED" className="bg-[var(--card)] text-amber-600">2. CONFIRMED</option>
+                              <option value="PROCESSED" className="bg-[var(--card)] text-blue-500">3. PROCESSED (Packaged)</option>
+                              <option value="SHIPPED" className="bg-[var(--card)] text-indigo-500">4. SHIPPED (Handed Over)</option>
+                              <option value="IN_TRANSIT" className="bg-[var(--card)] text-indigo-600">5. IN_TRANSIT</option>
+                              <option value="DELIVERED" className="bg-[var(--card)] text-emerald-500">6. DELIVERED</option>
+                              <option value="CANCELLED" className="bg-[var(--card)] text-rose-500">CANCELLED</option>
+                            </select>
+                          </td>
+                          <td className="py-3.5 font-mono text-[10px] text-[var(--muted-foreground)]">
+                            {new Date(ord.createdAt).toLocaleDateString()}
+                          </td>
+                          <td className="py-3.5 text-right space-x-1.5 flex justify-end items-center h-[52px]">
+                            <button
+                              onClick={() => setCallTarget({ name: ord.customer_name, phone: ord.phone })}
+                              className="inline-flex items-center justify-center p-1.5 bg-neutral-800 hover:bg-neutral-700 text-blue-400 hover:text-blue-300 rounded transition-colors cursor-pointer"
+                              title="Call Customer"
+                            >
+                              <Phone className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={() => setMessageTarget({ name: ord.customer_name, phone: ord.phone })}
+                              className="inline-flex items-center justify-center p-1.5 bg-neutral-800 hover:bg-neutral-700 text-emerald-400 hover:text-emerald-300 rounded transition-colors cursor-pointer"
+                              title="Message Customer"
+                            >
+                              <MessageSquare className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={() => setSelectedOrder(ord)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 bg-neutral-800 hover:bg-neutral-700 text-white rounded text-[10px] font-bold uppercase transition-colors cursor-pointer"
+                              title="View Order Details"
+                            >
+                              <Eye className="h-3 w-3" /> Details
+                            </button>
+                            <button
+                              onClick={() => handlePrintOrderMemo(ord)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-[10px] font-bold uppercase transition-colors cursor-pointer"
+                            >
+                              <Printer className="h-3 w-3" /> Invoice
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -279,7 +317,6 @@ export default function Page() {
         {tab === "returns" && (
           <div className="space-y-6">
             <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
-              {/* Scanner Form */}
               <div className="md:col-span-1 space-y-4">
                 <div className="p-4 border border-[var(--border)] bg-[var(--background)]/30 rounded-xl space-y-4">
                   <h3 className="text-xs font-black uppercase text-[var(--muted-foreground)] flex items-center gap-2">
@@ -304,80 +341,59 @@ export default function Page() {
                     <button
                       type="submit"
                       disabled={restockLoading}
-                      className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-black uppercase tracking-wider transition-colors cursor-pointer"
+                      className="w-full py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center justify-center gap-2 shadow-xs"
                     >
-                      {restockLoading ? "Processing..." : "Submit Return"}
+                      {restockLoading ? "Restocking..." : "Restock Item"}
                     </button>
                   </form>
 
                   {lastMessage && (
-                    <div className={`p-3 rounded-lg text-xs font-semibold flex items-start gap-2 ${
+                    <div className={`p-3 rounded-lg border text-xs font-semibold flex items-center gap-2 ${
                       lastMessage.type === "success" 
-                        ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" 
-                        : "bg-rose-500/10 text-rose-500 border border-rose-500/20"
+                        ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" 
+                        : "bg-rose-500/10 border-rose-500/20 text-rose-500"
                     }`}>
-                      {lastMessage.type === "success" ? (
-                        <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" />
-                      ) : (
-                        <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                      )}
+                      {lastMessage.type === "success" ? <CheckCircle2 className="h-4 w-4 shrink-0" /> : <AlertCircle className="h-4 w-4 shrink-0" />}
                       <span>{lastMessage.text}</span>
                     </div>
                   )}
                 </div>
-              </div>
 
-              {/* Live Scanned Feed */}
-              <div className="md:col-span-2 space-y-4">
-                <div className="p-4 border border-[var(--border)] bg-[var(--background)]/30 rounded-xl space-y-4">
+                <div className="p-4 border border-[var(--border)] bg-[var(--background)]/30 rounded-xl space-y-3">
                   <div className="flex justify-between items-center">
-                    <h3 className="text-xs font-black uppercase text-[var(--muted-foreground)] flex items-center gap-2">
-                      <RotateCcw className="h-4 w-4 text-blue-500" /> Scanned Return Log Feed
-                    </h3>
+                    <h4 className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Scan Session Log</h4>
                     {scannedList.length > 0 && (
-                      <button
-                        onClick={clearFeed}
-                        className="text-[10px] text-rose-500 hover:text-rose-600 flex items-center gap-1 font-bold uppercase cursor-pointer"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" /> Clear Feed
-                      </button>
+                      <button onClick={clearFeed} className="text-[10px] text-rose-400 hover:underline">Clear Feed</button>
                     )}
                   </div>
 
-                  <div className="border border-[var(--border)] rounded-lg overflow-hidden text-xs bg-[var(--card)]">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="border-b border-[var(--border)] bg-[var(--background)] text-[var(--muted-foreground)] font-bold text-[9px] uppercase tracking-wider">
-                          <th className="p-3">Barcode / Serial</th>
-                          <th className="p-3">Product Name</th>
-                          <th className="p-3">Time</th>
-                          <th className="p-3 text-right">Inventory Action</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[var(--border)] font-medium">
-                        {scannedList.length === 0 ? (
-                          <tr>
-                            <td colSpan={4} className="py-8 text-center text-[var(--muted-foreground)] font-semibold">
-                              No returns processed in this session. Start scanning above.
-                            </td>
-                          </tr>
-                        ) : (
-                          scannedList.map((item, idx) => (
-                            <tr key={idx} className="hover:bg-[var(--background)]/30 transition-colors">
-                              <td className="p-3 font-mono text-[10px] text-[var(--muted-foreground)]">{item.serial_number}</td>
-                              <td className="p-3 font-bold text-[var(--foreground)]">{item.productName}</td>
-                              <td className="p-3 text-[var(--muted-foreground)]">{item.timestamp}</td>
-                              <td className="p-3 text-right">
-                                <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-500/10 text-emerald-500">
-                                  {item.status}
-                                </span>
-                              </td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
+                  <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                    {scannedList.length === 0 ? (
+                      <p className="text-[11px] text-[var(--muted-foreground)] italic text-center py-4">No items scanned yet in this session.</p>
+                    ) : (
+                      scannedList.map((item, idx) => (
+                        <div key={idx} className="p-2 bg-[var(--card)] border border-[var(--border)] rounded text-[11px] space-y-1">
+                          <div className="flex justify-between font-bold text-[var(--foreground)]">
+                            <span>{item.productName}</span>
+                            <span className="text-[9px] font-mono text-emerald-500">{item.status}</span>
+                          </div>
+                          <div className="flex justify-between text-[10px] text-[var(--muted-foreground)] font-mono">
+                            <span>S/N: {item.serial_number}</span>
+                            <span>{item.timestamp}</span>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
+                </div>
+              </div>
+
+              <div className="md:col-span-2 space-y-4">
+                <div className="p-5 border border-[var(--border)] bg-[var(--card)] rounded-xl space-y-4 shadow-xs">
+                  <h3 className="text-xs font-black uppercase text-[var(--muted-foreground)]">Returned & Restocked Items Management</h3>
+                  <p className="text-xs text-[var(--muted-foreground)] leading-relaxed">
+                    Scan customer return package barcodes or serial numbers to instantly verify item validity, restore product stock level, and track inventory restocking feeds in real-time.
+                  </p>
                 </div>
               </div>
             </div>
@@ -386,32 +402,36 @@ export default function Page() {
 
         {tab === "refunds" && (
           <div className="space-y-4">
-            <h3 className="text-xs font-black uppercase text-[var(--muted-foreground)] flex items-center gap-2">
-              <CreditCard className="h-4 w-4 text-blue-500" /> Payout & Refund Ledgers
-            </h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="border-b border-[var(--border)] text-[var(--muted-foreground)] font-bold text-[9px] uppercase tracking-wider">
-                    <th className="pb-3">Refund Ref</th>
-                    <th className="pb-3">Recipient</th>
-                    <th className="pb-3">Amount</th>
-                    <th className="pb-3">Payment Channel</th>
-                    <th className="pb-3 text-right">Status</th>
+            <div className="p-5 rounded-xl border border-[var(--border)] bg-[var(--card)] space-y-3">
+              <h3 className="text-xs font-black uppercase text-[var(--muted-foreground)]">Refund Claims Ledger</h3>
+              <p className="text-xs text-[var(--muted-foreground)] leading-relaxed">
+                Track pending customer refund requests, Bkash / Nagad transaction rollbacks, and merchant reimbursement balances.
+              </p>
+            </div>
+
+            <div className="border border-[var(--border)] rounded-xl overflow-hidden bg-[var(--card)]">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[var(--background)]/50 border-b border-[var(--border)]">
+                  <tr className="text-[var(--muted-foreground)] font-bold text-[9px] uppercase tracking-wider">
+                    <th className="p-3">Claim ID</th>
+                    <th className="p-3">Customer</th>
+                    <th className="p-3">Refund Amount</th>
+                    <th className="p-3">Gateway</th>
+                    <th className="p-3">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--border)] font-medium">
-                  {FALLBACK_REFUNDS.map((ref) => (
-                    <tr key={ref.id} className="hover:bg-[var(--background)]/50 transition-colors">
-                      <td className="py-3.5 font-mono text-[10px] text-[var(--muted-foreground)]">{ref.id}</td>
-                      <td className="py-3.5 font-bold text-[var(--foreground)]">{ref.customerName}</td>
-                      <td className="py-3.5 font-black text-rose-500">{ref.amount}</td>
-                      <td className="py-3.5 font-semibold text-[var(--muted-foreground)]">{ref.method}</td>
-                      <td className="py-3.5 text-right">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                          ref.status === "COMPLETED" ? "bg-emerald-500/10 text-emerald-500" : "bg-blue-500/10 text-blue-500"
+                  {FALLBACK_REFUNDS.map((r) => (
+                    <tr key={r.id} className="hover:bg-[var(--background)]/30">
+                      <td className="p-3 font-mono text-[10px] text-blue-500 font-bold">{r.id}</td>
+                      <td className="p-3 font-bold text-[var(--foreground)]">{r.customerName}</td>
+                      <td className="p-3 font-bold font-mono text-emerald-500">{r.amount}</td>
+                      <td className="p-3 text-[var(--muted-foreground)] font-bold">{r.method}</td>
+                      <td className="p-3">
+                        <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${
+                          r.status === "COMPLETED" ? "bg-emerald-500/10 text-emerald-500" : "bg-amber-500/10 text-amber-500"
                         }`}>
-                          {ref.status}
+                          {r.status}
                         </span>
                       </td>
                     </tr>
@@ -426,76 +446,44 @@ export default function Page() {
       {/* Order Details Modal */}
       {selectedOrder && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 select-none">
-          <div className="w-full max-w-2xl bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            {/* Modal Header */}
-            <div className="p-4 border-b border-[var(--border)] flex justify-between items-center bg-[var(--background)]/50">
+          <div className="w-full max-w-2xl bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-4 border-b border-[var(--border)] bg-[var(--background)]/50 flex justify-between items-center">
               <div>
-                <h3 className="text-xs font-black uppercase text-[var(--muted-foreground)]">Order Detail Matrix</h3>
-                <p className="text-[10px] font-mono text-blue-500 mt-0.5">Ref ID: #{selectedOrder.id}</p>
+                <h3 className="text-xs font-black uppercase tracking-tight text-[var(--foreground)] flex items-center gap-2">
+                  <ShoppingBag className="h-4 w-4 text-blue-500" /> Order Details #{selectedOrder.id.substring(0, 8).toUpperCase()}
+                </h3>
+                <p className="text-[10px] text-[var(--muted-foreground)] font-mono mt-0.5">Full Order ID: {selectedOrder.id}</p>
               </div>
               <button
                 onClick={() => setSelectedOrder(null)}
-                className="p-1 rounded-lg hover:bg-[var(--border)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors cursor-pointer"
+                className="p-1.5 hover:bg-[var(--background)] rounded text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            {/* Modal Body */}
-            <div className="p-5 overflow-y-auto space-y-5 text-xs">
-              {/* Status and date */}
-              <div className="grid grid-cols-2 gap-4 bg-[var(--background)]/30 p-3 rounded-lg border border-[var(--border)]/50">
+            <div className="p-5 overflow-y-auto space-y-4 text-xs">
+              <div className="grid grid-cols-2 gap-4 p-3 rounded-lg border border-[var(--border)] bg-[var(--background)]/30">
                 <div>
-                  <span className="block text-[9px] font-bold uppercase text-[var(--muted-foreground)]">Order Date</span>
-                  <span className="font-semibold">{new Date(selectedOrder.createdAt).toLocaleString()}</span>
-                </div>
-                <div>
-                  <span className="block text-[9px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Status Desk</span>
-                  <select
-                    value={selectedOrder.status}
-                    onChange={(e) => handleStatusChange(selectedOrder.id, e.target.value)}
-                    className={`px-2 py-1 rounded text-[10px] font-black uppercase bg-[var(--background)] border border-[var(--border)] focus:outline-none cursor-pointer ${
-                      selectedOrder.status === "DELIVERED" || selectedOrder.status === "COMPLETED" ? "text-emerald-500 border-emerald-500/20 bg-emerald-500/5" :
-                      selectedOrder.status === "CANCELLED" ? "text-rose-500 border-rose-500/20 bg-rose-500/5" :
-                      selectedOrder.status === "SHIPPED" || selectedOrder.status === "IN_TRANSIT" ? "text-indigo-500 border-indigo-500/20 bg-indigo-500/5" :
-                      selectedOrder.status === "PROCESSED" || selectedOrder.status === "PROCESSING" ? "text-blue-500 border-blue-500/20 bg-blue-500/5" :
-                      "text-amber-500 border-amber-500/20 bg-amber-500/5"
-                    }`}
-                  >
-                    <option value="TAKEN">1. TAKEN (Order Placed)</option>
-                    <option value="CONFIRMED">2. CONFIRMED</option>
-                    <option value="PROCESSED">3. PROCESSED (Packaged)</option>
-                    <option value="SHIPPED">4. SHIPPED (Handed Over)</option>
-                    <option value="IN_TRANSIT">5. IN_TRANSIT</option>
-                    <option value="DELIVERED">6. DELIVERED</option>
-                    <option value="CANCELLED">CANCELLED</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Customer Details */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <h4 className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Customer Info</h4>
+                  <h4 className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-1">Customer Details</h4>
                   <p className="font-bold text-[var(--foreground)]">{selectedOrder.customer_name}</p>
                   <p className="text-[10px] text-[var(--muted-foreground)]">{selectedOrder.customer_email}</p>
-                  <p className="text-[10px] font-mono text-[var(--muted-foreground)]">Phone: {selectedOrder.phone}</p>
+                  <p className="text-[10px] font-mono text-[var(--muted-foreground)] mt-0.5">{selectedOrder.phone}</p>
                 </div>
-                <div className="space-y-1">
-                  <h4 className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Shipping Node</h4>
-                  <p className="text-[10px] font-medium text-[var(--foreground)]">{selectedOrder.shipping_address}</p>
+                <div>
+                  <h4 className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-1">Shipping Logistics Address</h4>
+                  <p className="text-[11px] leading-relaxed text-[var(--foreground)] font-medium">{selectedOrder.shipping_address}</p>
                 </div>
               </div>
 
-              {/* Items Table */}
-              <div className="space-y-2">
-                <h4 className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Products Bundle</h4>
+              <div>
+                <h4 className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Purchased Product Line Items</h4>
                 <div className="border border-[var(--border)] rounded-lg overflow-hidden">
-                  <table className="w-full text-left border-collapse text-xs">
-                    <thead>
-                      <tr className="border-b border-[var(--border)] bg-[var(--background)] text-[var(--muted-foreground)] font-bold text-[9px] uppercase tracking-wider">
-                        <th className="p-3">Product Name</th>
-                        <th className="p-3">Variant Details</th>
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[var(--background)]/50 border-b border-[var(--border)]">
+                      <tr className="text-[var(--muted-foreground)] font-bold text-[9px] uppercase tracking-wider">
+                        <th className="p-3">Product Item</th>
+                        <th className="p-3">Variant</th>
                         <th className="p-3 text-center">Qty</th>
                         <th className="p-3 text-right">Price</th>
                         <th className="p-3 text-right">Total</th>
@@ -504,42 +492,51 @@ export default function Page() {
                     <tbody className="divide-y divide-[var(--border)] font-medium">
                       {((): any[] => {
                         try {
-                          const itemsJson = selectedOrder.items;
-                          if (typeof itemsJson === "string") return JSON.parse(itemsJson);
-                          if (Array.isArray(itemsJson)) return itemsJson;
+                          const raw = selectedOrder.items;
+                          if (typeof raw === "string") {
+                            const parsed = JSON.parse(raw);
+                            if (Array.isArray(parsed)) return parsed;
+                            if (parsed && typeof parsed === "object") return parsed.list || [];
+                          }
+                          if (Array.isArray(raw)) return raw;
+                          if (raw && typeof raw === "object") return (raw as any).list || [];
                         } catch (e) {}
                         return [];
-                      })().map((item: any, index: number) => (
-                        <tr key={index} className="hover:bg-[var(--background)]/30">
-                          <td className="p-3">
-                            <div className="flex items-center gap-3">
-                              {item.image && (
+                      })().map((item: any, index: number) => {
+                        const imgSrc = item.image || item.featured_image || item.image_url || "/logo yazmart.png";
+                        const title = item.name || item.title || "Product Item";
+                        const price = Number(item.price || item.selling_price || 0);
+                        const qty = Number(item.quantity || 1);
+                        return (
+                          <tr key={index} className="hover:bg-[var(--background)]/30">
+                            <td className="p-3">
+                              <div className="flex items-center gap-3">
                                 <img
-                                  src={item.image}
-                                  alt={item.name}
-                                  className="h-8 w-8 object-cover rounded bg-[var(--background)] border border-[var(--border)]"
+                                  src={imgSrc}
+                                  alt={title}
+                                  className="h-10 w-10 object-cover rounded-lg bg-[var(--background)] border border-[var(--border)] shrink-0"
                                 />
-                              )}
-                              <div>
-                                <p className="font-bold text-[var(--foreground)]">{item.name}</p>
-                                <p className="text-[9px] font-mono text-[var(--muted-foreground)]">ID: {item.id}</p>
+                                <div>
+                                  <p className="font-bold text-xs text-[var(--foreground)]">{title}</p>
+                                  <p className="text-[9px] font-mono text-[var(--muted-foreground)]">ID: {item.id || index + 1}</p>
+                                </div>
                               </div>
-                            </div>
-                          </td>
-                          <td className="p-3 text-[var(--muted-foreground)]">
-                            {item.variantName || item.color || item.size ? (
-                              <span className="inline-flex gap-1 px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-500 text-[9px] font-bold uppercase">
-                                {[item.variantName, item.color, item.size].filter(Boolean).join(" / ")}
-                              </span>
-                            ) : (
-                              "-"
-                            )}
-                          </td>
-                          <td className="p-3 text-center font-mono font-bold text-[var(--foreground)]">{item.quantity}</td>
-                          <td className="p-3 text-right font-mono">৳{item.price}</td>
-                          <td className="p-3 text-right font-mono font-bold text-blue-500">৳{Number(item.price) * Number(item.quantity)}</td>
-                        </tr>
-                      ))}
+                            </td>
+                            <td className="p-3 text-[var(--muted-foreground)] text-xs">
+                              {item.variantName || item.color || item.size ? (
+                                <span className="inline-flex gap-1 px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-500 text-[9px] font-bold uppercase">
+                                  {[item.variantName, item.color, item.size].filter(Boolean).join(" / ")}
+                                </span>
+                              ) : (
+                                "-"
+                              )}
+                            </td>
+                            <td className="p-3 text-center font-mono font-bold text-xs text-[var(--foreground)]">{qty}</td>
+                            <td className="p-3 text-right font-mono text-xs">৳{price}</td>
+                            <td className="p-3 text-right font-mono text-xs font-bold text-blue-500">৳{price * qty}</td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>

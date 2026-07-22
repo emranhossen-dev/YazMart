@@ -207,7 +207,15 @@ export async function getOrders() {
     return {
       orders: orders.map(o => ({
         ...o,
-        total_amount: Number(o.total_amount)
+        total_amount: Number(o.total_amount),
+        createdAt: o.createdAt.toISOString(),
+        updatedAt: o.updatedAt.toISOString(),
+        sub_orders: (o.sub_orders || []).map((so: any) => ({
+          ...so,
+          total_amount: Number(so.total_amount),
+          createdAt: so.createdAt ? so.createdAt.toISOString() : undefined,
+          updatedAt: so.updatedAt ? so.updatedAt.toISOString() : undefined,
+        }))
       }))
     };
   } catch (error) {
