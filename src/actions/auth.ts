@@ -143,10 +143,13 @@ export async function syncAndGetUserProfile(userId: string, email?: string, full
       include: { roles: true }
     });
 
+    const emailLower = email?.toLowerCase() || "";
+    const isAdminEmail = emailLower.includes("admin");
+    const isSellerEmail = emailLower.includes("seller");
+
     if (!profile) {
       const totalProfiles = await prisma.profiles.count();
-      const isAdminEmail = email === "admin@yazmart.com" || email?.startsWith("admin");
-      const roleName = (totalProfiles === 0 || isAdminEmail) ? "admin" : "customer";
+      const roleName = (totalProfiles === 0 || isAdminEmail) ? "admin" : isSellerEmail ? "seller" : "customer";
       const roleId = await getOrCreateRoleId(roleName);
 
       try {
@@ -168,19 +171,46 @@ export async function syncAndGetUserProfile(userId: string, email?: string, full
           throw createErr;
         }
       }
+    } else {
+      // Auto-sync role if email matches admin/seller patterns
+      const targetRoleName = isAdminEmail ? "admin" : isSellerEmail ? "seller" : null;
+      if (targetRoleName && profile.roles?.name !== targetRoleName) {
+        const targetRoleId = await getOrCreateRoleId(targetRoleName);
+        profile = await prisma.profiles.update({
+          where: { id: userId },
+          data: { role_id: targetRoleId },
+          include: { roles: true }
+        });
+      }
     }
 
     if (!profile) {
       return null;
     }
 
-    const roleName = profile.roles ? profile.roles.name : "customer";
+    const currentRole = profile.roles ? profile.roles.name : "customer";
+
+    // Auto-provision seller store if seller user doesn't have one
+    if (currentRole === "seller") {
+      const existingStore = await prisma.store.findFirst({ where: { owner_id: userId } });
+      if (!existingStore) {
+        const storeSlug = `seller-${userId.slice(0, 8)}`;
+        await prisma.store.create({
+          data: {
+            owner_id: userId,
+            name: fullName ? `${fullName}'s Store` : "Seller Store",
+            slug: storeSlug,
+            status: "ACTIVE"
+          }
+        });
+      }
+    }
 
     return {
       id: profile.id,
       fullName: profile.full_name,
       avatarUrl: profile.avatar_url,
-      role: roleName,
+      role: currentRole,
       email: email || null,
       phone: profile.phone || null,
     };

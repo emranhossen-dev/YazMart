@@ -38,12 +38,14 @@ export async function getEnterpriseUserSession() {
       include: { roles: true }
     });
 
+    const emailLower = user.email?.toLowerCase() || "";
+    const isAdminEmail = emailLower.includes("admin");
+    const isSellerEmail = emailLower.includes("seller");
+
     // If profile is missing in local DB, auto-provision it
     if (!profile) {
       const totalProfiles = await prisma.profiles.count();
-      const isAdminEmail = user.email === "admin@yazmart.com" || user.email?.startsWith("admin");
-      // First user or admin emails get admin role, others get customer
-      const roleName = (totalProfiles === 0 || isAdminEmail) ? "admin" : "customer";
+      const roleName = (totalProfiles === 0 || isAdminEmail) ? "admin" : isSellerEmail ? "seller" : "customer";
       const roleId = await getOrCreateRoleId(roleName);
 
       try {
@@ -64,6 +66,16 @@ export async function getEnterpriseUserSession() {
         } else {
           throw createErr;
         }
+      }
+    } else {
+      const targetRoleName = isAdminEmail ? "admin" : isSellerEmail ? "seller" : null;
+      if (targetRoleName && profile.roles?.name !== targetRoleName) {
+        const targetRoleId = await getOrCreateRoleId(targetRoleName);
+        profile = await prisma.profiles.update({
+          where: { id: user.id },
+          data: { role_id: targetRoleId },
+          include: { roles: true }
+        });
       }
     }
 

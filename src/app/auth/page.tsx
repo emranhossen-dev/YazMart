@@ -72,8 +72,9 @@ export default function AuthPage() {
           }
 
           const roleLower = loginRes.role?.toLowerCase() || "";
-          const isAdminOrStaff = roleLower.includes("admin") || roleLower.includes("staff");
-          const isSeller = roleLower === "seller";
+          const emailLower = loginRes.user?.email?.toLowerCase() || "";
+          const isAdminOrStaff = roleLower.includes("admin") || roleLower.includes("staff") || emailLower.includes("admin");
+          const isSeller = roleLower === "seller" || emailLower.includes("seller");
           const destination = isAdminOrStaff ? "/admin" : isSeller ? "/seller" : "/profile";
 
           setMessage({
