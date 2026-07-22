@@ -37,6 +37,10 @@ export async function getEnterpriseUserSession() {
       targetUserId = userIdCookie;
     }
 
+    if (!targetUserId) {
+      return { user: null, role: null, permissions: [], authenticated: false };
+    }
+
     const profileSelect = {
       id: true,
       full_name: true,
@@ -47,19 +51,10 @@ export async function getEnterpriseUserSession() {
     };
 
     // Fetch user profile from database with role info
-    let profile = targetUserId
-      ? await prisma.profiles.findUnique({
-          where: { id: targetUserId },
-          select: profileSelect
-        })
-      : await prisma.profiles.findFirst({
-          where: {
-            roles: {
-              name: { in: ["admin", "Admin", "Super Admin"] }
-            }
-          },
-          select: profileSelect
-        });
+    let profile = await prisma.profiles.findUnique({
+      where: { id: targetUserId },
+      select: profileSelect
+    });
 
     const emailLower = userEmail?.toLowerCase() || "";
     const isAdminEmail = emailLower.includes("admin");

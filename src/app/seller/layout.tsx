@@ -1,11 +1,15 @@
 import React, { Suspense } from "react";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getEnterpriseUserSession } from "@/actions/auth-enterprise";
 import { getSellerStore } from "@/actions/seller";
 import SellerLayoutClient from "./SellerLayoutClient";
 
 export default async function SellerLayout({ children }: { children: React.ReactNode }) {
   const session = await getEnterpriseUserSession();
+
+  if (!session || !session.authenticated || !session.role || !["seller", "Seller", "admin", "Admin", "Super Admin"].includes(session.role)) {
+    notFound();
+  }
 
   const userId = session.user?.id || "";
   const storeRes = userId ? await getSellerStore(userId) : { store: null };

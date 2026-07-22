@@ -8,7 +8,7 @@ export const unstable_instant = false;
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getEnterpriseUserSession();
 
-  if (!session || session.role !== "admin") {
+  if (!session || !session.authenticated || !session.role || !["admin", "Admin", "Super Admin"].includes(session.role)) {
     notFound();
   }
 

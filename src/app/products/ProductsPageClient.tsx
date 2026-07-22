@@ -7,7 +7,7 @@ import { useQueryParam } from "@/hooks/use-admin-tab";
 import { getAllProducts } from "@/actions/shop";
 import { useShopStore } from "@/store/shop-store";
 import {
-  Heart, Eye, ArrowLeft, Search, Sliders, ShoppingBag,
+  Heart, Eye, ArrowLeft, Search, Sliders, ShoppingBag, ShoppingCart, Sparkles,
   Grid, List, Star, ChevronDown, ChevronLeft, ChevronRight, X, Truck, SlidersHorizontal, Info
 } from "lucide-react";
 import Header from "@/components/Header";
@@ -20,7 +20,7 @@ interface ProductsPageClientProps {
   initialCategories: any[];
 }
 
-const PAGE_SIZE = 9;
+const PAGE_SIZE = 15;
 
 const toastStyle = {
   background: "var(--card)",
@@ -41,7 +41,7 @@ function ProductCard({ product, wishlist, onToggleWishlist, onAddToCart, onBuyNo
     ? Math.round(((product.compare_price - product.selling_price) / product.compare_price) * 100)
     : null;
   const inWishlist = wishlist.some((item: any) => item.id === product.id);
-  const outOfStock = !(product.current_stock > 0);
+  const outOfStock = product.current_stock !== undefined && product.current_stock <= 0;
 
   const badgeText = product.badge || (discount ? `-${discount}%` : (product.is_bestseller ? "BESTSELLER" : null));
   const ratingVal = product.rating || (4.5 + (product.id ? (String(product.id).charCodeAt(0) % 5) * 0.1 : 0.3)).toFixed(1);
@@ -49,14 +49,15 @@ function ProductCard({ product, wishlist, onToggleWishlist, onAddToCart, onBuyNo
 
   return (
     <div className="group flex w-full shrink-0 flex-col overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-xs hover:shadow-xl transition-all duration-300">
-      <div className="relative w-full h-40 sm:h-48 md:h-56 overflow-hidden rounded-t-3xl bg-slate-100">
+      {/* Product Image Box - Full space coverage matching homepage */}
+      <div className="relative w-full h-36 sm:h-44 md:h-48 overflow-hidden rounded-t-3xl bg-slate-100">
         {badgeText && (
-          <span className="absolute top-2.5 left-2.5 z-10 rounded-full bg-[#ff6600] px-2.5 py-0.5 text-[9px] md:text-[10px] font-black uppercase text-white shadow-xs tracking-wide">
+          <span className="absolute top-2 left-2 z-10 rounded-full bg-[#ff6600] px-2 py-0.5 text-[8px] sm:text-[9px] md:text-[10px] font-black uppercase text-white shadow-xs tracking-wide">
             {badgeText}
           </span>
         )}
 
-        <div className="absolute top-2.5 right-2.5 z-10 flex gap-1">
+        <div className="absolute top-2 right-2 z-10 flex gap-1">
           {onInfoClick && (
             <button
               type="button"
@@ -66,18 +67,18 @@ function ProductCard({ product, wishlist, onToggleWishlist, onAddToCart, onBuyNo
                 onInfoClick(product);
               }}
               aria-label="Quick view"
-              className="flex h-7 w-7 md:h-8 md:w-8 items-center justify-center rounded-full bg-white/95 shadow-sm text-slate-500 hover:text-slate-900 transition-colors cursor-pointer"
+              className="flex h-6 w-6 md:h-8 md:w-8 items-center justify-center rounded-full bg-white/95 shadow-sm text-slate-500 hover:text-slate-900 transition-colors cursor-pointer"
             >
-              <Info className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              <Info className="h-3 w-3 md:h-4 md:w-4" />
             </button>
           )}
 
           <button
             onClick={() => onToggleWishlist(product)}
             aria-label="Toggle wishlist"
-            className="flex h-7 w-7 md:h-8 md:w-8 items-center justify-center rounded-full bg-white/95 shadow-sm transition-colors hover:text-rose-500 cursor-pointer"
+            className="flex h-6 w-6 md:h-8 md:w-8 items-center justify-center rounded-full bg-white/95 shadow-sm transition-colors hover:text-rose-500 cursor-pointer"
           >
-            <Heart className={`h-3.5 w-3.5 md:h-4 md:w-4 ${inWishlist ? "fill-rose-500 text-rose-500" : "text-slate-400"}`} />
+            <Heart className={`h-3 w-3 md:h-4 md:w-4 ${inWishlist ? "fill-rose-500 text-rose-500" : "text-slate-400"}`} />
           </button>
         </div>
 
@@ -93,43 +94,43 @@ function ProductCard({ product, wishlist, onToggleWishlist, onAddToCart, onBuyNo
         </Link>
       </div>
 
-      <div className="flex flex-1 flex-col gap-1.5 p-3 md:p-4">
-        <div className="flex items-center gap-1 text-[11px] md:text-xs text-amber-500 font-bold">
+      <div className="flex flex-1 flex-col gap-1 p-2.5 sm:p-3 md:p-4">
+        <div className="flex items-center gap-1 text-[10px] sm:text-[11px] md:text-xs text-amber-500 font-bold">
           <Star className="h-3 w-3 md:h-3.5 md:w-3.5 fill-current" />
           <span>{ratingVal}</span>
           <span className="text-slate-400 font-normal">· {reviewsCount}</span>
         </div>
 
-        <h4 className="line-clamp-1 text-xs md:text-sm font-bold text-slate-900 hover:text-[#ff6600] transition-colors">
+        <h4 className="line-clamp-1 text-[11px] sm:text-xs md:text-sm font-bold text-slate-900 hover:text-[#ff6600] transition-colors">
           <Link href={`/products/${product.slug || product.id}`}>{product.name}</Link>
         </h4>
 
-        <div className="flex items-baseline gap-1.5 mt-0.5">
-          <span className="text-sm md:text-base font-black text-slate-900">
+        <div className="flex items-baseline gap-1 mt-0.5">
+          <span className="text-xs sm:text-sm md:text-base font-black text-slate-900">
             ৳{Number(product.selling_price || product.price || 0).toLocaleString()}
           </span>
           {(product.compare_price || product.originalPrice) && (
-            <span className="text-[10px] md:text-xs font-semibold text-slate-400 line-through">
+            <span className="text-[9px] sm:text-[10px] md:text-xs font-semibold text-slate-400 line-through">
               ৳{Number(product.compare_price || product.originalPrice).toLocaleString()}
             </span>
           )}
         </div>
 
         {outOfStock ? (
-          <span className="mt-1.5 rounded-full bg-rose-50 py-1.5 text-center text-[10px] md:text-xs font-bold text-rose-500">
+          <span className="mt-1 rounded-full bg-rose-50 py-1 text-center text-[10px] md:text-[11px] font-bold text-rose-500">
             Out of Stock
           </span>
         ) : (
-          <div className="mt-1.5 flex gap-1.5">
+          <div className="mt-1 flex gap-1 sm:gap-1.5">
             <button
               onClick={() => onAddToCart(product)}
-              className="flex flex-1 items-center justify-center gap-1 rounded-full border border-slate-200 bg-white hover:border-[#ff6600] hover:bg-orange-50/50 py-1.5 text-[11px] font-bold text-slate-800 hover:text-[#ff6600] transition-all cursor-pointer"
+              className="flex flex-1 items-center justify-center gap-0.5 rounded-full border border-slate-200 bg-white hover:border-[#ff6600] hover:bg-orange-50/50 py-1 text-[10px] md:text-[11px] font-bold text-slate-800 hover:text-[#ff6600] transition-all cursor-pointer"
             >
-              <ShoppingBag className="h-3 w-3 text-[#ff6600]" /> Add
+              <ShoppingCart className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-[#ff6600]" /> Add
             </button>
             <button
               onClick={() => onBuyNow(product)}
-              className="flex-1 rounded-full bg-[#ff6600] hover:bg-orange-700 py-1.5 text-[11px] font-bold text-white transition-all cursor-pointer shadow-xs"
+              className="flex-1 rounded-full bg-[#ff6600] hover:bg-orange-700 py-1 text-[10px] md:text-[11px] font-bold text-white transition-all cursor-pointer shadow-xs"
             >
               Buy
             </button>
@@ -605,10 +606,41 @@ export default function ProductsPageClient({
           <div className="flex-1 py-5 space-y-5">
           {/* Grid / list / empty / loading states */}
           {loading ? (
-            <div className={viewMode === "grid" ? "grid grid-cols-2 gap-5 lg:grid-cols-3" : "space-y-4"}>
-              {Array.from({ length: viewMode === "grid" ? 6 : 4 }).map((_, n) => (
-                <div key={n} className={viewMode === "grid" ? "h-80 animate-pulse rounded-2xl border border-[var(--border)] bg-[var(--card)]" : "h-32 animate-pulse rounded-2xl border border-[var(--border)] bg-[var(--card)]"} />
-              ))}
+            <div className="space-y-6">
+              {/* Product Loading Spinner UX Banner */}
+              <div className="py-12 flex flex-col items-center justify-center gap-3 text-center bg-white rounded-3xl border border-slate-100 p-8 shadow-xs">
+                <div className="relative flex items-center justify-center">
+                  <div className="h-14 w-14 rounded-full border-4 border-orange-100 border-t-[#ff6600] animate-spin shadow-xs" />
+                  <ShoppingCart className="h-6 w-6 text-[#ff6600] absolute inset-0 m-auto animate-pulse" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-1.5 justify-center">
+                    <Sparkles className="h-3.5 w-3.5 text-[#ff6600] animate-spin" /> Loading Products...
+                  </p>
+                  <p className="text-[11px] text-slate-400 font-medium">Fetching best deals & catalog items</p>
+                </div>
+              </div>
+
+              {/* Skeleton Cards with Spinner overlay */}
+              <div className={viewMode === "grid" ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4" : "space-y-4"}>
+                {Array.from({ length: viewMode === "grid" ? 10 : 4 }).map((_, n) => (
+                  <div key={n} className={viewMode === "grid" ? "flex flex-col rounded-3xl border border-slate-100 bg-white overflow-hidden shadow-xs animate-pulse" : "h-32 animate-pulse rounded-2xl border border-slate-100 bg-white"}>
+                    {viewMode === "grid" && (
+                      <>
+                        <div className="w-full h-36 sm:h-44 md:h-48 bg-slate-100 relative flex items-center justify-center">
+                          <div className="h-7 w-7 rounded-full border-2 border-slate-200 border-t-[#ff6600] animate-spin" />
+                        </div>
+                        <div className="p-3 space-y-2">
+                          <div className="h-3 bg-slate-100 rounded-full w-2/3" />
+                          <div className="h-4 bg-slate-100 rounded-full w-full" />
+                          <div className="h-4 bg-slate-100 rounded-full w-1/3" />
+                          <div className="h-7 bg-slate-100 rounded-full w-full mt-2" />
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           ) : products.length === 0 ? (
             <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-[var(--border)] bg-[var(--card)] p-16 text-center">
@@ -623,7 +655,7 @@ export default function ProductsPageClient({
               </button>
             </div>
           ) : viewMode === "grid" ? (
-            <div className="products-fade grid grid-cols-2 gap-5 lg:grid-cols-3">
+            <div className="products-fade grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
               {products.map((product) => (
                 <ProductCard
                   key={product.id}
