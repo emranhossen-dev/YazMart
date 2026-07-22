@@ -1,5 +1,5 @@
 import React, { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { getEnterpriseUserSession } from "@/actions/auth-enterprise";
 import { getSellerStore } from "@/actions/seller";
 import SellerLayoutClient from "./SellerLayoutClient";
@@ -8,7 +8,7 @@ export default async function SellerLayout({ children }: { children: React.React
   const session = await getEnterpriseUserSession();
 
   if (!session.authenticated || !session.user) {
-    notFound();
+    redirect("/auth");
   }
 
   // Get seller store if it exists
@@ -19,7 +19,7 @@ export default async function SellerLayout({ children }: { children: React.React
 
   // Access check: only admins or users with active stores can enter
   if (!isAdmin && (!store || store.status !== "ACTIVE")) {
-    notFound();
+    redirect("/auth");
   }
 
   // Fallback default structure for administrators who do not own a store yet

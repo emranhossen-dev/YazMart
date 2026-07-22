@@ -1,5 +1,5 @@
 import React, { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { getEnterpriseUserSession } from "@/actions/auth-enterprise";
 import AdminLayoutClient from "./AdminLayoutClient";
 
@@ -9,14 +9,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const session = await getEnterpriseUserSession();
 
   if (!session.authenticated || !session.user) {
-    notFound();
+    redirect("/auth");
   }
 
   const roleLower = session.role?.toLowerCase() || "";
   const isAdminOrStaff = roleLower.includes("admin") || roleLower.includes("staff");
 
   if (!isAdminOrStaff) {
-    notFound();
+    redirect("/auth");
   }
 
   return (
