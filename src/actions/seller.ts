@@ -197,7 +197,23 @@ export async function getSellerOrders(storeId: string) {
 
 export async function updateSubOrderDeliveryCharge(subOrderId: string, deliveryCharge: number) {
   try {
+    const subOrder = await prisma.subOrder.findUnique({ where: { id: subOrderId } });
+    if (subOrder) {
+      const parentOrder = await prisma.orderMatrix.findUnique({ where: { id: subOrder.parent_id } });
+      if (parentOrder) {
+        const raw = parentOrder.items as any;
+        const currentMeta = raw?.__meta || {};
+        const updatedMeta = { ...currentMeta, delivery_charge: deliveryCharge };
+        const updatedItems = Array.isArray(raw) ? { __meta: updatedMeta, list: raw } : { ...raw, __meta: updatedMeta };
+        await prisma.orderMatrix.update({
+          where: { id: parentOrder.id },
+          data: { items: updatedItems }
+        });
+      }
+    }
+
     revalidatePath("/seller/orders");
+    revalidatePath("/admin/orders");
     return { success: true, deliveryCharge };
   } catch (error: any) {
     return { error: error.message || "Failed to update delivery charge." };

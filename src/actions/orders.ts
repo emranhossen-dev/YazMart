@@ -28,28 +28,56 @@ export async function createOrder(data: {
       // Create the main order with TAKEN / PENDING initial status
       const initialStatus = data.payment_method === "ONLINE" ? "AWAITING_PAYMENT" : "TAKEN";
 
-      const order = await tx.orderMatrix.create({
-        data: {
-          customer_id: data.customer_id || null,
-          customer_name: data.customer_name,
-          customer_email: data.customer_email,
-          shipping_address: data.shipping_address,
-          phone: data.phone,
-          total_amount: data.total_amount,
-          items: {
-            __meta: {
-              payment_method: data.payment_method || "COD",
-              delivery_charge: data.delivery_charge || 0,
-              subtotal: data.subtotal || data.total_amount,
-              discount: data.discount || 0,
-              coupon_code: data.coupon_code || null,
-              coins_redeemed: data.coins_redeemed || 0,
+      let order: any;
+      try {
+        order = await tx.orderMatrix.create({
+          data: {
+            customer_id: data.customer_id || null,
+            customer_name: data.customer_name,
+            customer_email: data.customer_email,
+            shipping_address: data.shipping_address,
+            phone: data.phone,
+            total_amount: data.total_amount,
+            items: {
+              __meta: {
+                customer_id: data.customer_id || null,
+                payment_method: data.payment_method || "COD",
+                delivery_charge: data.delivery_charge || 0,
+                subtotal: data.subtotal || data.total_amount,
+                discount: data.discount || 0,
+                coupon_code: data.coupon_code || null,
+                coins_redeemed: data.coins_redeemed || 0,
+              },
+              list: data.items,
             },
-            list: data.items,
+            status: initialStatus,
           },
-          status: initialStatus,
-        },
-      });
+        });
+      } catch (err) {
+        // Fallback if physical DB table lacks customer_id column
+        order = await tx.orderMatrix.create({
+          data: {
+            customer_name: data.customer_name,
+            customer_email: data.customer_email,
+            shipping_address: data.shipping_address,
+            phone: data.phone,
+            total_amount: data.total_amount,
+            items: {
+              __meta: {
+                customer_id: data.customer_id || null,
+                payment_method: data.payment_method || "COD",
+                delivery_charge: data.delivery_charge || 0,
+                subtotal: data.subtotal || data.total_amount,
+                discount: data.discount || 0,
+                coupon_code: data.coupon_code || null,
+                coins_redeemed: data.coins_redeemed || 0,
+              },
+              list: data.items,
+            },
+            status: initialStatus,
+          },
+        });
+      }
 
       // If coins were redeemed, deduct from customer profile
       if (data.customer_id && data.coins_redeemed && data.coins_redeemed > 0) {
@@ -214,23 +242,40 @@ export async function getCustomerOrders(identifier: { userId?: string; email?: s
       return { orders: [] };
     }
 
-    const whereConditions: any[] = [];
-    if (identifier.userId) whereConditions.push({ customer_id: identifier.userId });
-    if (identifier.email) whereConditions.push({ customer_email: identifier.email });
+    let orders: any[] = [];
+    try {
+      const whereConditions: any[] = [];
+      if (identifier.userId) whereConditions.push({ customer_id: identifier.userId });
+      if (identifier.email) whereConditions.push({ customer_email: identifier.email });
 
-    const orders = await prisma.orderMatrix.findMany({
-      where: { OR: whereConditions },
-      include: {
-        sub_orders: {
-          include: {
-            store: {
-              select: { name: true, logo_url: true }
+      orders = await prisma.orderMatrix.findMany({
+        where: { OR: whereConditions },
+        include: {
+          sub_orders: {
+            include: {
+              store: {
+                select: { name: true, logo_url: true }
+              }
             }
           }
-        }
-      },
-      orderBy: { createdAt: "desc" },
-    });
+        },
+        orderBy: { createdAt: "desc" },
+      });
+    } catch (err) {
+      orders = await prisma.orderMatrix.findMany({
+        where: identifier.email ? { customer_email: identifier.email } : {},
+        include: {
+          sub_orders: {
+            include: {
+              store: {
+                select: { name: true, logo_url: true }
+              }
+            }
+          }
+        },
+        orderBy: { createdAt: "desc" },
+      });
+    }
 
     return {
       orders: orders.map((o) => {
@@ -251,7 +296,7 @@ export async function getCustomerOrders(identifier: { userId?: string; email?: s
           payment_method: meta.payment_method || "COD",
           delivery_charge: meta.delivery_charge || 0,
           discount: meta.discount || 0,
-          sub_orders: o.sub_orders.map(so => ({
+          sub_orders: o.sub_orders.map((so: any) => ({
             ...so,
             total_amount: Number(so.total_amount)
           }))
