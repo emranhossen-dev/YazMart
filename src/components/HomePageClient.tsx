@@ -264,63 +264,63 @@ function HeroBannerCarousel({ productCount, categoryCount }: { productCount: num
   }, [slides.length]);
 
   return (
-    <section className="relative overflow-hidden bg-slate-950 text-white min-h-[420px] md:min-h-[460px] flex items-center">
+    <section className="relative overflow-hidden bg-slate-950 text-white min-h-[540px] sm:min-h-[500px] md:min-h-[460px] flex items-center">
       {slides.map((slide, idx) => {
         const isActive = currentSlide === idx;
         return (
           <div
             key={slide.id}
-            className={`absolute inset-0 w-full h-full ${slide.bgGradient} transition-opacity duration-1000 ease-in-out py-10 md:py-16 flex items-center ${
+            className={`absolute inset-0 w-full h-full ${slide.bgGradient} transition-opacity duration-1000 ease-in-out pt-6 pb-12 md:py-12 flex items-center ${
               isActive ? "opacity-100 z-10 pointer-events-auto" : "opacity-0 z-0 pointer-events-none"
             }`}
           >
-            <div className="mx-auto max-w-7xl px-4 md:px-6 grid md:grid-cols-2 gap-8 md:gap-10 items-center w-full">
+            <div className="mx-auto max-w-7xl px-4 md:px-6 grid md:grid-cols-2 gap-4 md:gap-10 items-center w-full">
               
               {/* Left Content */}
-              <div className={`space-y-4 md:space-y-6 text-center md:text-left transition-all duration-1000 ${
+              <div className={`space-y-2.5 md:space-y-5 text-center md:text-left transition-all duration-1000 ${
                 isActive ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
               }`}>
-                <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 text-[#ff7722] text-[11px] font-extrabold tracking-wider uppercase border border-orange-500/30">
-                  <Sparkles className="h-3.5 w-3.5" />
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 text-[#ff7722] text-[10px] sm:text-[11px] font-extrabold tracking-wider uppercase border border-orange-500/30">
+                  <Sparkles className="h-3 w-3" />
                   {slide.badge}
                 </span>
 
-                <h1 className="text-3xl sm:text-4xl md:text-6xl font-black leading-[1.1] tracking-tight">
+                <h1 className="text-2xl sm:text-4xl md:text-6xl font-black leading-tight md:leading-[1.1] tracking-tight">
                   {slide.title} <br />
                   <span className="text-[#ff6600]">{slide.titleHighlight}</span>
                 </h1>
 
-                <p className="text-xs sm:text-sm md:text-base text-slate-300 leading-relaxed max-w-md mx-auto md:mx-0 font-medium">
+                <p className="text-xs sm:text-sm md:text-base text-slate-300 leading-relaxed max-w-sm md:max-w-md mx-auto md:mx-0 font-medium">
                   {slide.subtitle}
                 </p>
 
-                <div className="flex flex-wrap justify-center md:justify-start gap-3 md:gap-4 pt-1">
+                <div className="flex flex-wrap justify-center md:justify-start gap-2.5 md:gap-4 pt-1">
                   <Link
                     href={slide.cta1Link}
-                    className="h-11 md:h-12 px-6 md:px-8 rounded-full bg-[#ff6600] hover:bg-orange-600 text-white font-extrabold text-xs uppercase tracking-wider transition-all shadow-lg shadow-orange-500/20 inline-flex items-center gap-2 cursor-pointer"
+                    className="h-10 md:h-12 px-5 md:px-8 rounded-full bg-[#ff6600] hover:bg-orange-600 text-white font-extrabold text-[11px] md:text-xs uppercase tracking-wider transition-all shadow-lg shadow-orange-500/20 inline-flex items-center gap-2 cursor-pointer"
                   >
-                    {slide.cta1Text} <ArrowRight className="h-4 w-4" />
+                    {slide.cta1Text} <ArrowRight className="h-3.5 w-3.5 md:h-4 md:w-4" />
                   </Link>
                   <Link
                     href={slide.cta2Link}
-                    className="h-11 md:h-12 px-6 md:px-8 rounded-full border border-white/20 hover:border-white/40 text-white font-bold text-xs uppercase tracking-wider transition cursor-pointer inline-flex items-center gap-2 bg-white/5"
+                    className="h-10 md:h-12 px-5 md:px-8 rounded-full border border-white/20 hover:border-white/40 text-white font-bold text-[11px] md:text-xs uppercase tracking-wider transition cursor-pointer inline-flex items-center gap-2 bg-white/5"
                   >
-                    <Store className="h-4 w-4" /> {slide.cta2Text}
+                    <Store className="h-3.5 w-3.5 md:h-4 md:w-4" /> {slide.cta2Text}
                   </Link>
                 </div>
 
                 {/* Stats */}
-                <div className="pt-4 md:pt-6 flex justify-around md:justify-start md:gap-10 border-t border-slate-800/80 text-xs text-slate-400">
+                <div className="pt-3 md:pt-6 flex justify-around md:justify-start md:gap-10 border-t border-slate-800/80 text-[11px] md:text-xs text-slate-400">
                   <div>
-                    <div className="text-xl md:text-2xl font-black text-white">{productCount || 100}+</div>
+                    <div className="text-base md:text-2xl font-black text-white">{productCount || 100}+</div>
                     <span className="text-slate-400 font-bold">Products</span>
                   </div>
                   <div>
-                    <div className="text-xl md:text-2xl font-black text-white">{categoryCount || 10}+</div>
+                    <div className="text-base md:text-2xl font-black text-white">{categoryCount || 10}+</div>
                     <span className="text-slate-400 font-bold">Categories</span>
                   </div>
                   <div>
-                    <div className="text-xl md:text-2xl font-black text-white">4.8★</div>
+                    <div className="text-base md:text-2xl font-black text-white">4.8★</div>
                     <span className="text-slate-400 font-bold">Rating</span>
                   </div>
                 </div>
@@ -328,7 +328,7 @@ function HeroBannerCarousel({ productCount, categoryCount }: { productCount: num
 
               {/* Right Photo Banner */}
               <div className="relative flex justify-center w-full">
-                <div className="w-full max-w-lg rounded-[28px] md:rounded-[32px] overflow-hidden border border-white/10 shadow-2xl bg-slate-900 h-[260px] sm:h-[320px] md:h-[380px] relative group">
+                <div className="w-full max-w-lg rounded-2xl md:rounded-[32px] overflow-hidden border border-white/10 shadow-2xl bg-slate-900 h-[160px] sm:h-[260px] md:h-[380px] relative group">
                   <img
                     src={slide.image}
                     alt={slide.title}
@@ -342,7 +342,7 @@ function HeroBannerCarousel({ productCount, categoryCount }: { productCount: num
       })}
 
       {/* Pagination Dots */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2">
+      <div className="absolute bottom-2 md:bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2">
         {slides.map((_, idx) => (
           <button
             key={idx}
