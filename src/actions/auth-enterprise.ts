@@ -37,11 +37,20 @@ export async function getEnterpriseUserSession() {
       targetUserId = userIdCookie;
     }
 
+    const profileSelect = {
+      id: true,
+      full_name: true,
+      avatar_url: true,
+      role_id: true,
+      created_at: true,
+      roles: true,
+    };
+
     // Fetch user profile from database with role info
     let profile = targetUserId
       ? await prisma.profiles.findUnique({
           where: { id: targetUserId },
-          include: { roles: true }
+          select: profileSelect
         })
       : await prisma.profiles.findFirst({
           where: {
@@ -49,7 +58,7 @@ export async function getEnterpriseUserSession() {
               name: { in: ["admin", "Admin", "Super Admin"] }
             }
           },
-          include: { roles: true }
+          select: profileSelect
         });
 
     const emailLower = userEmail?.toLowerCase() || "";
@@ -69,13 +78,13 @@ export async function getEnterpriseUserSession() {
             full_name: userEmail?.split("@")[0] || "User",
             role_id: roleId
           },
-          include: { roles: true }
+          select: profileSelect
         });
       } catch (createErr: any) {
         if (createErr.code === "P2002") {
           profile = await prisma.profiles.findUnique({
             where: { id: targetUserId },
-            include: { roles: true }
+            select: profileSelect
           });
         } else {
           throw createErr;
@@ -88,7 +97,7 @@ export async function getEnterpriseUserSession() {
         profile = await prisma.profiles.update({
           where: { id: profile.id },
           data: { role_id: targetRoleId },
-          include: { roles: true }
+          select: profileSelect
         });
       }
     }

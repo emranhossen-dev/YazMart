@@ -152,9 +152,18 @@ async function getOrCreateRoleId(roleName: string) {
 
 export async function syncAndGetUserProfile(userId: string, email?: string, fullName?: string) {
   try {
+    const profileSelect = {
+      id: true,
+      full_name: true,
+      avatar_url: true,
+      role_id: true,
+      created_at: true,
+      roles: true,
+    };
+
     let profile = await prisma.profiles.findUnique({
       where: { id: userId },
-      include: { roles: true }
+      select: profileSelect
     });
 
     const emailLower = email?.toLowerCase() || "";
@@ -173,13 +182,13 @@ export async function syncAndGetUserProfile(userId: string, email?: string, full
             full_name: fullName || email?.split("@")[0] || "User",
             role_id: roleId
           },
-          include: { roles: true }
+          select: profileSelect
         });
       } catch (createErr: any) {
         if (createErr.code === "P2002") {
           profile = await prisma.profiles.findUnique({
             where: { id: userId },
-            include: { roles: true }
+            select: profileSelect
           });
         } else {
           throw createErr;
@@ -193,7 +202,7 @@ export async function syncAndGetUserProfile(userId: string, email?: string, full
         profile = await prisma.profiles.update({
           where: { id: userId },
           data: { role_id: targetRoleId },
-          include: { roles: true }
+          select: profileSelect
         });
       }
     }
@@ -226,7 +235,7 @@ export async function syncAndGetUserProfile(userId: string, email?: string, full
       avatarUrl: profile.avatar_url,
       role: currentRole,
       email: email || null,
-      phone: profile.phone || null,
+      phone: (profile as any).phone || null,
     };
   } catch (error) {
     console.error("❌ ERROR IN SYNC AND GET USER PROFILE ACTION:", error);
