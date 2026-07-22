@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 
 export default function Header() {
-  const { user, logout } = useAuthStore();
+  const { user, logout, openAuthModal } = useAuthStore();
   const { cart, wishlist } = useShopStore();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -32,7 +32,7 @@ export default function Header() {
       <header className="sticky top-0 z-40 bg-white/98 backdrop-blur-md border-b border-slate-200 text-slate-900 shadow-xs">
         {/* Announcement Bar */}
         <div className="bg-[#0b1426] text-slate-300 text-xs font-medium border-b border-slate-800/80 py-1.5 hidden sm:block">
-          <div className="mx-auto max-w-7xl px-4 md:px-6 flex items-center justify-between">
+          <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 xl:px-12 flex items-center justify-between">
             <span className="text-[11px] text-slate-300">
               Free shipping over ৳1500 · Cash on delivery available
             </span>
@@ -48,7 +48,7 @@ export default function Header() {
         </div>
 
         {/* Main Header Navbar */}
-        <div className="max-w-7xl mx-auto px-3 md:px-6 h-16 flex items-center justify-between gap-2 md:gap-4 font-sans">
+        <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 xl:px-12 h-16 flex items-center justify-between gap-2 md:gap-4 font-sans">
           
           {/* Left: Brand Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0">
@@ -184,12 +184,13 @@ export default function Header() {
                 )}
               </div>
             ) : (
-              <Link
-                href="/auth"
-                className="hidden sm:flex rounded-full bg-[#ff6600] hover:bg-orange-700 px-4 py-2 text-xs font-extrabold text-white transition-colors shadow-xs"
+              <button
+                type="button"
+                onClick={() => openAuthModal("login")}
+                className="hidden sm:flex rounded-full bg-[#ff6600] hover:bg-orange-700 px-4 py-2 text-xs font-extrabold text-white transition-colors shadow-xs cursor-pointer"
               >
                 Sign In
-              </Link>
+              </button>
             )}
 
             {/* Hamburger Button */}

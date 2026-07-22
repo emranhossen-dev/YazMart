@@ -153,7 +153,7 @@ function CategoryCarouselRow({
   if (!products || products.length === 0) return null;
 
   return (
-    <section className="mx-auto w-full max-w-7xl px-3 py-6 md:px-6 md:py-8 space-y-3 md:space-y-4 border-b border-slate-100">
+    <section className="mx-auto w-full max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 xl:px-12 md:py-8 space-y-3 md:space-y-4 border-b border-slate-100">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg md:text-2xl font-extrabold text-[#0c192e] tracking-tight">{title}</h2>

@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/providers/theme-provider";
 import { AuthProvider } from "@/providers/auth-provider";
 import { Toaster } from "react-hot-toast";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import AuthModal from "@/components/AuthModal";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -36,6 +37,7 @@ export default function RootLayout({
             <Suspense fallback={null}>
               <MobileBottomNav />
             </Suspense>
+            <AuthModal />
             <Toaster position="top-right" reverseOrder={false} />
           </AuthProvider>
         </ThemeProvider>

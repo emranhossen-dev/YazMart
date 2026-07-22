@@ -9,6 +9,7 @@ import { getCustomerOrders } from "@/actions/orders";
 import { submitProductReview, getUserCoins } from "@/actions/reviews";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import NotFound from "@/app/not-found";
 import { 
   User, Package, ShoppingCart, Heart, Coins, Truck, Star, 
   CheckCircle2, Clock, MapPin, ChevronRight, X, Loader2, Sparkles, MessageSquarePlus
@@ -43,6 +44,10 @@ function CustomerProfileContent() {
   const tabQuery = searchParams.get("tab");
   const { user, isLoading: authLoading } = useAuthStore();
   const { cart, wishlist, removeFromCart, removeFromWishlist, addToCart } = useShopStore();
+
+  if (!authLoading && !user) {
+    return <NotFound />;
+  }
 
   const [activeTab, setActiveTab] = useState<"orders" | "cart" | "wishlist" | "coins" | "account">("orders");
   const [orders, setOrders] = useState<any[]>([]);

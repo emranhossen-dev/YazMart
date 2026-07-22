@@ -5,7 +5,7 @@ import { Mail, Phone, MapPin, ShieldCheck, Truck, RefreshCw } from "lucide-react
 export default function Footer() {
   return (
     <footer className="w-full bg-[#0f172a] text-slate-300 border-t border-slate-800 pt-12 pb-8 font-sans relative mt-auto">
-      <div className="max-w-7xl mx-auto px-4 md:px-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 text-xs">
+      <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 xl:px-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 text-xs">
         
         {/* Brand Info */}
         <div className="space-y-4">
@@ -71,7 +71,7 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-6 mt-10 pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] text-slate-500">
+      <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 xl:px-12 mt-10 pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] text-slate-500">
         <p>© {new Date().getFullYear()} YazMart Enterprise Marketplace. All rights reserved.</p>
         <div className="flex items-center gap-4 text-slate-400">
           <span>Fast Delivery Across Bangladesh</span>

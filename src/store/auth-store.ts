@@ -13,8 +13,12 @@ export interface UserProfile {
 interface AuthState {
   user: UserProfile | null;
   isLoading: boolean;
+  isAuthModalOpen: boolean;
+  authModalMode: "login" | "register" | "forgot";
   setAuth: (user: UserProfile | null) => void;
   setLoading: (isLoading: boolean) => void;
+  openAuthModal: (mode?: "login" | "register" | "forgot") => void;
+  closeAuthModal: () => void;
   logout: () => void;
 }
 
@@ -23,8 +27,12 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       isLoading: true,
-      setAuth: (user) => set({ user, isLoading: false }),
+      isAuthModalOpen: false,
+      authModalMode: "login",
+      setAuth: (user) => set({ user, isLoading: false, isAuthModalOpen: false }),
       setLoading: (isLoading) => set({ isLoading }),
+      openAuthModal: (mode = "login") => set({ isAuthModalOpen: true, authModalMode: mode }),
+      closeAuthModal: () => set({ isAuthModalOpen: false }),
       logout: () => set({ user: null, isLoading: false }),
     }),
     {
