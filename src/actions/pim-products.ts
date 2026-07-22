@@ -546,6 +546,15 @@ export async function getEnterpriseProduct(id: string) {
 export async function runSchemaMigration() {
   try {
     await prisma.$executeRawUnsafe(`
+      ALTER TABLE "public"."OrderMatrix" ADD COLUMN IF NOT EXISTS "customer_id" UUID;
+    `);
+    await prisma.$executeRawUnsafe(`
+      ALTER TABLE "public"."profiles" ADD COLUMN IF NOT EXISTS "coins" INT DEFAULT 0;
+    `);
+    await prisma.$executeRawUnsafe(`
+      ALTER TABLE "public"."profiles" ADD COLUMN IF NOT EXISTS "phone" TEXT;
+    `);
+    await prisma.$executeRawUnsafe(`
       CREATE TABLE IF NOT EXISTS "public"."StockItem" (
         "id" TEXT NOT NULL,
         "product_id" TEXT NOT NULL,

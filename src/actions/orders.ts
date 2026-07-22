@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { sendOrderInvoiceEmail } from "@/lib/email";
+import { runSchemaMigration } from "@/actions/pim-products";
 
 export async function createOrder(data: {
   customer_id?: string;
@@ -23,6 +24,9 @@ export async function createOrder(data: {
     if (!data.customer_name || !data.customer_email || !data.shipping_address || !data.phone || !data.items || data.items.length === 0) {
       return { error: "Missing required fields or items list is empty." };
     }
+
+    // Ensure database columns (including customer_id) are present in PostgreSQL table
+    await runSchemaMigration();
 
     const result = await prisma.$transaction(async (tx) => {
       // Create the main order with TAKEN / PENDING initial status
