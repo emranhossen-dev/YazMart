@@ -6,14 +6,14 @@ import { useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
 import { useShopStore } from "@/store/shop-store";
 import { getCustomerOrders } from "@/actions/orders";
-import { submitProductReview, getUserCoins } from "@/actions/reviews";
+import { getUserCoins } from "@/actions/reviews";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import NotFound from "@/app/not-found";
 import { 
-  User, Package, ShoppingCart, Heart, Coins, Truck, Star, 
-  CheckCircle2, Clock, MapPin, ChevronRight, X, Loader2, Sparkles, MessageSquarePlus
+  User, Package, ShoppingCart, Heart, Coins, Truck, Star, Loader2
 } from "lucide-react";
+
 import toast from "react-hot-toast";
 
 // Unified Status Stages Order
@@ -65,15 +65,7 @@ function CustomerProfileContent() {
     }
   }, [tabQuery]);
 
-  // Review Modal State
-  const [reviewModalItem, setReviewModalItem] = useState<{
-    productId: string;
-    productName: string;
-    orderId: string;
-  } | null>(null);
-  const [rating, setRating] = useState(5);
-  const [comment, setComment] = useState("");
-  const [submittingReview, setSubmittingReview] = useState(false);
+  // (Reviews are admin-only — no customer review state needed)
 
   useEffect(() => {
     if (user) {
@@ -95,40 +87,7 @@ function CustomerProfileContent() {
     setLoadingOrders(false);
   };
 
-  const handleOpenReviewModal = (item: any, orderId: string) => {
-    setReviewModalItem({
-      productId: item.id,
-      productName: item.name,
-      orderId,
-    });
-    setRating(5);
-    setComment("");
-  };
 
-  const handleSubmitReview = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!reviewModalItem || !user || !comment.trim()) return;
-
-    setSubmittingReview(true);
-    const res = await submitProductReview({
-      productId: reviewModalItem.productId,
-      userId: user.id,
-      userName: user.fullName || "Customer",
-      userEmail: user.email || undefined,
-      orderId: reviewModalItem.orderId,
-      rating,
-      comment,
-    });
-
-    if (res.error) {
-      toast.error(res.error);
-    } else {
-      toast.success(`Review submitted! You earned ${res.coinsEarned} reward coins! 🪙`);
-      setCoins(prev => prev + (res.coinsEarned || 50));
-      setReviewModalItem(null);
-    }
-    setSubmittingReview(false);
-  };
 
   if (authLoading) {
     return (
@@ -168,7 +127,7 @@ function CustomerProfileContent() {
     <div className="min-h-screen flex flex-col bg-zinc-50 font-sans text-zinc-900">
       <Header />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 md:px-6 py-8 space-y-8">
+      <main className="flex-1 w-full max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 xl:px-12 py-8 space-y-8">
         {/* Profile Banner */}
         <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 text-white p-6 md:p-8 rounded-3xl shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden border border-slate-800">
           <div className="flex items-center gap-4 relative z-10">
@@ -351,12 +310,9 @@ function CustomerProfileContent() {
                             <div className="flex items-center gap-3">
                               <span className="text-xs font-black text-zinc-900">৳{(item.price * item.quantity).toLocaleString()}</span>
                               {order.status === "DELIVERED" && (
-                                <button
-                                  onClick={() => handleOpenReviewModal(item, order.id)}
-                                  className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-[10px] font-bold uppercase tracking-wider cursor-pointer shadow-xs transition-all shrink-0"
-                                >
-                                  <Star className="h-3 w-3 fill-white" /> Write Review (+50 🪙)
-                                </button>
+                                <span className="px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-xl text-[10px] font-bold uppercase">
+                                  ✓ Delivered
+                                </span>
                               )}
                             </div>
                           </div>
@@ -476,8 +432,8 @@ function CustomerProfileContent() {
               <h4 className="text-xs font-extrabold uppercase text-zinc-400">How to Earn Coins</h4>
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-1">
-                  <p className="text-xs font-bold text-zinc-900">⭐ Write Product Reviews (+50 Coins)</p>
-                  <p className="text-[11px] text-zinc-500">When your purchased item is marked as DELIVERED, click "Write Review" on your order item to share feedback and instantly receive 50 coins.</p>
+                  <p className="text-xs font-bold text-zinc-900">⭐ Earn Coins on Delivered Orders</p>
+                  <p className="text-[11px] text-zinc-500">Complete purchases and get them delivered to earn reward coins. Coins are credited automatically by the system for qualifying orders.</p>
                 </div>
                 <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-1">
                   <p className="text-xs font-bold text-zinc-900">🛒 Redeem Coins at Checkout</p>
@@ -513,68 +469,6 @@ function CustomerProfileContent() {
         )}
       </main>
 
-      {/* Review Modal */}
-      {reviewModalItem && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 border border-zinc-200 animate-in fade-in zoom-in duration-150">
-            <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
-              <h3 className="text-sm font-black uppercase tracking-tight text-zinc-900 flex items-center gap-2">
-                <Star className="h-4 w-4 text-amber-500 fill-amber-500" /> Product Review
-              </h3>
-              <button onClick={() => setReviewModalItem(null)} className="p-1 text-zinc-400 hover:text-zinc-900 cursor-pointer">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmitReview} className="space-y-4">
-              <div>
-                <p className="text-xs font-extrabold text-zinc-900">{reviewModalItem.productName}</p>
-                <p className="text-[10px] text-zinc-400">Order: #{reviewModalItem.orderId.slice(0, 8).toUpperCase()}</p>
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-bold uppercase text-zinc-500 mb-1.5">Rating (1 to 5 Stars)</label>
-                <div className="flex items-center gap-2">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => setRating(star)}
-                      className="p-1 cursor-pointer transition-transform hover:scale-110"
-                    >
-                      <Star className={`h-7 w-7 ${star <= rating ? "text-amber-400 fill-amber-400" : "text-zinc-200"}`} />
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-bold uppercase text-zinc-500 mb-1">Your Honest Review</label>
-                <textarea
-                  required
-                  rows={4}
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  className="w-full p-3 text-xs rounded-xl border border-zinc-200 focus:outline-none focus:border-blue-600 font-medium"
-                  placeholder="Tell other shoppers about your experience with this product..."
-                />
-              </div>
-
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[10px] text-amber-800 font-semibold flex items-center gap-2">
-                <span>🎁</span> Submitting this review rewards you with <strong>+50 Coins</strong>!
-              </div>
-
-              <button
-                type="submit"
-                disabled={submittingReview}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer shadow-sm disabled:opacity-50"
-              >
-                {submittingReview ? "Submitting..." : "Submit Review & Claim Coins"}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
 
       <Footer />
     </div>

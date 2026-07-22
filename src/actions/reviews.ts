@@ -3,6 +3,32 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
+export async function ensureReviewTable() {
+  try {
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "public"."ProductReview" (
+        "id" TEXT NOT NULL,
+        "product_id" TEXT NOT NULL,
+        "user_id" UUID NOT NULL,
+        "user_name" TEXT NOT NULL,
+        "user_email" TEXT,
+        "order_id" TEXT,
+        "rating" INTEGER NOT NULL DEFAULT 5,
+        "comment" TEXT NOT NULL,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "ProductReview_pkey" PRIMARY KEY ("id"),
+        CONSTRAINT "ProductReview_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "public"."PimProducts"("id") ON DELETE CASCADE ON UPDATE CASCADE
+      );
+    `);
+    await prisma.$executeRawUnsafe(`
+      ALTER TABLE "public"."ProductReview" ADD COLUMN IF NOT EXISTS "order_id" TEXT;
+    `);
+  } catch (err: any) {
+    console.warn("⚠️ Review Table Migration Note:", err?.message);
+  }
+}
+
 export async function submitProductReview(data: {
   productId: string;
   userId: string;
@@ -16,6 +42,8 @@ export async function submitProductReview(data: {
     if (!data.productId || !data.userId || !data.orderId || !data.comment) {
       return { error: "Missing required fields for submitting review." };
     }
+
+    await ensureReviewTable();
 
     // Check if review already submitted for this order item
     const existing = await prisma.productReview.findFirst({
@@ -70,8 +98,51 @@ export async function submitProductReview(data: {
   }
 }
 
+export async function adminCreateReview(data: {
+  productId: string;
+  userName: string;
+  userEmail?: string;
+  rating: number;
+  comment: string;
+}) {
+  try {
+    if (!data.productId || !data.userName || !data.comment) {
+      return { error: "Product, Reviewer Name, and Comment are required." };
+    }
+
+    await ensureReviewTable();
+
+    // Get a valid system user UUID or fallback
+    const systemUser = await prisma.profiles.findFirst();
+    const fallbackUserId = systemUser?.id || "00000000-0000-0000-0000-000000000000";
+
+    const review = await prisma.productReview.create({
+      data: {
+        product_id: data.productId,
+        user_id: fallbackUserId,
+        user_name: data.userName.trim(),
+        user_email: data.userEmail?.trim() || null,
+        order_id: `ADMIN-${Math.floor(100000 + Math.random() * 900000)}`,
+        rating: Number(data.rating || 5),
+        comment: data.comment.trim(),
+      },
+    });
+
+    revalidatePath(`/products/${data.productId}`);
+    revalidatePath("/admin/reviews");
+    revalidatePath("/");
+
+    return { success: true, review };
+  } catch (error: any) {
+    console.error("❌ ADMIN CREATE REVIEW ERROR:", error);
+    return { error: error?.message || "Failed to create admin review." };
+  }
+}
+
 export async function getProductReviews(productId: string) {
   try {
+    await ensureReviewTable();
+
     const reviews = await prisma.productReview.findMany({
       where: { product_id: productId },
       orderBy: { createdAt: "desc" },
@@ -96,6 +167,8 @@ export async function getProductReviews(productId: string) {
 
 export async function getAdminReviews() {
   try {
+    await ensureReviewTable();
+
     const reviews = await prisma.productReview.findMany({
       include: {
         product: {
@@ -118,6 +191,8 @@ export async function getAdminReviews() {
 
 export async function deleteReview(reviewId: string) {
   try {
+    await ensureReviewTable();
+
     await prisma.productReview.delete({
       where: { id: reviewId },
     });

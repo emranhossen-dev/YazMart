@@ -128,11 +128,7 @@ export default function ProductDetailPageClient({
   const [selectedSize, setSelectedSize] = useState<string | null>(uniqueSizes[0] || null);
 
   // Reviews State & Modals
-  const [reviews, setReviews] = useState<any[]>([
-    { author: "Rahat Chowdhury", rating: 5, content: "Excellent quality watch! Very comfortable strap and long battery life. Highly recommended.", date: "2026-07-10" },
-    { author: "Milon Khan", rating: 5, content: "Original product delivered very fast. Super impressed with YazMart service!", date: "2026-07-12" },
-    { author: "Tanvir Ahmed", rating: 4, content: "Great value for money. Build quality is solid.", date: "2026-07-15" }
-  ]);
+  const [reviews, setReviews] = useState<any[]>([]);
   const [showAllReviewsModal, setShowAllReviewsModal] = useState(false);
   const [showWriteReviewModal, setShowWriteReviewModal] = useState(false);
   const [newReviewText, setNewReviewText] = useState("");
@@ -187,13 +183,16 @@ export default function ProductDetailPageClient({
   useEffect(() => {
     if (product?.id) {
       getProductReviews(product.id).then(res => {
-        if (res.reviews && res.reviews.length > 0) {
+        if (res.reviews) {
           setReviews(res.reviews.map((r: any) => ({
+            id: r.id,
             author: r.user_name || "Verified Customer",
             rating: r.rating,
             content: r.comment,
             date: new Date(r.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
           })));
+        } else {
+          setReviews([]);
         }
       });
     }
