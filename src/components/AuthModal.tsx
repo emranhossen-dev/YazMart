@@ -31,15 +31,27 @@ export default function AuthModal() {
       if (res.error || !res.user) {
         setErrorMessage(res.error || "Invalid credentials.");
       } else {
+        const roleLower = (res.role || "").toLowerCase();
+        const emailLower = (res.user?.email || email || "").toLowerCase();
+        const isAdminOrStaff = roleLower.includes("admin") || roleLower.includes("staff") || emailLower.includes("admin");
+        const isSeller = roleLower === "seller" || emailLower.includes("seller");
+
         setAuth({
           id: res.user.id,
           fullName: res.user.user_metadata?.full_name || email.split("@")[0],
           avatarUrl: null,
-          role: res.role || "customer",
+          role: res.role || (isAdminOrStaff ? "admin" : isSeller ? "seller" : "customer"),
           email: res.user.email,
         });
-        toast.success("Welcome back to YazMart!");
+
+        toast.success(isAdminOrStaff ? "Welcome Admin! Redirecting..." : isSeller ? "Welcome Seller! Redirecting..." : "Welcome back to YazMart!");
         closeAuthModal();
+
+        if (isAdminOrStaff) {
+          window.location.href = "/admin";
+        } else if (isSeller) {
+          window.location.href = "/seller";
+        }
       }
     } catch (err: any) {
       setErrorMessage(err.message || "An unexpected error occurred.");

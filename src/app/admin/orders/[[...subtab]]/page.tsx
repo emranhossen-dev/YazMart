@@ -6,7 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { getOrders, updateOrderStatus, updateOrderDeliveryCharge } from "@/actions/orders";
 import { restockItemBySerial } from "@/actions/pim-products";
 import { ShoppingBag, ArrowLeftRight, CreditCard, Eye, ShieldAlert, Sparkles, Printer, X, Scan, AlertCircle, CheckCircle2, RotateCcw, Trash2, Phone, MessageSquare } from "lucide-react";
-import { handlePrintOrderMemo } from "@/utils/print-order-memo";
+import { handlePrintOrderMemo, handleBatchPrintOrderMemos } from "@/utils/print-order-memo";
 import { toast } from "react-hot-toast";
 
 interface DbOrder {
@@ -40,6 +40,11 @@ export default function Page() {
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
   const [callTarget, setCallTarget] = useState<{ name: string; phone: string } | null>(null);
   const [messageTarget, setMessageTarget] = useState<{ name: string; phone: string } | null>(null);
+
+  // Bulk Print & Date / Status Filter States
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [dateFilter, setDateFilter] = useState<string>("");
 
   // Return Scan Desk States
   const [barcodeInput, setBarcodeInput] = useState("");
@@ -176,9 +181,121 @@ export default function Page() {
       <div className="p-5 rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-xs">
         {tab === "list" && (
           <div className="space-y-4">
-            <h3 className="text-xs font-black uppercase text-[var(--muted-foreground)] flex items-center gap-2">
-              <ShoppingBag className="h-4 w-4 text-blue-500" /> System Purchases
-            </h3>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--border)]">
+              <h3 className="text-xs font-black uppercase text-[var(--muted-foreground)] flex items-center gap-2">
+                <ShoppingBag className="h-4 w-4 text-blue-500" /> System Purchases & Print Center
+              </h3>
+
+              {/* Filters Bar */}
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Date Filter */}
+                <div className="flex items-center gap-1.5 bg-[var(--background)] px-2.5 py-1 rounded-lg border border-[var(--border)]">
+                  <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Date:</span>
+                  <input
+                    type="date"
+                    value={dateFilter}
+                    onChange={(e) => setDateFilter(e.target.value)}
+                    className="text-xs bg-transparent text-[var(--foreground)] font-mono focus:outline-none cursor-pointer"
+                  />
+                  {dateFilter && (
+                    <button
+                      onClick={() => setDateFilter("")}
+                      className="text-[10px] text-rose-500 hover:underline font-bold"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+
+                {/* Status Filter */}
+                <div className="flex items-center gap-1.5 bg-[var(--background)] px-2.5 py-1 rounded-lg border border-[var(--border)]">
+                  <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Status:</span>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="text-xs bg-transparent text-[var(--foreground)] font-bold uppercase focus:outline-none cursor-pointer"
+                  >
+                    <option value="ALL">All Statuses</option>
+                    <option value="CONFIRMED">CONFIRMED</option>
+                    <option value="TAKEN">TAKEN (Placed)</option>
+                    <option value="PROCESSED">PROCESSED</option>
+                    <option value="SHIPPED">SHIPPED</option>
+                    <option value="DELIVERED">DELIVERED</option>
+                    <option value="CANCELLED">CANCELLED</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Batch Invoice Actions */}
+            <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-blue-500/5 border border-blue-500/20 rounded-xl">
+              <div className="flex items-center gap-2 text-xs font-semibold text-blue-500">
+                <Printer className="h-4 w-4" />
+                <span>
+                  {selectedIds.length > 0
+                    ? `Selected ${selectedIds.length} orders for batch invoice print`
+                    : "Select orders using checkboxes to print batch memos, or print all confirmed/filtered orders:"}
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {selectedIds.length > 0 && (
+                  <button
+                    onClick={() => {
+                      const toPrint = orders.filter((o) => selectedIds.includes(o.id));
+                      handleBatchPrintOrderMemos(toPrint);
+                    }}
+                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-black uppercase transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs"
+                  >
+                    <Printer className="h-3.5 w-3.5" /> Print Selected ({selectedIds.length})
+                  </button>
+                )}
+
+                <button
+                  onClick={() => {
+                    const confirmedOrders = orders.filter((o) => o.status === "CONFIRMED");
+                    if (confirmedOrders.length === 0) {
+                      toast.error("No CONFIRMED orders found to print.");
+                      return;
+                    }
+                    handleBatchPrintOrderMemos(confirmedOrders);
+                  }}
+                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black uppercase transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs"
+                >
+                  <Printer className="h-3.5 w-3.5" /> Print All Confirmed ({orders.filter((o) => o.status === "CONFIRMED").length})
+                </button>
+
+                <button
+                  onClick={() => {
+                    const filtered = orders.filter((ord) => {
+                      if (statusFilter !== "ALL" && ord.status !== statusFilter) return false;
+                      if (dateFilter) {
+                        const ordDate = new Date(ord.createdAt).toISOString().split("T")[0];
+                        if (ordDate !== dateFilter) return false;
+                      }
+                      return true;
+                    });
+                    if (filtered.length === 0) {
+                      toast.error("No orders match the current date/status filter.");
+                      return;
+                    }
+                    handleBatchPrintOrderMemos(filtered);
+                  }}
+                  className="px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg text-xs font-black uppercase transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs"
+                >
+                  <Printer className="h-3.5 w-3.5" /> Print Filtered Invoices ({
+                    orders.filter((ord) => {
+                      if (statusFilter !== "ALL" && ord.status !== statusFilter) return false;
+                      if (dateFilter) {
+                        const ordDate = new Date(ord.createdAt).toISOString().split("T")[0];
+                        if (ordDate !== dateFilter) return false;
+                      }
+                      return true;
+                    }).length
+                  })
+                </button>
+              </div>
+            </div>
+
             {loading ? (
               <p className="text-xs font-semibold py-4 text-center">Loading orders ledger stack...</p>
             ) : orders.length === 0 ? (
@@ -188,6 +305,39 @@ export default function Page() {
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
                     <tr className="border-b border-[var(--border)] text-[var(--muted-foreground)] font-bold text-[9px] uppercase tracking-wider">
+                      <th className="pb-3 w-8">
+                        <input
+                          type="checkbox"
+                          checked={
+                            selectedIds.length > 0 &&
+                            selectedIds.length ===
+                              orders.filter((ord) => {
+                                if (statusFilter !== "ALL" && ord.status !== statusFilter) return false;
+                                if (dateFilter) {
+                                  const ordDate = new Date(ord.createdAt).toISOString().split("T")[0];
+                                  if (ordDate !== dateFilter) return false;
+                                }
+                                return true;
+                              }).length
+                          }
+                          onChange={(e) => {
+                            const filtered = orders.filter((ord) => {
+                              if (statusFilter !== "ALL" && ord.status !== statusFilter) return false;
+                              if (dateFilter) {
+                                const ordDate = new Date(ord.createdAt).toISOString().split("T")[0];
+                                if (ordDate !== dateFilter) return false;
+                              }
+                              return true;
+                            });
+                            if (e.target.checked) {
+                              setSelectedIds(filtered.map((o) => o.id));
+                            } else {
+                              setSelectedIds([]);
+                            }
+                          }}
+                          className="rounded border-[var(--border)] text-blue-600 focus:ring-0 cursor-pointer"
+                        />
+                      </th>
                       <th className="pb-3">Reference ID</th>
                       <th className="pb-3">Customer Info</th>
                       <th className="pb-3">Ordered Products</th>
@@ -199,114 +349,185 @@ export default function Page() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[var(--border)] font-medium">
-                    {orders.map((ord) => {
-                      const itemList: any[] = ((): any[] => {
-                        try {
-                          const raw = ord.items;
-                          if (typeof raw === "string") {
-                            const p = JSON.parse(raw);
-                            return Array.isArray(p) ? p : (p?.list || []);
-                          }
-                          if (Array.isArray(raw)) return raw;
-                          if (raw && typeof raw === "object") return (raw as any).list || [];
-                        } catch (e) {}
-                        return [];
-                      })();
-                      const firstItem = itemList[0];
+                    {orders
+                      .filter((ord) => {
+                        if (statusFilter !== "ALL" && ord.status !== statusFilter) return false;
+                        if (dateFilter) {
+                          const ordDate = new Date(ord.createdAt).toISOString().split("T")[0];
+                          if (ordDate !== dateFilter) return false;
+                        }
+                        return true;
+                      })
+                      .map((ord) => {
+                        const isSelected = selectedIds.includes(ord.id);
+                        const itemList: any[] = ((): any[] => {
+                          try {
+                            const raw = ord.items;
+                            if (typeof raw === "string") {
+                              const p = JSON.parse(raw);
+                              return Array.isArray(p) ? p : p?.list || [];
+                            }
+                            if (Array.isArray(raw)) return raw;
+                            if (raw && typeof raw === "object") return (raw as any).list || [];
+                          } catch (e) {}
+                          return [];
+                        })();
+                        const firstItem = itemList[0];
 
-                      return (
-                        <tr key={ord.id} className="hover:bg-[var(--background)]/50 transition-colors">
-                          <td className="py-3.5 font-mono text-[10px] text-[var(--muted-foreground)] font-bold">#{ord.id.substring(0, 8).toUpperCase()}</td>
-                          <td className="py-3.5">
-                            <button 
-                              onClick={() => setSelectedOrder(ord)}
-                              className="text-left font-bold text-[var(--foreground)] hover:text-blue-500 transition-colors cursor-pointer"
-                            >
-                              {ord.customer_name}
-                            </button>
-                            <p className="text-[10px] text-[var(--muted-foreground)]">{ord.customer_email}</p>
-                            <p className="text-[10px] font-mono text-[var(--muted-foreground)] mt-0.5">{ord.phone}</p>
-                          </td>
-                          <td className="py-3.5">
-                            {firstItem ? (
-                              <div className="flex items-center gap-2 max-w-[200px]">
-                                <img
-                                  src={firstItem.image || firstItem.featured_image || firstItem.image_url || "/logo yazmart.png"}
-                                  alt={firstItem.name || "Product"}
-                                  className="h-8 w-8 object-cover rounded bg-[var(--background)] border border-[var(--border)] shrink-0"
-                                />
-                                <div className="min-w-0">
-                                  <p className="text-xs font-bold text-[var(--foreground)] truncate">{firstItem.name || "Product Item"}</p>
-                                  {itemList.length > 1 && (
-                                    <span className="text-[9px] font-bold text-blue-500 bg-blue-500/10 px-1.5 py-0.2 rounded">
-                                      +{itemList.length - 1} more items
-                                    </span>
-                                  )}
+                        return (
+                          <tr
+                            key={ord.id}
+                            className={`hover:bg-[var(--background)]/50 transition-colors ${
+                              isSelected ? "bg-blue-500/5" : ""
+                            }`}
+                          >
+                            <td className="py-3.5">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedIds((prev) => [...prev, ord.id]);
+                                  } else {
+                                    setSelectedIds((prev) => prev.filter((id) => id !== ord.id));
+                                  }
+                                }}
+                                className="rounded border-[var(--border)] text-blue-600 focus:ring-0 cursor-pointer"
+                              />
+                            </td>
+                            <td className="py-3.5 font-mono text-[10px] text-[var(--muted-foreground)] font-bold">
+                              #{ord.id.substring(0, 8).toUpperCase()}
+                            </td>
+                            <td className="py-3.5">
+                              <button
+                                onClick={() => setSelectedOrder(ord)}
+                                className="text-left font-bold text-[var(--foreground)] hover:text-blue-500 transition-colors cursor-pointer"
+                              >
+                                {ord.customer_name}
+                              </button>
+                              <p className="text-[10px] text-[var(--muted-foreground)]">{ord.customer_email}</p>
+                              <p className="text-[10px] font-mono text-[var(--muted-foreground)] mt-0.5">{ord.phone}</p>
+                            </td>
+                            <td className="py-3.5">
+                              {firstItem ? (
+                                <div className="flex items-center gap-2 max-w-[200px]">
+                                  <img
+                                    src={firstItem.image || firstItem.featured_image || firstItem.image_url || "/logo yazmart.png"}
+                                    alt={firstItem.name || "Product"}
+                                    className="h-8 w-8 object-cover rounded bg-[var(--background)] border border-[var(--border)] shrink-0"
+                                  />
+                                  <div className="min-w-0">
+                                    <p className="text-xs font-bold text-[var(--foreground)] truncate">{firstItem.name || "Product Item"}</p>
+                                    {itemList.length > 1 && (
+                                      <span className="text-[9px] font-bold text-blue-500 bg-blue-500/10 px-1.5 py-0.2 rounded">
+                                        +{itemList.length - 1} more items
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
+                              ) : (
+                                <span className="text-xs text-[var(--muted-foreground)]">-</span>
+                              )}
+                            </td>
+                            <td className="py-3.5 text-[var(--muted-foreground)]">{ord.shipping_address}</td>
+                            <td className="py-3.5 font-bold text-blue-500 font-mono">৳{ord.total_amount}</td>
+                            <td className="py-3.5">
+                              <span
+                                className={`px-2 py-1 rounded text-[9px] font-black uppercase inline-block ${
+                                  ord.status === "DELIVERED" || ord.status === "COMPLETED"
+                                    ? "text-emerald-500 bg-emerald-500/10 border border-emerald-500/20"
+                                    : ord.status === "CANCELLED"
+                                    ? "text-rose-500 bg-rose-500/10 border border-rose-500/20"
+                                    : ord.status === "SHIPPED" || ord.status === "IN_TRANSIT"
+                                    ? "text-indigo-500 bg-indigo-500/10 border border-indigo-500/20"
+                                    : ord.status === "PROCESSED" || ord.status === "PROCESSING"
+                                    ? "text-blue-500 bg-blue-500/10 border border-blue-500/20"
+                                    : "text-amber-500 bg-amber-500/10 border border-amber-500/20"
+                                }`}
+                              >
+                                {ord.status}
+                              </span>
+                            </td>
+                            <td className="py-3.5 font-mono text-[10px] text-[var(--muted-foreground)]">
+                              {new Date(ord.createdAt).toLocaleDateString()}
+                            </td>
+                            <td className="py-3.5 text-right space-y-1.5">
+                              <div className="flex justify-end items-center gap-1.5">
+                                <button
+                                  onClick={() => setCallTarget({ name: ord.customer_name, phone: ord.phone })}
+                                  className="inline-flex items-center justify-center p-1.5 bg-neutral-800 hover:bg-neutral-700 text-blue-400 hover:text-blue-300 rounded transition-colors cursor-pointer"
+                                  title="Call Customer"
+                                >
+                                  <Phone className="h-3.5 w-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => setMessageTarget({ name: ord.customer_name, phone: ord.phone })}
+                                  className="inline-flex items-center justify-center p-1.5 bg-neutral-800 hover:bg-neutral-700 text-emerald-400 hover:text-emerald-300 rounded transition-colors cursor-pointer"
+                                  title="Message Customer"
+                                >
+                                  <MessageSquare className="h-3.5 w-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => setSelectedOrder(ord)}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-neutral-800 hover:bg-neutral-700 text-white rounded text-[10px] font-bold uppercase transition-colors cursor-pointer"
+                                  title="View Order Details"
+                                >
+                                  <Eye className="h-3 w-3" /> Details
+                                </button>
+                                <button
+                                  onClick={() => handlePrintOrderMemo(ord)}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-[10px] font-bold uppercase transition-colors cursor-pointer"
+                                >
+                                  <Printer className="h-3 w-3" /> Invoice
+                                </button>
                               </div>
-                            ) : (
-                              <span className="text-xs text-[var(--muted-foreground)]">-</span>
-                            )}
-                          </td>
-                          <td className="py-3.5 text-[var(--muted-foreground)]">{ord.shipping_address}</td>
-                          <td className="py-3.5 font-bold text-blue-500 font-mono">৳{ord.total_amount}</td>
-                          <td className="py-3.5">
-                            <select
-                              value={ord.status}
-                              disabled={updatingStatusId === ord.id}
-                              onChange={(e) => handleStatusChange(ord.id, e.target.value)}
-                              className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase bg-[var(--background)] border border-[var(--border)] focus:outline-none cursor-pointer ${
-                                ord.status === "DELIVERED" || ord.status === "COMPLETED" ? "text-emerald-500 border-emerald-500/20 bg-emerald-500/5" :
-                                ord.status === "CANCELLED" ? "text-rose-500 border-rose-500/20 bg-rose-500/5" :
-                                ord.status === "SHIPPED" || ord.status === "IN_TRANSIT" ? "text-indigo-500 border-indigo-500/20 bg-indigo-500/5" :
-                                ord.status === "PROCESSED" || ord.status === "PROCESSING" ? "text-blue-500 border-blue-500/20 bg-blue-500/5" :
-                                "text-amber-500 border-amber-500/20 bg-amber-500/5"
-                              }`}
-                            >
-                              <option value="TAKEN" className="bg-[var(--card)] text-amber-500">1. TAKEN (Order Placed)</option>
-                              <option value="CONFIRMED" className="bg-[var(--card)] text-amber-600">2. CONFIRMED</option>
-                              <option value="PROCESSED" className="bg-[var(--card)] text-blue-500">3. PROCESSED (Packaged)</option>
-                              <option value="SHIPPED" className="bg-[var(--card)] text-indigo-500">4. SHIPPED (Handed Over)</option>
-                              <option value="IN_TRANSIT" className="bg-[var(--card)] text-indigo-600">5. IN_TRANSIT</option>
-                              <option value="DELIVERED" className="bg-[var(--card)] text-emerald-500">6. DELIVERED</option>
-                              <option value="CANCELLED" className="bg-[var(--card)] text-rose-500">CANCELLED</option>
-                            </select>
-                          </td>
-                          <td className="py-3.5 font-mono text-[10px] text-[var(--muted-foreground)]">
-                            {new Date(ord.createdAt).toLocaleDateString()}
-                          </td>
-                          <td className="py-3.5 text-right space-x-1.5 flex justify-end items-center h-[52px]">
-                            <button
-                              onClick={() => setCallTarget({ name: ord.customer_name, phone: ord.phone })}
-                              className="inline-flex items-center justify-center p-1.5 bg-neutral-800 hover:bg-neutral-700 text-blue-400 hover:text-blue-300 rounded transition-colors cursor-pointer"
-                              title="Call Customer"
-                            >
-                              <Phone className="h-3.5 w-3.5" />
-                            </button>
-                            <button
-                              onClick={() => setMessageTarget({ name: ord.customer_name, phone: ord.phone })}
-                              className="inline-flex items-center justify-center p-1.5 bg-neutral-800 hover:bg-neutral-700 text-emerald-400 hover:text-emerald-300 rounded transition-colors cursor-pointer"
-                              title="Message Customer"
-                            >
-                              <MessageSquare className="h-3.5 w-3.5" />
-                            </button>
-                            <button
-                              onClick={() => setSelectedOrder(ord)}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 bg-neutral-800 hover:bg-neutral-700 text-white rounded text-[10px] font-bold uppercase transition-colors cursor-pointer"
-                              title="View Order Details"
-                            >
-                              <Eye className="h-3 w-3" /> Details
-                            </button>
-                            <button
-                              onClick={() => handlePrintOrderMemo(ord)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-[10px] font-bold uppercase transition-colors cursor-pointer"
-                            >
-                              <Printer className="h-3 w-3" /> Invoice
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
+
+                              {/* Status dropdown moved under Actions */}
+                              <div className="flex justify-end items-center gap-1">
+                                <span className="text-[9px] font-bold uppercase text-[var(--muted-foreground)]">Status:</span>
+                                <select
+                                  value={ord.status}
+                                  disabled={updatingStatusId === ord.id}
+                                  onChange={(e) => handleStatusChange(ord.id, e.target.value)}
+                                  className={`px-2 py-0.5 rounded text-[10px] font-black uppercase bg-[var(--background)] border border-[var(--border)] focus:outline-none cursor-pointer ${
+                                    ord.status === "DELIVERED" || ord.status === "COMPLETED"
+                                      ? "text-emerald-500 border-emerald-500/20"
+                                      : ord.status === "CANCELLED"
+                                      ? "text-rose-500 border-rose-500/20"
+                                      : ord.status === "SHIPPED" || ord.status === "IN_TRANSIT"
+                                      ? "text-indigo-500 border-indigo-500/20"
+                                      : ord.status === "PROCESSED" || ord.status === "PROCESSING"
+                                      ? "text-blue-500 border-blue-500/20"
+                                      : "text-amber-500 border-amber-500/20"
+                                  }`}
+                                >
+                                  <option value="TAKEN" className="bg-[var(--card)] text-amber-500">
+                                    1. TAKEN
+                                  </option>
+                                  <option value="CONFIRMED" className="bg-[var(--card)] text-amber-600">
+                                    2. CONFIRMED
+                                  </option>
+                                  <option value="PROCESSED" className="bg-[var(--card)] text-blue-500">
+                                    3. PROCESSED
+                                  </option>
+                                  <option value="SHIPPED" className="bg-[var(--card)] text-indigo-500">
+                                    4. SHIPPED
+                                  </option>
+                                  <option value="IN_TRANSIT" className="bg-[var(--card)] text-indigo-600">
+                                    5. IN_TRANSIT
+                                  </option>
+                                  <option value="DELIVERED" className="bg-[var(--card)] text-emerald-500">
+                                    6. DELIVERED
+                                  </option>
+                                  <option value="CANCELLED" className="bg-[var(--card)] text-rose-500">
+                                    CANCELLED
+                                  </option>
+                                </select>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                   </tbody>
                 </table>
               </div>

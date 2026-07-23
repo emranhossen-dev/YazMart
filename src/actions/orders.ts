@@ -351,6 +351,32 @@ export async function updateOrderStatus(id: string, status: string) {
 
       return updated;
     });
+
+    if (status === "CONFIRMED" || status === "TAKEN") {
+      try {
+        const raw = order.items as any;
+        const itemList: any[] = Array.isArray(raw) ? raw : (raw?.list || []);
+        const meta = raw?.__meta || {};
+
+        sendOrderInvoiceEmail({
+          orderId: order.id,
+          customerName: order.customer_name,
+          customerEmail: order.customer_email,
+          shippingAddress: order.shipping_address,
+          phone: order.phone,
+          totalAmount: Number(order.total_amount),
+          subtotal: meta.subtotal || Number(order.total_amount),
+          deliveryCharge: meta.delivery_charge || 0,
+          discount: meta.discount || 0,
+          paymentMethod: meta.payment_method || "COD",
+          items: itemList,
+          createdAt: order.createdAt,
+        }).catch((err) => console.error("Async confirmation email dispatch error:", err));
+      } catch (emailErr) {
+        console.warn("Failed to trigger confirmation email:", emailErr);
+      }
+    }
+
     revalidatePath("/admin/orders");
     revalidatePath("/seller/orders");
     revalidatePath("/profile");

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#09090b" />
+      <stop offset="100%" stop-color="#18181b" />
+    </linearGradient>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff6600" />
+      <stop offset="50%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#2563eb" />
+    </linearGradient>
+    <clipPath id="circleClip">
+      <circle cx="256" cy="256" r="236" />
+    </clipPath>
+  </defs>
+
+  <circle cx="256" cy="256" r="250" fill="url(#ringGrad)" />
+  <circle cx="256" cy="256" r="240" fill="#ffffff" />
+  <circle cx="256" cy="256" r="232" fill="url(#bgGrad)" />
+
+  <g clip-path="url(#circleClip)">
+    <text 
+      x="256" 
+      y="300" 
+      font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+      font-weight="900" 
+      font-size="220" 
+      letter-spacing="-10"
+      text-anchor="middle"
+    >
+      <tspan fill="#ffffff">Y</tspan><tspan fill="#3b82f6">M</tspan>
+    </text>
+
+    <circle cx="376" cy="140" r="26" fill="#ff6600" />
+    <path d="M376 122 L379 135 L392 140 L379 145 L376 158 L373 145 L360 140 L373 135 Z" fill="#ffffff" />
+  </g>
+</svg>

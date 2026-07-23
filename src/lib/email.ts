@@ -73,9 +73,9 @@ export async function sendOrderInvoiceEmail(data: OrderInvoiceData) {
     <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e5e7eb; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
       
       <!-- Header -->
-      <div style="background-color: #09090b; padding: 28px; text-align: center;">
-        <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 900; letter-spacing: -0.5px;">Yaz<span style="color: #3b82f6;">Mart</span></h1>
-        <p style="color: #a1a1aa; margin: 4px 0 0 0; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Official Purchase Invoice</p>
+      <div style="background-color: #09090b; padding: 24px 28px; text-align: center;">
+        <img src="https://yazmart.com/logo%20yazmart.png" alt="YazMart Logo" style="height: 44px; width: auto; max-width: 220px; object-fit: contain; margin: 0 auto 6px auto; display: block; background-color: #ffffff; padding: 6px 14px; border-radius: 10px;" />
+        <p style="color: #a1a1aa; margin: 6px 0 0 0; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;">Official Purchase Invoice</p>
       </div>
 
       <!-- Content -->
@@ -162,31 +162,33 @@ export async function sendOrderInvoiceEmail(data: OrderInvoiceData) {
   </html>
   `;
 
-  try {
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        from: "YazMart Shop <shop@yazmart.com>",
-        to: [data.customerEmail],
-        subject: `Order Invoice #${data.orderId.slice(0, 8).toUpperCase()} - YazMart`,
-        html: emailHtml,
-      }),
-    });
+    try {
+      const fromEmail = process.env.RESEND_FROM_EMAIL || "YazMart Shop <shop@yazmart.com>";
 
-    const resData = await response.json();
-    if (!response.ok) {
-      console.error("❌ Resend Email API Error:", resData);
-      return { success: false, error: resData };
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          from: fromEmail,
+          to: [data.customerEmail],
+          subject: `Order Invoice #${data.orderId.slice(0, 8).toUpperCase()} - YazMart`,
+          html: emailHtml,
+        }),
+      });
+
+      const resData = await response.json();
+      if (!response.ok) {
+        console.error("❌ Resend Email API Error:", resData);
+        return { success: false, error: resData };
+      }
+
+      console.log(`✅ Invoice email sent successfully via Resend from ${fromEmail}:`, resData);
+      return { success: true, resData };
+    } catch (err) {
+      console.error("❌ Failed to send Resend email:", err);
+      return { success: false, error: err };
     }
-
-    console.log("✅ Invoice email sent successfully via Resend:", resData);
-    return { success: true, resData };
-  } catch (err) {
-    console.error("❌ Failed to send Resend email:", err);
-    return { success: false, error: err };
   }
-}

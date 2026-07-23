@@ -39,9 +39,9 @@ export default function FaviconSpinner({
         {/* Center Logo / Favicon with Pulse Animation */}
         <div className="relative z-10 flex items-center justify-center animate-pulse">
           <img
-            src="/favicon.ico"
+            src="/logo_icon_round.png"
             alt="YazMart Loading"
-            className={`${imgSizes[size]} object-contain rounded-full`}
+            className={`${imgSizes[size]} object-contain rounded-full shadow-sm`}
           />
         </div>
       </div>
