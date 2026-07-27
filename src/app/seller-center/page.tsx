@@ -12,8 +12,6 @@ import { redirect } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
-export const unstable_instant = false;
-
 export default async function SellerCenterPage() {
   const session = await getEnterpriseUserSession();
 

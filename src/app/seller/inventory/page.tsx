@@ -4,8 +4,6 @@ import { getActiveSellerStore } from "@/actions/seller-session";
 import { prisma } from "@/lib/prisma";
 import { Warehouse, AlertTriangle, AlertCircle, CheckCircle } from "lucide-react";
 
-export const unstable_instant = false;
-
 export default async function SellerInventoryPage({
   searchParams
 }: {

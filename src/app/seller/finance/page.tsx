@@ -6,8 +6,6 @@ import {
   CircleDollarSign, ArrowUpRight, Clock, ShieldCheck, Wallet, ArrowDownRight 
 } from "lucide-react";
 
-export const unstable_instant = false;
-
 export default async function SellerFinancePage({
   searchParams
 }: {

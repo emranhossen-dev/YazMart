@@ -36,7 +36,6 @@ const DEFAULT_CONFIG = {
 };
 
 export async function getHomepageConfig() {
-  "use cache";
   try {
     let config = await prisma.homepageConfig.findUnique({
       where: { id: "default" }

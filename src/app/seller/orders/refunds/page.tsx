@@ -3,8 +3,6 @@ import { notFound } from "next/navigation";
 import { getActiveSellerStore } from "@/actions/seller-session";
 import { HelpCircle, RefreshCw } from "lucide-react";
 
-export const unstable_instant = false;
-
 export default async function SellerRefundsPage({
   searchParams
 }: {

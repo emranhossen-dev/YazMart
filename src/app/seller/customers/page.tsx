@@ -4,8 +4,6 @@ import { getActiveSellerStore } from "@/actions/seller-session";
 import { prisma } from "@/lib/prisma";
 import { Users, Mail, Phone, MapPin, ShoppingBag } from "lucide-react";
 
-export const unstable_instant = false;
-
 interface CustomerLog {
   name: string;
   email: string;

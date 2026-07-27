@@ -3,8 +3,6 @@ import { notFound } from "next/navigation";
 import { getActiveSellerStore } from "@/actions/seller-session";
 import SettingsClient from "./SettingsClient";
 
-export const unstable_instant = false;
-
 export default async function SellerSettingsPage({
   searchParams
 }: {

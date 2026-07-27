@@ -2,8 +2,6 @@ import React from "react";
 import { getAdminStores } from "@/actions/seller";
 import AdminStoresClient from "./AdminStoresClient";
 
-export const unstable_instant = false;
-
 export default async function AdminStoresPage() {
   const storesRes = await getAdminStores();
 

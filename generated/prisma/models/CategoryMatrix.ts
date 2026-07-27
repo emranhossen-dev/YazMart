@@ -50,6 +50,7 @@ export type CategoryMatrixMinAggregateOutputType = {
   meta_desc: string | null
   meta_keywords: string | null
   canonical_url: string | null
+  store_id: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -70,6 +71,7 @@ export type CategoryMatrixMaxAggregateOutputType = {
   meta_desc: string | null
   meta_keywords: string | null
   canonical_url: string | null
+  store_id: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -90,6 +92,7 @@ export type CategoryMatrixCountAggregateOutputType = {
   meta_desc: number
   meta_keywords: number
   canonical_url: number
+  store_id: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -120,6 +123,7 @@ export type CategoryMatrixMinAggregateInputType = {
   meta_desc?: true
   meta_keywords?: true
   canonical_url?: true
+  store_id?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -140,6 +144,7 @@ export type CategoryMatrixMaxAggregateInputType = {
   meta_desc?: true
   meta_keywords?: true
   canonical_url?: true
+  store_id?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -160,6 +165,7 @@ export type CategoryMatrixCountAggregateInputType = {
   meta_desc?: true
   meta_keywords?: true
   canonical_url?: true
+  store_id?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -267,6 +273,7 @@ export type CategoryMatrixGroupByOutputType = {
   meta_desc: string | null
   meta_keywords: string | null
   canonical_url: string | null
+  store_id: string | null
   createdAt: Date
   updatedAt: Date
   _count: CategoryMatrixCountAggregateOutputType | null
@@ -310,11 +317,13 @@ export type CategoryMatrixWhereInput = {
   meta_desc?: Prisma.StringNullableFilter<"CategoryMatrix"> | string | null
   meta_keywords?: Prisma.StringNullableFilter<"CategoryMatrix"> | string | null
   canonical_url?: Prisma.StringNullableFilter<"CategoryMatrix"> | string | null
+  store_id?: Prisma.StringNullableFilter<"CategoryMatrix"> | string | null
   createdAt?: Prisma.DateTimeFilter<"CategoryMatrix"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"CategoryMatrix"> | Date | string
   parent?: Prisma.XOR<Prisma.CategoryMatrixNullableScalarRelationFilter, Prisma.CategoryMatrixWhereInput> | null
   sub_categories?: Prisma.CategoryMatrixListRelationFilter
   products?: Prisma.PimProductsListRelationFilter
+  store?: Prisma.XOR<Prisma.StoreNullableScalarRelationFilter, Prisma.StoreWhereInput> | null
 }
 
 export type CategoryMatrixOrderByWithRelationInput = {
@@ -333,11 +342,13 @@ export type CategoryMatrixOrderByWithRelationInput = {
   meta_desc?: Prisma.SortOrderInput | Prisma.SortOrder
   meta_keywords?: Prisma.SortOrderInput | Prisma.SortOrder
   canonical_url?: Prisma.SortOrderInput | Prisma.SortOrder
+  store_id?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   parent?: Prisma.CategoryMatrixOrderByWithRelationInput
   sub_categories?: Prisma.CategoryMatrixOrderByRelationAggregateInput
   products?: Prisma.PimProductsOrderByRelationAggregateInput
+  store?: Prisma.StoreOrderByWithRelationInput
 }
 
 export type CategoryMatrixWhereUniqueInput = Prisma.AtLeast<{
@@ -359,11 +370,13 @@ export type CategoryMatrixWhereUniqueInput = Prisma.AtLeast<{
   meta_desc?: Prisma.StringNullableFilter<"CategoryMatrix"> | string | null
   meta_keywords?: Prisma.StringNullableFilter<"CategoryMatrix"> | string | null
   canonical_url?: Prisma.StringNullableFilter<"CategoryMatrix"> | string | null
+  store_id?: Prisma.StringNullableFilter<"CategoryMatrix"> | string | null
   createdAt?: Prisma.DateTimeFilter<"CategoryMatrix"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"CategoryMatrix"> | Date | string
   parent?: Prisma.XOR<Prisma.CategoryMatrixNullableScalarRelationFilter, Prisma.CategoryMatrixWhereInput> | null
   sub_categories?: Prisma.CategoryMatrixListRelationFilter
   products?: Prisma.PimProductsListRelationFilter
+  store?: Prisma.XOR<Prisma.StoreNullableScalarRelationFilter, Prisma.StoreWhereInput> | null
 }, "id" | "slug">
 
 export type CategoryMatrixOrderByWithAggregationInput = {
@@ -382,6 +395,7 @@ export type CategoryMatrixOrderByWithAggregationInput = {
   meta_desc?: Prisma.SortOrderInput | Prisma.SortOrder
   meta_keywords?: Prisma.SortOrderInput | Prisma.SortOrder
   canonical_url?: Prisma.SortOrderInput | Prisma.SortOrder
+  store_id?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.CategoryMatrixCountOrderByAggregateInput
@@ -410,6 +424,7 @@ export type CategoryMatrixScalarWhereWithAggregatesInput = {
   meta_desc?: Prisma.StringNullableWithAggregatesFilter<"CategoryMatrix"> | string | null
   meta_keywords?: Prisma.StringNullableWithAggregatesFilter<"CategoryMatrix"> | string | null
   canonical_url?: Prisma.StringNullableWithAggregatesFilter<"CategoryMatrix"> | string | null
+  store_id?: Prisma.StringNullableWithAggregatesFilter<"CategoryMatrix"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"CategoryMatrix"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"CategoryMatrix"> | Date | string
 }
@@ -434,6 +449,7 @@ export type CategoryMatrixCreateInput = {
   parent?: Prisma.CategoryMatrixCreateNestedOneWithoutSub_categoriesInput
   sub_categories?: Prisma.CategoryMatrixCreateNestedManyWithoutParentInput
   products?: Prisma.PimProductsCreateNestedManyWithoutCategoryInput
+  store?: Prisma.StoreCreateNestedOneWithoutCategoriesInput
 }
 
 export type CategoryMatrixUncheckedCreateInput = {
@@ -452,6 +468,7 @@ export type CategoryMatrixUncheckedCreateInput = {
   meta_desc?: string | null
   meta_keywords?: string | null
   canonical_url?: string | null
+  store_id?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   sub_categories?: Prisma.CategoryMatrixUncheckedCreateNestedManyWithoutParentInput
@@ -478,6 +495,7 @@ export type CategoryMatrixUpdateInput = {
   parent?: Prisma.CategoryMatrixUpdateOneWithoutSub_categoriesNestedInput
   sub_categories?: Prisma.CategoryMatrixUpdateManyWithoutParentNestedInput
   products?: Prisma.PimProductsUpdateManyWithoutCategoryNestedInput
+  store?: Prisma.StoreUpdateOneWithoutCategoriesNestedInput
 }
 
 export type CategoryMatrixUncheckedUpdateInput = {
@@ -496,6 +514,7 @@ export type CategoryMatrixUncheckedUpdateInput = {
   meta_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_keywords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   canonical_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  store_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sub_categories?: Prisma.CategoryMatrixUncheckedUpdateManyWithoutParentNestedInput
@@ -518,6 +537,7 @@ export type CategoryMatrixCreateManyInput = {
   meta_desc?: string | null
   meta_keywords?: string | null
   canonical_url?: string | null
+  store_id?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -557,6 +577,7 @@ export type CategoryMatrixUncheckedUpdateManyInput = {
   meta_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_keywords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   canonical_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  store_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -592,6 +613,7 @@ export type CategoryMatrixCountOrderByAggregateInput = {
   meta_desc?: Prisma.SortOrder
   meta_keywords?: Prisma.SortOrder
   canonical_url?: Prisma.SortOrder
+  store_id?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -616,6 +638,7 @@ export type CategoryMatrixMaxOrderByAggregateInput = {
   meta_desc?: Prisma.SortOrder
   meta_keywords?: Prisma.SortOrder
   canonical_url?: Prisma.SortOrder
+  store_id?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -636,6 +659,7 @@ export type CategoryMatrixMinOrderByAggregateInput = {
   meta_desc?: Prisma.SortOrder
   meta_keywords?: Prisma.SortOrder
   canonical_url?: Prisma.SortOrder
+  store_id?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -721,6 +745,48 @@ export type CategoryMatrixUpdateOneRequiredWithoutProductsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.CategoryMatrixUpdateToOneWithWhereWithoutProductsInput, Prisma.CategoryMatrixUpdateWithoutProductsInput>, Prisma.CategoryMatrixUncheckedUpdateWithoutProductsInput>
 }
 
+export type CategoryMatrixCreateNestedManyWithoutStoreInput = {
+  create?: Prisma.XOR<Prisma.CategoryMatrixCreateWithoutStoreInput, Prisma.CategoryMatrixUncheckedCreateWithoutStoreInput> | Prisma.CategoryMatrixCreateWithoutStoreInput[] | Prisma.CategoryMatrixUncheckedCreateWithoutStoreInput[]
+  connectOrCreate?: Prisma.CategoryMatrixCreateOrConnectWithoutStoreInput | Prisma.CategoryMatrixCreateOrConnectWithoutStoreInput[]
+  createMany?: Prisma.CategoryMatrixCreateManyStoreInputEnvelope
+  connect?: Prisma.CategoryMatrixWhereUniqueInput | Prisma.CategoryMatrixWhereUniqueInput[]
+}
+
+export type CategoryMatrixUncheckedCreateNestedManyWithoutStoreInput = {
+  create?: Prisma.XOR<Prisma.CategoryMatrixCreateWithoutStoreInput, Prisma.CategoryMatrixUncheckedCreateWithoutStoreInput> | Prisma.CategoryMatrixCreateWithoutStoreInput[] | Prisma.CategoryMatrixUncheckedCreateWithoutStoreInput[]
+  connectOrCreate?: Prisma.CategoryMatrixCreateOrConnectWithoutStoreInput | Prisma.CategoryMatrixCreateOrConnectWithoutStoreInput[]
+  createMany?: Prisma.CategoryMatrixCreateManyStoreInputEnvelope
+  connect?: Prisma.CategoryMatrixWhereUniqueInput | Prisma.CategoryMatrixWhereUniqueInput[]
+}
+
+export type CategoryMatrixUpdateManyWithoutStoreNestedInput = {
+  create?: Prisma.XOR<Prisma.CategoryMatrixCreateWithoutStoreInput, Prisma.CategoryMatrixUncheckedCreateWithoutStoreInput> | Prisma.CategoryMatrixCreateWithoutStoreInput[] | Prisma.CategoryMatrixUncheckedCreateWithoutStoreInput[]
+  connectOrCreate?: Prisma.CategoryMatrixCreateOrConnectWithoutStoreInput | Prisma.CategoryMatrixCreateOrConnectWithoutStoreInput[]
+  upsert?: Prisma.CategoryMatrixUpsertWithWhereUniqueWithoutStoreInput | Prisma.CategoryMatrixUpsertWithWhereUniqueWithoutStoreInput[]
+  createMany?: Prisma.CategoryMatrixCreateManyStoreInputEnvelope
+  set?: Prisma.CategoryMatrixWhereUniqueInput | Prisma.CategoryMatrixWhereUniqueInput[]
+  disconnect?: Prisma.CategoryMatrixWhereUniqueInput | Prisma.CategoryMatrixWhereUniqueInput[]
+  delete?: Prisma.CategoryMatrixWhereUniqueInput | Prisma.CategoryMatrixWhereUniqueInput[]
+  connect?: Prisma.CategoryMatrixWhereUniqueInput | Prisma.CategoryMatrixWhereUniqueInput[]
+  update?: Prisma.CategoryMatrixUpdateWithWhereUniqueWithoutStoreInput | Prisma.CategoryMatrixUpdateWithWhereUniqueWithoutStoreInput[]
+  updateMany?: Prisma.CategoryMatrixUpdateManyWithWhereWithoutStoreInput | Prisma.CategoryMatrixUpdateManyWithWhereWithoutStoreInput[]
+  deleteMany?: Prisma.CategoryMatrixScalarWhereInput | Prisma.CategoryMatrixScalarWhereInput[]
+}
+
+export type CategoryMatrixUncheckedUpdateManyWithoutStoreNestedInput = {
+  create?: Prisma.XOR<Prisma.CategoryMatrixCreateWithoutStoreInput, Prisma.CategoryMatrixUncheckedCreateWithoutStoreInput> | Prisma.CategoryMatrixCreateWithoutStoreInput[] | Prisma.CategoryMatrixUncheckedCreateWithoutStoreInput[]
+  connectOrCreate?: Prisma.CategoryMatrixCreateOrConnectWithoutStoreInput | Prisma.CategoryMatrixCreateOrConnectWithoutStoreInput[]
+  upsert?: Prisma.CategoryMatrixUpsertWithWhereUniqueWithoutStoreInput | Prisma.CategoryMatrixUpsertWithWhereUniqueWithoutStoreInput[]
+  createMany?: Prisma.CategoryMatrixCreateManyStoreInputEnvelope
+  set?: Prisma.CategoryMatrixWhereUniqueInput | Prisma.CategoryMatrixWhereUniqueInput[]
+  disconnect?: Prisma.CategoryMatrixWhereUniqueInput | Prisma.CategoryMatrixWhereUniqueInput[]
+  delete?: Prisma.CategoryMatrixWhereUniqueInput | Prisma.CategoryMatrixWhereUniqueInput[]
+  connect?: Prisma.CategoryMatrixWhereUniqueInput | Prisma.CategoryMatrixWhereUniqueInput[]
+  update?: Prisma.CategoryMatrixUpdateWithWhereUniqueWithoutStoreInput | Prisma.CategoryMatrixUpdateWithWhereUniqueWithoutStoreInput[]
+  updateMany?: Prisma.CategoryMatrixUpdateManyWithWhereWithoutStoreInput | Prisma.CategoryMatrixUpdateManyWithWhereWithoutStoreInput[]
+  deleteMany?: Prisma.CategoryMatrixScalarWhereInput | Prisma.CategoryMatrixScalarWhereInput[]
+}
+
 export type CategoryMatrixCreateWithoutSub_categoriesInput = {
   id?: string
   name: string
@@ -740,6 +806,7 @@ export type CategoryMatrixCreateWithoutSub_categoriesInput = {
   updatedAt?: Date | string
   parent?: Prisma.CategoryMatrixCreateNestedOneWithoutSub_categoriesInput
   products?: Prisma.PimProductsCreateNestedManyWithoutCategoryInput
+  store?: Prisma.StoreCreateNestedOneWithoutCategoriesInput
 }
 
 export type CategoryMatrixUncheckedCreateWithoutSub_categoriesInput = {
@@ -758,6 +825,7 @@ export type CategoryMatrixUncheckedCreateWithoutSub_categoriesInput = {
   meta_desc?: string | null
   meta_keywords?: string | null
   canonical_url?: string | null
+  store_id?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   products?: Prisma.PimProductsUncheckedCreateNestedManyWithoutCategoryInput
@@ -787,6 +855,7 @@ export type CategoryMatrixCreateWithoutParentInput = {
   updatedAt?: Date | string
   sub_categories?: Prisma.CategoryMatrixCreateNestedManyWithoutParentInput
   products?: Prisma.PimProductsCreateNestedManyWithoutCategoryInput
+  store?: Prisma.StoreCreateNestedOneWithoutCategoriesInput
 }
 
 export type CategoryMatrixUncheckedCreateWithoutParentInput = {
@@ -804,6 +873,7 @@ export type CategoryMatrixUncheckedCreateWithoutParentInput = {
   meta_desc?: string | null
   meta_keywords?: string | null
   canonical_url?: string | null
+  store_id?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   sub_categories?: Prisma.CategoryMatrixUncheckedCreateNestedManyWithoutParentInput
@@ -850,6 +920,7 @@ export type CategoryMatrixUpdateWithoutSub_categoriesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   parent?: Prisma.CategoryMatrixUpdateOneWithoutSub_categoriesNestedInput
   products?: Prisma.PimProductsUpdateManyWithoutCategoryNestedInput
+  store?: Prisma.StoreUpdateOneWithoutCategoriesNestedInput
 }
 
 export type CategoryMatrixUncheckedUpdateWithoutSub_categoriesInput = {
@@ -868,6 +939,7 @@ export type CategoryMatrixUncheckedUpdateWithoutSub_categoriesInput = {
   meta_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_keywords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   canonical_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  store_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   products?: Prisma.PimProductsUncheckedUpdateManyWithoutCategoryNestedInput
@@ -908,6 +980,7 @@ export type CategoryMatrixScalarWhereInput = {
   meta_desc?: Prisma.StringNullableFilter<"CategoryMatrix"> | string | null
   meta_keywords?: Prisma.StringNullableFilter<"CategoryMatrix"> | string | null
   canonical_url?: Prisma.StringNullableFilter<"CategoryMatrix"> | string | null
+  store_id?: Prisma.StringNullableFilter<"CategoryMatrix"> | string | null
   createdAt?: Prisma.DateTimeFilter<"CategoryMatrix"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"CategoryMatrix"> | Date | string
 }
@@ -931,6 +1004,7 @@ export type CategoryMatrixCreateWithoutProductsInput = {
   updatedAt?: Date | string
   parent?: Prisma.CategoryMatrixCreateNestedOneWithoutSub_categoriesInput
   sub_categories?: Prisma.CategoryMatrixCreateNestedManyWithoutParentInput
+  store?: Prisma.StoreCreateNestedOneWithoutCategoriesInput
 }
 
 export type CategoryMatrixUncheckedCreateWithoutProductsInput = {
@@ -949,6 +1023,7 @@ export type CategoryMatrixUncheckedCreateWithoutProductsInput = {
   meta_desc?: string | null
   meta_keywords?: string | null
   canonical_url?: string | null
+  store_id?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   sub_categories?: Prisma.CategoryMatrixUncheckedCreateNestedManyWithoutParentInput
@@ -989,6 +1064,7 @@ export type CategoryMatrixUpdateWithoutProductsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   parent?: Prisma.CategoryMatrixUpdateOneWithoutSub_categoriesNestedInput
   sub_categories?: Prisma.CategoryMatrixUpdateManyWithoutParentNestedInput
+  store?: Prisma.StoreUpdateOneWithoutCategoriesNestedInput
 }
 
 export type CategoryMatrixUncheckedUpdateWithoutProductsInput = {
@@ -1007,9 +1083,80 @@ export type CategoryMatrixUncheckedUpdateWithoutProductsInput = {
   meta_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_keywords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   canonical_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  store_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sub_categories?: Prisma.CategoryMatrixUncheckedUpdateManyWithoutParentNestedInput
+}
+
+export type CategoryMatrixCreateWithoutStoreInput = {
+  id?: string
+  name: string
+  slug: string
+  image_url?: string | null
+  banner_url?: string | null
+  icon?: string | null
+  description?: string | null
+  status?: string
+  is_featured?: boolean
+  sort_order?: number
+  meta_title?: string | null
+  meta_desc?: string | null
+  meta_keywords?: string | null
+  canonical_url?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  parent?: Prisma.CategoryMatrixCreateNestedOneWithoutSub_categoriesInput
+  sub_categories?: Prisma.CategoryMatrixCreateNestedManyWithoutParentInput
+  products?: Prisma.PimProductsCreateNestedManyWithoutCategoryInput
+}
+
+export type CategoryMatrixUncheckedCreateWithoutStoreInput = {
+  id?: string
+  name: string
+  slug: string
+  parent_id?: string | null
+  image_url?: string | null
+  banner_url?: string | null
+  icon?: string | null
+  description?: string | null
+  status?: string
+  is_featured?: boolean
+  sort_order?: number
+  meta_title?: string | null
+  meta_desc?: string | null
+  meta_keywords?: string | null
+  canonical_url?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sub_categories?: Prisma.CategoryMatrixUncheckedCreateNestedManyWithoutParentInput
+  products?: Prisma.PimProductsUncheckedCreateNestedManyWithoutCategoryInput
+}
+
+export type CategoryMatrixCreateOrConnectWithoutStoreInput = {
+  where: Prisma.CategoryMatrixWhereUniqueInput
+  create: Prisma.XOR<Prisma.CategoryMatrixCreateWithoutStoreInput, Prisma.CategoryMatrixUncheckedCreateWithoutStoreInput>
+}
+
+export type CategoryMatrixCreateManyStoreInputEnvelope = {
+  data: Prisma.CategoryMatrixCreateManyStoreInput | Prisma.CategoryMatrixCreateManyStoreInput[]
+  skipDuplicates?: boolean
+}
+
+export type CategoryMatrixUpsertWithWhereUniqueWithoutStoreInput = {
+  where: Prisma.CategoryMatrixWhereUniqueInput
+  update: Prisma.XOR<Prisma.CategoryMatrixUpdateWithoutStoreInput, Prisma.CategoryMatrixUncheckedUpdateWithoutStoreInput>
+  create: Prisma.XOR<Prisma.CategoryMatrixCreateWithoutStoreInput, Prisma.CategoryMatrixUncheckedCreateWithoutStoreInput>
+}
+
+export type CategoryMatrixUpdateWithWhereUniqueWithoutStoreInput = {
+  where: Prisma.CategoryMatrixWhereUniqueInput
+  data: Prisma.XOR<Prisma.CategoryMatrixUpdateWithoutStoreInput, Prisma.CategoryMatrixUncheckedUpdateWithoutStoreInput>
+}
+
+export type CategoryMatrixUpdateManyWithWhereWithoutStoreInput = {
+  where: Prisma.CategoryMatrixScalarWhereInput
+  data: Prisma.XOR<Prisma.CategoryMatrixUpdateManyMutationInput, Prisma.CategoryMatrixUncheckedUpdateManyWithoutStoreInput>
 }
 
 export type CategoryMatrixCreateManyParentInput = {
@@ -1027,6 +1174,7 @@ export type CategoryMatrixCreateManyParentInput = {
   meta_desc?: string | null
   meta_keywords?: string | null
   canonical_url?: string | null
+  store_id?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1050,6 +1198,7 @@ export type CategoryMatrixUpdateWithoutParentInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sub_categories?: Prisma.CategoryMatrixUpdateManyWithoutParentNestedInput
   products?: Prisma.PimProductsUpdateManyWithoutCategoryNestedInput
+  store?: Prisma.StoreUpdateOneWithoutCategoriesNestedInput
 }
 
 export type CategoryMatrixUncheckedUpdateWithoutParentInput = {
@@ -1067,6 +1216,7 @@ export type CategoryMatrixUncheckedUpdateWithoutParentInput = {
   meta_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   meta_keywords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   canonical_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  store_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sub_categories?: Prisma.CategoryMatrixUncheckedUpdateManyWithoutParentNestedInput
@@ -1077,6 +1227,91 @@ export type CategoryMatrixUncheckedUpdateManyWithoutParentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
+  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banner_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  is_featured?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sort_order?: Prisma.IntFieldUpdateOperationsInput | number
+  meta_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  meta_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  meta_keywords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonical_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  store_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type CategoryMatrixCreateManyStoreInput = {
+  id?: string
+  name: string
+  slug: string
+  parent_id?: string | null
+  image_url?: string | null
+  banner_url?: string | null
+  icon?: string | null
+  description?: string | null
+  status?: string
+  is_featured?: boolean
+  sort_order?: number
+  meta_title?: string | null
+  meta_desc?: string | null
+  meta_keywords?: string | null
+  canonical_url?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type CategoryMatrixUpdateWithoutStoreInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banner_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  is_featured?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sort_order?: Prisma.IntFieldUpdateOperationsInput | number
+  meta_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  meta_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  meta_keywords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonical_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  parent?: Prisma.CategoryMatrixUpdateOneWithoutSub_categoriesNestedInput
+  sub_categories?: Prisma.CategoryMatrixUpdateManyWithoutParentNestedInput
+  products?: Prisma.PimProductsUpdateManyWithoutCategoryNestedInput
+}
+
+export type CategoryMatrixUncheckedUpdateWithoutStoreInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  parent_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banner_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  is_featured?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sort_order?: Prisma.IntFieldUpdateOperationsInput | number
+  meta_title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  meta_desc?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  meta_keywords?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  canonical_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sub_categories?: Prisma.CategoryMatrixUncheckedUpdateManyWithoutParentNestedInput
+  products?: Prisma.PimProductsUncheckedUpdateManyWithoutCategoryNestedInput
+}
+
+export type CategoryMatrixUncheckedUpdateManyWithoutStoreInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  parent_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   image_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   banner_url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1148,11 +1383,13 @@ export type CategoryMatrixSelect<ExtArgs extends runtime.Types.Extensions.Intern
   meta_desc?: boolean
   meta_keywords?: boolean
   canonical_url?: boolean
+  store_id?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   parent?: boolean | Prisma.CategoryMatrix$parentArgs<ExtArgs>
   sub_categories?: boolean | Prisma.CategoryMatrix$sub_categoriesArgs<ExtArgs>
   products?: boolean | Prisma.CategoryMatrix$productsArgs<ExtArgs>
+  store?: boolean | Prisma.CategoryMatrix$storeArgs<ExtArgs>
   _count?: boolean | Prisma.CategoryMatrixCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["categoryMatrix"]>
 
@@ -1172,9 +1409,11 @@ export type CategoryMatrixSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   meta_desc?: boolean
   meta_keywords?: boolean
   canonical_url?: boolean
+  store_id?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   parent?: boolean | Prisma.CategoryMatrix$parentArgs<ExtArgs>
+  store?: boolean | Prisma.CategoryMatrix$storeArgs<ExtArgs>
 }, ExtArgs["result"]["categoryMatrix"]>
 
 export type CategoryMatrixSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1193,9 +1432,11 @@ export type CategoryMatrixSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   meta_desc?: boolean
   meta_keywords?: boolean
   canonical_url?: boolean
+  store_id?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   parent?: boolean | Prisma.CategoryMatrix$parentArgs<ExtArgs>
+  store?: boolean | Prisma.CategoryMatrix$storeArgs<ExtArgs>
 }, ExtArgs["result"]["categoryMatrix"]>
 
 export type CategoryMatrixSelectScalar = {
@@ -1214,22 +1455,26 @@ export type CategoryMatrixSelectScalar = {
   meta_desc?: boolean
   meta_keywords?: boolean
   canonical_url?: boolean
+  store_id?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type CategoryMatrixOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "parent_id" | "image_url" | "banner_url" | "icon" | "description" | "status" | "is_featured" | "sort_order" | "meta_title" | "meta_desc" | "meta_keywords" | "canonical_url" | "createdAt" | "updatedAt", ExtArgs["result"]["categoryMatrix"]>
+export type CategoryMatrixOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "parent_id" | "image_url" | "banner_url" | "icon" | "description" | "status" | "is_featured" | "sort_order" | "meta_title" | "meta_desc" | "meta_keywords" | "canonical_url" | "store_id" | "createdAt" | "updatedAt", ExtArgs["result"]["categoryMatrix"]>
 export type CategoryMatrixInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   parent?: boolean | Prisma.CategoryMatrix$parentArgs<ExtArgs>
   sub_categories?: boolean | Prisma.CategoryMatrix$sub_categoriesArgs<ExtArgs>
   products?: boolean | Prisma.CategoryMatrix$productsArgs<ExtArgs>
+  store?: boolean | Prisma.CategoryMatrix$storeArgs<ExtArgs>
   _count?: boolean | Prisma.CategoryMatrixCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type CategoryMatrixIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   parent?: boolean | Prisma.CategoryMatrix$parentArgs<ExtArgs>
+  store?: boolean | Prisma.CategoryMatrix$storeArgs<ExtArgs>
 }
 export type CategoryMatrixIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   parent?: boolean | Prisma.CategoryMatrix$parentArgs<ExtArgs>
+  store?: boolean | Prisma.CategoryMatrix$storeArgs<ExtArgs>
 }
 
 export type $CategoryMatrixPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1238,6 +1483,7 @@ export type $CategoryMatrixPayload<ExtArgs extends runtime.Types.Extensions.Inte
     parent: Prisma.$CategoryMatrixPayload<ExtArgs> | null
     sub_categories: Prisma.$CategoryMatrixPayload<ExtArgs>[]
     products: Prisma.$PimProductsPayload<ExtArgs>[]
+    store: Prisma.$StorePayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1255,6 +1501,7 @@ export type $CategoryMatrixPayload<ExtArgs extends runtime.Types.Extensions.Inte
     meta_desc: string | null
     meta_keywords: string | null
     canonical_url: string | null
+    store_id: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["categoryMatrix"]>
@@ -1654,6 +1901,7 @@ export interface Prisma__CategoryMatrixClient<T, Null = never, ExtArgs extends r
   parent<T extends Prisma.CategoryMatrix$parentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CategoryMatrix$parentArgs<ExtArgs>>): Prisma.Prisma__CategoryMatrixClient<runtime.Types.Result.GetResult<Prisma.$CategoryMatrixPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   sub_categories<T extends Prisma.CategoryMatrix$sub_categoriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CategoryMatrix$sub_categoriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CategoryMatrixPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   products<T extends Prisma.CategoryMatrix$productsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CategoryMatrix$productsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PimProductsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  store<T extends Prisma.CategoryMatrix$storeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CategoryMatrix$storeArgs<ExtArgs>>): Prisma.Prisma__StoreClient<runtime.Types.Result.GetResult<Prisma.$StorePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1698,6 +1946,7 @@ export interface CategoryMatrixFieldRefs {
   readonly meta_desc: Prisma.FieldRef<"CategoryMatrix", 'String'>
   readonly meta_keywords: Prisma.FieldRef<"CategoryMatrix", 'String'>
   readonly canonical_url: Prisma.FieldRef<"CategoryMatrix", 'String'>
+  readonly store_id: Prisma.FieldRef<"CategoryMatrix", 'String'>
   readonly createdAt: Prisma.FieldRef<"CategoryMatrix", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"CategoryMatrix", 'DateTime'>
 }
@@ -2165,6 +2414,25 @@ export type CategoryMatrix$productsArgs<ExtArgs extends runtime.Types.Extensions
   take?: number
   skip?: number
   distinct?: Prisma.PimProductsScalarFieldEnum | Prisma.PimProductsScalarFieldEnum[]
+}
+
+/**
+ * CategoryMatrix.store
+ */
+export type CategoryMatrix$storeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Store
+   */
+  select?: Prisma.StoreSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Store
+   */
+  omit?: Prisma.StoreOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.StoreInclude<ExtArgs> | null
+  where?: Prisma.StoreWhereInput
 }
 
 /**

@@ -44,11 +44,6 @@ export async function generateMetadata({
   };
 }
 
-export const unstable_instant = {
-  prefetch: "static",
-  unstable_disableValidation: true,
-};
-
 export default async function ProductDetailPage({
   params,
 }: {

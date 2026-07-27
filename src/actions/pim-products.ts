@@ -555,6 +555,9 @@ export async function runSchemaMigration() {
       ALTER TABLE "public"."profiles" ADD COLUMN IF NOT EXISTS "phone" TEXT;
     `);
     await prisma.$executeRawUnsafe(`
+      ALTER TABLE "public"."CategoryMatrix" ADD COLUMN IF NOT EXISTS "store_id" TEXT;
+    `);
+    await prisma.$executeRawUnsafe(`
       CREATE TABLE IF NOT EXISTS "public"."StockItem" (
         "id" TEXT NOT NULL,
         "product_id" TEXT NOT NULL,

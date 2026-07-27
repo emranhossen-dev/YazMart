@@ -17,6 +17,7 @@ import {
 import Swal from "sweetalert2";
 import { toast } from "react-hot-toast";
 import BarcodeRenderer from "@/components/BarcodeRenderer";
+import ImageUploader from "@/components/ImageUploader";
 import { handlePrintMemo } from "@/utils/print-memo";
 
 interface Category {
@@ -804,95 +805,26 @@ function ProductAddFormContent() {
             )}
 
             {activeTab === "media" && (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {/* Featured Main Image */}
-                <div className="space-y-2">
-                  <label className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Featured Main Image (Primary Thumbnail)</label>
-                  <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center bg-[var(--background)]/20 p-4 border border-[var(--border)] rounded-xl">
-                    {featuredImage ? (
-                      <div className="w-20 h-20 border border-[var(--border)] rounded bg-[var(--background)] flex items-center justify-center overflow-hidden p-1 relative shrink-0">
-                        <img src={featuredImage} className="w-full h-full object-contain" />
-                        <button 
-                          type="button" 
-                          onClick={() => {
-                            setFeaturedImage("");
-                            setFormData((p: any) => ({ ...p, featured_image: "" }));
-                          }} 
-                          className="absolute -top-1 -right-1 p-0.5 bg-rose-600 text-white rounded-full hover:bg-rose-700 shadow cursor-pointer"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="w-20 h-20 border border-dashed border-[var(--border)] rounded flex items-center justify-center text-[var(--muted-foreground)] shrink-0">
-                        <ImageIcon className="h-8 w-8" />
-                      </div>
-                    )}
-                    <div className="flex-1 space-y-2 w-full">
-                      <div className="flex items-center gap-2">
-                        <input 
-                          type="file" 
-                          accept="image/*" 
-                          onChange={(e) => handleImageUpload(e, true)} 
-                          className="hidden" 
-                          id="featured-image-file" 
-                        />
-                        <label 
-                          htmlFor="featured-image-file" 
-                          className="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase rounded cursor-pointer transition-colors"
-                        >
-                          {uploading ? "Uploading File..." : "📁 Upload Image File"}
-                        </label>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] shrink-0">Or Paste Image URL:</span>
-                        <input
-                          type="url"
-                          value={featuredImage}
-                          onChange={(e) => {
-                            setFeaturedImage(e.target.value);
-                            setFormData((p: any) => ({ ...p, featured_image: e.target.value }));
-                          }}
-                          placeholder="https://example.com/product.jpg"
-                          className="w-full px-3 py-1.5 text-xs rounded bg-[var(--background)] border border-[var(--border)] focus:outline-none"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <ImageUploader
+                  label="Featured Main Image (Primary Thumbnail)"
+                  value={featuredImage}
+                  onChange={(url) => {
+                    setFeaturedImage(url);
+                    setFormData((p: any) => ({ ...p, featured_image: url }));
+                  }}
+                  multiple={false}
+                />
 
                 {/* Multiple Gallery Images */}
-                <div>
-                  <label className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Gallery Images (Unlimited)</label>
-                  <div className="border-2 border-dashed border-[var(--border)] rounded-xl p-6 text-center bg-[var(--background)]/30 flex flex-col items-center justify-center cursor-pointer relative">
-                    <UploadCloud className="h-8 w-8 text-[var(--muted-foreground)] mb-2" />
-                    <p className="text-xs font-bold">Select or drag/drop multiple gallery files</p>
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      multiple 
-                      onChange={(e) => handleImageUpload(e, false)} 
-                      className="absolute inset-0 opacity-0 cursor-pointer" 
-                    />
-                  </div>
-
-                  {galleryImages.length > 0 && (
-                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 mt-4">
-                      {galleryImages.map((img, idx) => (
-                        <div key={idx} className="aspect-square border border-[var(--border)] bg-[var(--background)] rounded p-1 flex items-center justify-center overflow-hidden relative">
-                          <img src={img} className="max-h-full max-w-full object-contain rounded" />
-                          <button 
-                            type="button" 
-                            onClick={() => setGalleryImages(prev => prev.filter((_, i) => i !== idx))} 
-                            className="absolute top-0.5 right-0.5 p-0.5 bg-rose-600 text-white rounded-full hover:bg-rose-700 cursor-pointer"
-                          >
-                            <X className="h-2.5 w-2.5" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <ImageUploader
+                  label="Gallery Images (Multiple Upload with Progress Bar)"
+                  value={galleryImages}
+                  onChange={(urls) => setGalleryImages(urls)}
+                  multiple={true}
+                  maxFiles={12}
+                />
 
                 <div>
                   <label className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-1">YouTube Video embed URL</label>

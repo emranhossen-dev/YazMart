@@ -10,6 +10,7 @@ export async function createCategory(formData: FormData) {
   const image_url = formData.get("image_url") as string || null;
   const status = formData.get("status") as string || "ACTIVE";
   const is_featured = formData.get("is_featured") === "true";
+  const store_id = formData.get("store_id") as string || null;
 
   if (!name) {
     return { error: "Category name is strictly required." };
@@ -30,11 +31,14 @@ export async function createCategory(formData: FormData) {
         image_url,
         status,
         is_featured,
+        store_id,
       },
     });
 
     revalidatePath("/admin/categories");
+    revalidatePath("/seller/categories");
     revalidatePath("/admin/products");
+    revalidatePath("/seller/products");
     revalidatePath("/");
     return { success: "Category registered successfully!" };
   } catch (error: any) {
@@ -50,6 +54,7 @@ export async function updateCategory(id: string, formData: FormData) {
   const image_url = formData.get("image_url") as string || null;
   const status = formData.get("status") as string || "ACTIVE";
   const is_featured = formData.get("is_featured") === "true";
+  const store_id = formData.get("store_id") as string || undefined;
 
   if (!name) {
     return { error: "Category name is required." };
@@ -70,11 +75,14 @@ export async function updateCategory(id: string, formData: FormData) {
         image_url,
         status,
         is_featured,
+        ...(store_id ? { store_id } : {}),
       },
     });
 
     revalidatePath("/admin/categories");
+    revalidatePath("/seller/categories");
     revalidatePath("/admin/products");
+    revalidatePath("/seller/products");
     revalidatePath("/");
     return { success: "Category updated successfully!" };
   } catch (error: any) {
@@ -83,12 +91,15 @@ export async function updateCategory(id: string, formData: FormData) {
   }
 }
 
-export async function getCategories() {
+export async function getCategories(storeId?: string) {
   try {
+    const whereCondition = storeId ? { store_id: storeId } : {};
     const categories = await prisma.categoryMatrix.findMany({
+      where: whereCondition,
       include: {
         parent: true,
         sub_categories: true,
+        store: true,
       },
       orderBy: { name: "asc" },
     });
@@ -96,6 +107,45 @@ export async function getCategories() {
   } catch (error) {
     console.error("❌ FETCH CATEGORIES ERROR:", error);
     return { error: "Failed to load categories.", categories: [] };
+  }
+}
+
+export async function getSellerCategories(storeId: string) {
+  try {
+    const categories = await prisma.categoryMatrix.findMany({
+      where: { store_id: storeId },
+      include: {
+        parent: true,
+        sub_categories: true,
+        products: true,
+      },
+      orderBy: { name: "asc" },
+    });
+    return { categories };
+  } catch (error) {
+    console.error("❌ FETCH SELLER CATEGORIES ERROR:", error);
+    return { error: "Failed to load seller categories.", categories: [] };
+  }
+}
+
+export async function getMainStoreCategoriesWithSellerGroups() {
+  try {
+    const globalCategories = await prisma.categoryMatrix.findMany({
+      where: { store_id: null, status: "ACTIVE" },
+      include: { sub_categories: true },
+      orderBy: { name: "asc" },
+    });
+
+    const sellerCategories = await prisma.categoryMatrix.findMany({
+      where: { store_id: { not: null }, status: "ACTIVE" },
+      include: { store: true },
+      orderBy: { name: "asc" },
+    });
+
+    return { globalCategories, sellerCategories };
+  } catch (error) {
+    console.error("❌ FETCH STORE CATEGORIES GROUPED ERROR:", error);
+    return { globalCategories: [], sellerCategories: [] };
   }
 }
 

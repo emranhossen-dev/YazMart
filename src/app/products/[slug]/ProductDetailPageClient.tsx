@@ -10,7 +10,7 @@ import {
   Heart, ShieldCheck, Package, ShoppingBag, Star,
   Frown, Truck, RotateCcw, Share2, ChevronLeft, ChevronRight, X,
   Minus, Plus, Check, Store as StoreIcon, MessageSquare, ArrowRight, Sparkles, HelpCircle,
-  ThumbsUp, Send, Filter
+  ThumbsUp, Send, Filter, ZoomIn
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -119,6 +119,20 @@ export default function ProductDetailPageClient({
   const [activeImage, setActiveImage] = useState(product.featured_image || "");
   const [qty, setQty] = useState(1);
   const [quickViewProduct, setQuickViewProduct] = useState<any>(null);
+
+  // Interactive Hover Zoom State
+  const [zoomPos, setZoomPos] = useState({ x: 50, y: 50, isHovered: false });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setZoomPos({ x, y, isHovered: true });
+  };
+
+  const handleMouseLeave = () => {
+    setZoomPos((prev) => ({ ...prev, isHovered: false }));
+  };
 
   // Variant selection
   const variants: any[] = product.variants || [];
@@ -247,17 +261,35 @@ export default function ProductDetailPageClient({
 
           {/* 1. Product Image & Gallery */}
           <div className="space-y-4">
-            <div className="relative flex h-[340px] sm:h-[420px] md:h-[480px] w-full items-center justify-center overflow-hidden rounded-2xl bg-slate-100 border border-slate-200/80">
+            <div 
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
+              className="relative flex h-[340px] sm:h-[440px] md:h-[500px] w-full items-center justify-center overflow-hidden rounded-2xl bg-white border border-slate-200/80 shadow-inner group cursor-zoom-in select-none"
+            >
               {activeImage ? (
-                <img src={activeImage} alt={product.name} className="w-full h-full object-cover transition-transform duration-300" />
+                <img 
+                  src={activeImage} 
+                  alt={product.name} 
+                  style={{
+                    transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
+                  }}
+                  className={`w-full h-full object-contain p-3 transition-transform duration-200 ease-out ${
+                    zoomPos.isHovered ? "scale-220" : "scale-100"
+                  }`} 
+                />
               ) : (
                 <ShoppingBag className="h-16 w-16 text-slate-300" />
               )}
               {discount && (
-                <span className="absolute top-3 left-3 rounded-md bg-[#ff6600] px-2.5 py-1 text-xs font-black text-white shadow-xs">
+                <span className="absolute top-3 left-3 z-10 rounded-md bg-[#ff6600] px-2.5 py-1 text-xs font-black text-white shadow-xs pointer-events-none">
                   -{discount}%
                 </span>
               )}
+              <div className={`absolute bottom-3 right-3 z-10 flex items-center gap-1.5 rounded-xl bg-slate-950/80 backdrop-blur-md px-3 py-1.5 text-[11px] font-bold text-white transition-opacity duration-200 pointer-events-none ${
+                zoomPos.isHovered ? "opacity-0" : "opacity-90"
+              }`}>
+                <ZoomIn className="h-3.5 w-3.5 text-amber-400" /> Hover to Zoom
+              </div>
             </div>
 
             {allImages.length > 1 && (

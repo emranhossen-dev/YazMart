@@ -57,6 +57,7 @@ export default async function StoreDetailPage({
     <StorePageClient
       store={res.store}
       initialProducts={res.products || []}
+      storeCategories={res.storeCategories || []}
     />
   );
 }

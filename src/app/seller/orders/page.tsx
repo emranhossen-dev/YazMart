@@ -4,8 +4,6 @@ import { getActiveSellerStore } from "@/actions/seller-session";
 import { getSellerOrders } from "@/actions/seller";
 import SellerOrdersClient from "./SellerOrdersClient";
 
-export const unstable_instant = false;
-
 export default async function SellerOrdersPage({
   searchParams
 }: {

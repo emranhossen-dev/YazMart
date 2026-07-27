@@ -6,8 +6,6 @@ import { Award } from "lucide-react";
 
 import SellerBrandsClient from "./SellerBrandsClient";
 
-export const unstable_instant = false;
-
 export default async function SellerBrandsPage({
   searchParams
 }: {

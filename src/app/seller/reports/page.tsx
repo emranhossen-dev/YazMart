@@ -4,8 +4,6 @@ import { getActiveSellerStore } from "@/actions/seller-session";
 import { prisma } from "@/lib/prisma";
 import { FileBarChart2, Download, Table, FileText, ChevronRight } from "lucide-react";
 
-export const unstable_instant = false;
-
 export default async function SellerReportsPage({
   searchParams
 }: {

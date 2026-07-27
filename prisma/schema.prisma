@@ -643,6 +643,8 @@ model CategoryMatrix {
   parent          CategoryMatrix?  @relation("CategoryToSub", fields: [parent_id], references: [id], onDelete: Cascade)
   sub_categories  CategoryMatrix[] @relation("CategoryToSub")
   products        PimProducts[]
+  store_id        String?
+  store           Store?           @relation(fields: [store_id], references: [id], onDelete: Cascade)
 
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -849,6 +851,7 @@ model Store {
   colors      Json?         // Theme custom colors for the seller's storefront
   products    PimProducts[]
   sub_orders  SubOrder[]
+  categories  CategoryMatrix[]
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 

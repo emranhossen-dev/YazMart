@@ -53,17 +53,32 @@ function serializeProduct(p: any) {
 
 // ১. ন্যাভিগেশন এবং হোম পেজ সেকশন ডেটা
 export async function getShopData(selectedCategorySlug?: string) {
-  "use cache";
   try {
-    const categories = await prisma.categoryMatrix.findMany({
-      where: { status: "ACTIVE", parent_id: null },
-      include: {
-        sub_categories: {
-          where: { status: "ACTIVE" }
-        }
-      },
-      orderBy: { name: "asc" },
-    });
+    let categories: any[] = [];
+    try {
+      categories = await prisma.categoryMatrix.findMany({
+        where: { status: "ACTIVE", parent_id: null, store_id: null },
+        include: {
+          sub_categories: {
+            where: { status: "ACTIVE" }
+          }
+        },
+        orderBy: { name: "asc" },
+      });
+    } catch {
+      try {
+        await prisma.$executeRawUnsafe('ALTER TABLE "public"."CategoryMatrix" ADD COLUMN IF NOT EXISTS "store_id" TEXT;');
+      } catch {}
+      categories = await prisma.categoryMatrix.findMany({
+        where: { status: "ACTIVE", parent_id: null },
+        include: {
+          sub_categories: {
+            where: { status: "ACTIVE" }
+          }
+        },
+        orderBy: { name: "asc" },
+      });
+    }
 
     const baseWhere: any = { status: "PUBLISHED" };
     if (selectedCategorySlug && selectedCategorySlug !== "all") {
@@ -114,7 +129,6 @@ export async function getCategoryProducts(categorySlug: string, filters?: {
   maxPrice?: number;
   sortBy?: string;
 }) {
-  "use cache";
   try {
     // ১. মূল ক্যাটাগরি এবং তার সাব-ক্যাটাগরি রিলেশন আনা
     const category = await prisma.categoryMatrix.findUnique({
@@ -182,7 +196,6 @@ export async function getCategoryProducts(categorySlug: string, filters?: {
 
 // ৩. প্রোডাক্ট ডিটেল পেজ এবং রিলেটেড প্রোডাক্ট
 export async function getProductDetails(slug: string) {
-  "use cache";
   try {
     const rawProduct = await prisma.pimProducts.findUnique({
       where: { slug },
@@ -235,12 +248,22 @@ export async function getAllProducts(filters?: {
   sortBy?: string;
   categoryId?: string;
 }) {
-  "use cache";
   try {
-    const categories = await prisma.categoryMatrix.findMany({
-      where: { status: "ACTIVE" },
-      orderBy: { name: "asc" },
-    });
+    let categories: any[] = [];
+    try {
+      categories = await prisma.categoryMatrix.findMany({
+        where: { status: "ACTIVE", store_id: null },
+        orderBy: { name: "asc" },
+      });
+    } catch {
+      try {
+        await prisma.$executeRawUnsafe('ALTER TABLE "public"."CategoryMatrix" ADD COLUMN IF NOT EXISTS "store_id" TEXT;');
+      } catch {}
+      categories = await prisma.categoryMatrix.findMany({
+        where: { status: "ACTIVE" },
+        orderBy: { name: "asc" },
+      });
+    }
 
     const where: any = {
       status: "PUBLISHED"
@@ -290,7 +313,7 @@ export async function getStoreData(slug: string) {
     });
 
     if (!store) {
-      return { store: null, products: [], error: "Store not found" };
+      return { store: null, products: [], storeCategories: [], error: "Store not found" };
     }
 
     const products = await prisma.pimProducts.findMany({
@@ -305,6 +328,11 @@ export async function getStoreData(slug: string) {
       orderBy: { createdAt: "desc" },
     });
 
+    const storeCategories = await prisma.categoryMatrix.findMany({
+      where: { store_id: store.id, status: "ACTIVE" },
+      orderBy: { name: "asc" }
+    });
+
     const serializedStore = {
       ...store,
       createdAt: store.createdAt.toISOString(),
@@ -316,10 +344,11 @@ export async function getStoreData(slug: string) {
     return {
       store: serializedStore,
       products: formattedProducts,
+      storeCategories,
       error: null,
     };
   } catch (error: any) {
     console.error("❌ STORE DATA FETCH ERROR:", error);
-    return { store: null, products: [], error: error.message };
+    return { store: null, products: [], storeCategories: [], error: error.message };
   }
 }

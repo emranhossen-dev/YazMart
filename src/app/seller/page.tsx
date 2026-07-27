@@ -8,8 +8,6 @@ import {
   IndianRupee, ShoppingBag, Receipt, Truck, ArrowUpRight, Plus, Settings, Store
 } from "lucide-react";
 
-export const unstable_instant = false;
-
 import { getActiveSellerStore } from "@/actions/seller-session";
 
 export default async function SellerDashboardPage({

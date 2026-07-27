@@ -4,8 +4,6 @@ import { getActiveSellerStore } from "@/actions/seller-session";
 import { prisma } from "@/lib/prisma";
 import SellerProductsClient from "./SellerProductsClient";
 
-export const unstable_instant = false;
-
 function serializePimProduct(p: any) {
   const toNum = (val: any) => {
     if (val === null || val === undefined) return null;

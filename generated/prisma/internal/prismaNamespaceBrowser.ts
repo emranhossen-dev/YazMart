@@ -549,6 +549,7 @@ export const CategoryMatrixScalarFieldEnum = {
   meta_desc: 'meta_desc',
   meta_keywords: 'meta_keywords',
   canonical_url: 'canonical_url',
+  store_id: 'store_id',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

@@ -130,10 +130,11 @@ function ProductCard({ product, wishlist, onToggleWishlist, onAddToCart, onBuyNo
   );
 }
 
-export default function StorePageClient({ store, initialProducts }: StorePageClientProps) {
+export default function StorePageClient({ store, initialProducts, storeCategories = [] }: StorePageClientProps) {
   const { wishlist, addToCart, toggleWishlist } = useShopStore();
   const [products] = useState<any[]>(initialProducts);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const [sortBy, setSortBy] = useState("newest");
   const [quickViewProduct, setQuickViewProduct] = useState<any>(null);
 
@@ -150,6 +151,11 @@ export default function StorePageClient({ store, initialProducts }: StorePageCli
 
   const filteredProducts = useMemo(() => {
     let result = [...products];
+
+    // Category filter
+    if (selectedCategory !== "ALL") {
+      result = result.filter(p => p.category_id === selectedCategory || p.category?.id === selectedCategory);
+    }
 
     // Search filter
     if (searchTerm.trim() !== "") {
@@ -170,7 +176,7 @@ export default function StorePageClient({ store, initialProducts }: StorePageCli
     }
 
     return result;
-  }, [products, searchTerm, sortBy]);
+  }, [products, selectedCategory, searchTerm, sortBy]);
 
   const handleToggleWishlist = (prod: any) => {
     toggleWishlist(prod);
@@ -230,6 +236,38 @@ export default function StorePageClient({ store, initialProducts }: StorePageCli
             </div>
           </div>
         </div>
+
+        {/* Store Specific Categories Horizontal Filter */}
+        {storeCategories.length > 0 && (
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+            <button
+              onClick={() => setSelectedCategory("ALL")}
+              className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                selectedCategory === "ALL"
+                  ? "bg-zinc-950 text-white shadow-sm"
+                  : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200"
+              }`}
+            >
+              All Items ({products.length})
+            </button>
+            {storeCategories.map((c: any) => (
+              <button
+                key={c.id}
+                onClick={() => setSelectedCategory(c.id)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                  selectedCategory === c.id
+                    ? "bg-zinc-950 text-white shadow-sm"
+                    : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200"
+                }`}
+              >
+                {c.image_url && (
+                  <img src={c.image_url} alt={c.name} className="h-4 w-4 rounded-full object-cover" />
+                )}
+                <span>{c.name}</span>
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Toolbar Section */}
         <div className="space-y-6">

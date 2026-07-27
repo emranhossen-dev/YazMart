@@ -177,21 +177,29 @@ export default function SellerLayoutClient({
         ["--accent" as any]: secondaryColor,
       }}
     >
-      {/* Sidebar for Desktop */}
+      {/* Mobile Drawer Backdrop Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-zinc-950/60 backdrop-blur-xs transition-opacity lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar for Desktop & Mobile Drawer */}
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 border-r border-zinc-200 bg-white flex flex-col transition-transform duration-300 lg:translate-x-0 lg:static lg:h-auto ${
-        sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        sidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
       }`}>
         {/* Sidebar Header */}
         <div className="h-16 flex items-center justify-between px-5 border-b border-zinc-100 bg-zinc-50/50">
-          <Link href={getLinkHref("/seller")} className="flex items-center gap-2.5">
+          <Link href={getLinkHref("/seller")} onClick={() => setSidebarOpen(false)} className="flex items-center gap-2.5">
             <img src="/logo yazmart.png" alt="YazMart Logo" className="h-8 w-auto object-contain max-w-[120px]" />
             <div>
               <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest leading-none">Seller Hub</span>
               <h2 className="text-xs font-black text-zinc-950 truncate max-w-[100px]">{store.name}</h2>
             </div>
           </Link>
-          <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1 text-zinc-500 hover:bg-zinc-100 rounded-lg">
-            <X className="h-4 w-4" />
+          <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1.5 text-zinc-500 hover:bg-zinc-100 rounded-lg cursor-pointer">
+            <X className="h-5 w-5" />
           </button>
         </div>
 
@@ -205,6 +213,7 @@ export default function SellerLayoutClient({
                 <Link 
                   key={item.name} 
                   href={getLinkHref(item.href)} 
+                  onClick={() => setSidebarOpen(false)}
                   className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all border-l-2 ${
                     isActive 
                       ? "bg-zinc-900 text-white border-zinc-900 shadow-sm" 
@@ -239,6 +248,7 @@ export default function SellerLayoutClient({
                         <Link 
                           key={sub.name} 
                           href={getLinkHref(sub.href)} 
+                          onClick={() => setSidebarOpen(false)}
                           className={`block px-3 py-1.5 rounded-lg text-[11px] font-bold transition-colors border-l-2 ${
                             isSubActive 
                               ? "text-zinc-950 bg-zinc-100/70 border-zinc-950" 
@@ -262,6 +272,7 @@ export default function SellerLayoutClient({
             href={`/stores/${store.slug}`}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => setSidebarOpen(false)}
             className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900"
           >
             <StoreIcon className="h-4 w-4" />
@@ -269,6 +280,7 @@ export default function SellerLayoutClient({
           </a>
           <Link
             href="/"
+            onClick={() => setSidebarOpen(false)}
             className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900"
           >
             <Home className="h-4 w-4" />
@@ -285,30 +297,31 @@ export default function SellerLayoutClient({
       </aside>
 
       {/* Main Content Workspace */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         {/* Impersonation Banner Alert */}
         {overrideStoreId && (
-          <div className="bg-amber-500 text-white px-6 py-2.5 text-[11px] font-extrabold flex items-center gap-2 justify-center shadow-sm select-none z-40 animate-pulse">
-            <ShieldAlert className="h-4 w-4" />
-            <span>IMPERSONATION CONSOLE: You are currently inspecting and managing "{store.name}" as a YazMart Administrator.</span>
+          <div className="bg-amber-500 text-white px-3 py-2 text-[10px] sm:text-[11px] font-extrabold flex items-center gap-2 justify-center shadow-sm select-none z-40 animate-pulse text-center">
+            <ShieldAlert className="h-4 w-4 shrink-0" />
+            <span>IMPERSONATION CONSOLE: Managing "{store.name}" as Admin.</span>
           </div>
         )}
 
         {/* Top Header Bar */}
-        <header className="h-16 flex items-center justify-between border-b border-zinc-200 bg-white px-6 md:px-8 shrink-0">
-          <div className="flex items-center gap-3">
-            <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-1.5 text-zinc-500 hover:bg-zinc-100 rounded-lg">
+        <header className="h-16 flex items-center justify-between border-b border-zinc-200 bg-white px-3 sm:px-6 md:px-8 shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 text-zinc-600 hover:bg-zinc-100 rounded-xl cursor-pointer">
               <Menu className="h-5 w-5" />
             </button>
-            <div className="hidden lg:block">
-              <span className="rounded-full bg-zinc-100 px-3 py-1.5 text-[10px] font-bold text-zinc-800 border border-zinc-200">
-                Managed Merchant: <strong className="text-zinc-950">{store.name}</strong>
+            <div className="truncate">
+              <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-3 py-1 text-[10px] sm:text-xs font-bold text-zinc-800 border border-zinc-200 truncate">
+                <span className="hidden sm:inline">Managed Store:</span>
+                <strong className="text-zinc-950 truncate max-w-[120px] sm:max-w-[200px]">{store.name}</strong>
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="text-right">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <div className="text-right hidden sm:block">
               <p className="text-xs font-extrabold text-zinc-900">{session.user.name}</p>
               <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">{session.role}</p>
             </div>
@@ -319,7 +332,7 @@ export default function SellerLayoutClient({
         </header>
 
         {/* Dashboard Area */}
-        <main className="flex-1 overflow-y-auto bg-zinc-50 p-6 md:p-8">
+        <main className="flex-1 overflow-y-auto bg-zinc-50 p-3 sm:p-6 md:p-8">
           {children}
         </main>
       </div>
