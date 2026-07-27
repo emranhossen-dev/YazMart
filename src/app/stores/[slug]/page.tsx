@@ -4,6 +4,8 @@ import { headers } from "next/headers";
 import { getStoreData } from "@/actions/shop";
 import StorePageClient from "@/components/StorePageClient";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({
   params,
 }: {

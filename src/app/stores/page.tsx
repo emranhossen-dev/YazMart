@@ -5,6 +5,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Store, ArrowRight, ShieldCheck, Star } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function StoresDirectoryPage() {
   const stores = await prisma.store.findMany({
     where: { status: "ACTIVE" },

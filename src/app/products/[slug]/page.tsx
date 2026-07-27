@@ -4,6 +4,8 @@ import { headers } from "next/headers";
 import { getProductDetails } from "@/actions/shop";
 import ProductDetailPageClient from "./ProductDetailPageClient";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({
   params,
 }: {

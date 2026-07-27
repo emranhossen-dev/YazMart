@@ -7,7 +7,10 @@ const connectionString = process.env.DATABASE_URL;
 const prismaClientSingleton = () => {
   const pool = new pg.Pool({ 
     connectionString,
-    ssl: connectionString?.includes("supabase.com") ? { rejectUnauthorized: false } : undefined
+    ssl: connectionString?.includes("supabase.com") ? { rejectUnauthorized: false } : undefined,
+    max: 3,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
   });
   const adapter = new PrismaPg(pool);
   return new PrismaClient({ adapter });
@@ -21,6 +24,4 @@ const prisma = globalThis.prismaGlobal ?? prismaClientSingleton();
 
 export { prisma };
 
-if (process.env.NODE_ENV !== "production") {
-  globalThis.prismaGlobal = prisma;
-}
+globalThis.prismaGlobal = prisma;
