@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npx cross-env TAILWIND_DISABLE_OXIDE=1 next build --webpack",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "seed:admin": "npx tsx scripts/seed-admin.ts"
@@ -13,7 +13,6 @@
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "@supabase/supabase-js": "^2.108.2",
-    "@tailwindcss/oxide-win32-x64-msvc": "^4.3.3",
     "@tanstack/react-query": "^5.101.0",
     "autoprefixer": "^10.5.4",
     "caniuse-lite": "^1.0.30001806",
